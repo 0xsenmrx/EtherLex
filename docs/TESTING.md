@@ -1,0 +1,267 @@
+# EtherLex: full manual testing workflow
+
+Do the parts in order. Each step says what to do, then **Expect** what you should see. Tick the box or write down what differed. If something fails, note the step number and what you saw (a screenshot helps).
+
+Data you need: a real Canvas account with a personal access token, at least one course with files, some assignments (one submitted, one graded with teacher feedback, one with a due date within 3 days if possible), and if possible a second Canvas account or site.
+
+Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5** Assignments, Activity, Calendar, Grades, Files, **Ctrl+,** settings, **Ctrl+/** all shortcuts, **Esc / Backspace / Alt+Left** back in Files, **F9** performance overlay.
+
+---
+
+## 0. Automatic checks (2 min)
+
+- [x] `flutter analyze` → **Expect** "No issues found".
+- [x] `flutter test` → **Expect** "All tests passed".
+- [x] `flutter run -d windows --profile` → **Expect** the window opens with no red errors in the console.
+
+## 1. Sign-in and sample mode
+
+1. Start with a clean state: sign out if signed in (avatar menu top right, or Settings → Sign out; it asks first).
+- [x] **Expect** the "Connect to Canvas" screen.
+2. Enter a wrong URL (e.g. `abc`), press connect.
+- [x] **Expect** a clear error, not a crash.
+3. Enter the right Canvas URL and a wrong token.
+- [x] **Expect** an "unauthorized/invalid token" style error.
+4. Enter the right URL and token.
+- [x] **Expect** you land in the app and your name shows; assignments start loading.
+5. Close the app fully and reopen.
+- [x] **Expect** you are still signed in (token remembered) with data visible immediately.
+6. Sign out, choose the sample data option.
+- [x] **Expect** the app works with fake courses and no network calls.
+7. Sign out again and sign back in with the real token.
+- [x] **Expect** your real data returns.
+
+## 2. Assignments
+
+1. Press **Alt+1**.
+- [x] **Expect** your assignments grouped/sorted sensibly, with course colour and due time.
+2. Click the refresh control.
+- [x] **Expect** a short spinner, then the list updates without jumping to the top.
+3. Click an assignment.
+- [ ] **Expect** the details pane on the right (a dialog in a narrow window) with the description; links are clickable and open in your browser. J/K move and the pane follows; Esc closes it.
+4. Star an assignment, close and reopen the app.
+- [x] **Expect** the star is still there.
+5. In the sidebar select one course, then another, then clear.
+- [x] **Expect** the list filters to that course and back.
+6. Disable a course (sidebar "Disabled" folder).
+- [x] **Expect** it disappears from lists and counts; selecting it in the Disabled folder still shows it. Enable it again.
+7. On a **submitted** assignment open the dialog.
+- [x] **Expect** a "my submission" section with your file name(s) and a download action.
+8. Download your submitted file.
+- [x] **Expect** a toast "Saved to Downloads" with Open/Show; the file is in Downloads and opens.
+9. On a **graded** assignment with teacher feedback.
+- [-] **Expect** the grade, teacher comments, and any attached feedback files listed.
+10. Download a feedback file.
+- [x] **Expect** it saves to Downloads and opens correctly.
+11. Submit test (use a throw-away assignment or ask first): drag a file onto the dialog, then try the file picker.
+- [x] **Expect** the file is listed before sending, and a clear success or error afterwards. (Multi-file submit is untested: try two files and note the result.)
+12. Open an assignment with attachments from the teacher.
+- [x] **Expect** the attachments list; clicking one previews or downloads it.
+13. Make the dialog content large (long description or lots of feedback).
+- [x] Known: the card grows to full height. Only note anything that is unusable (cannot scroll or close). Esc must close it.
+
+## 3. Activity
+
+1. Press **Alt+2**.
+- [x] **Expect** announcements and grade updates with course names and times.
+2. Click an announcement.
+- [x] **Expect** it opens fully; links are clickable and images load.
+3. Scroll fast with the mouse wheel and with the trackpad if you have one.
+- [x] **Expect** smooth scrolling, no stutter. Press **F9** and confirm frames stay in the green.
+- [x] Known gap: no keyboard navigation yet.
+
+## 4. Calendar
+
+1. Press **Alt+3**.
+- [x] **Expect** a week view with this week; today is marked.
+2. Go to the next and previous week, and back to today.
+- [x] **Expect** assignments appear on the day they are due, at the right time.
+3. Click an item.
+- [x] **Expect** the assignment dialog opens.
+4. Compare two items you know against Canvas's own calendar.
+- [x] **Expect** the same day and time (check the time zone is yours).
+
+## 5. Grades and planner
+
+1. Press **Alt+4**.
+- [x] **Expect** one card per course with percent, letter (if Canvas gives one), and final grade where available. Compare each with Canvas.
+2. Open a course's planner.
+- [x] **Expect** categories (assignment groups) with weights, and your current grade.
+3. Compare "current grade" with Canvas's own total for that course.
+- [x] **Expect** the same (or very close). Write down any course that differs and its weights setup.
+4. Set weights manually (e.g. Quizzes 20, Homework 30, Exam 50).
+- [x] **Expect** the weights total shows 100% and the current grade changes accordingly. With all weights 0 the total must show 0%, not another number.
+5. Add a **custom category**, rename it, move an assignment into it, then delete it.
+- [x] **Expect** the assignment returns to its old group after deleting.
+6. Set a **total count** for a category (e.g. 6 quizzes when only 2 exist).
+- [x] **Expect** the missing 4 are treated as not yet done: the worst/half/steady/best scenarios change and the weight is shared across all 6.
+7. Read the four scenarios (worst, half, steady, best).
+- [x] **Expect** worst ≤ half ≤ best; "same as before" sits in between and shows a letter.
+8. Enter letter quotas (e.g. A+ 10%, A 15%…).
+- [x] **Expect** a "likely letter" and standing estimate appear using class statistics. Note: statistics need Canvas to expose them for the assignment; if absent the estimate should say so, not guess silently.
+9. Close and reopen the app.
+- [x] **Expect** your weights, custom groups, totals and quotas are still there.
+10. Course card on the Grades list.
+- [x] **Expect** it shows "yours X% · likely L" once a plan exists.
+
+## 6. Search
+
+1. Press **Ctrl+K** (then try **Ctrl+F**).
+- [ ] **Expect** the palette opens near the top with the cursor in it. Ctrl+K lists pages and actions before you type; Ctrl+F shows search only.
+2. Type a word from an assignment, an announcement, a grade entry and a file name (one search each).
+- [x] **Expect** results for each kind, labelled by type.
+3. Arrow keys + Enter on a result.
+- [x] **Expect** the item opens.
+4. Press **Esc** inside the opened item.
+- [x] **Expect** you return to search and the cursor is again in the box.
+5. Search for nonsense text.
+- [x] **Expect** a clean "no results" state.
+
+## 7. Files and preview
+
+1. Press **Alt+5**.
+- [x] **Expect** a list of courses; hovering one begins loading its files.
+2. Open a course, then a folder, then a subfolder.
+- [x] **Expect** the breadcrumb updates; **Esc**, **Backspace** and **Alt+Left** each go up one level.
+3. Click breadcrumb parts.
+- [x] **Expect** it jumps to that level.
+4. Hide a folder (eye icon on hover), then use "Hidden folders" to show and restore it.
+- [x] **Expect** Undo toast works; hidden state survives restart.
+5. Hide a course from Files.
+- [x] **Expect** it moves into "Hidden courses" and returns when restored.
+6. Click a PDF, an image, a text file, and a type that cannot be previewed (e.g. .zip).
+- [x] **Expect** previewable files open in the viewer; others download with a toast.
+7. In the PDF viewer scroll, zoom and page through.
+- [x] **Expect** smooth movement, no blank pages.
+8. Use the download icon on a row.
+- [x] **Expect** "Saved to Downloads". Download the same file twice.
+- [x] **Expect** the second copy gets a unique name, nothing overwritten.
+
+## 8. Offline cache
+
+1. Open a PDF preview, close it, open it again.
+- [x] **Expect** the second open is instant (no download wait).
+2. Go back to the folder list.
+- [x] **Expect** that file's row now says "· Offline".
+3. Click **Save offline** on a folder with several files.
+- [x] **Expect** a toast "Saving X of Y for offline…" with a **Stop** button; rows turn "Offline" as they finish.
+4. Click **Stop** midway.
+- [x] **Expect** "Stopped. Saved N files…" (up to 3 in-flight files still finish). Click Save offline again: it continues with the rest.
+5. Click Save offline twice quickly.
+- [x] **Expect** a message that it is already saving, no second batch.
+6. Click Save offline when everything is saved.
+- [x] **Expect** "Everything here is already saved offline."
+7. Open `%APPDATA%\EtherLex\files\<your-canvas-host>\`.
+- [x] **Expect** files named `<id>_<version>_<name>` and no leftover `.part` files after everything finished.
+8. **Go offline** (disconnect Wi-Fi or disable the network adapter). Restart the app.
+- [x] **Expect** assignments and other lists still show cached data.
+9. Open Files → a course you visited before.
+- [x] **Expect** the listing appears with an "Offline copy" label; saved files open fine; unsaved ones fail with a clear message (not a crash).
+10. Open a course you never visited while offline.
+- [x] **Expect** a clear error with a Retry button.
+11. Reconnect and press refresh.
+- [x] **Expect** the "Offline copy" label disappears and data is live.
+12. In the course list, find the **Offline files** row at the bottom and click it.
+- [x] **Expect** "Offline files cleared", the row disappears, and "· Offline" tags are gone. The `files` folder is empty.
+13. Update check: replace a file on Canvas (new upload with the same name), then refresh and open it.
+- [x] **Expect** the new content opens, and only one copy of that file remains in the cache folder.
+
+## 9. Notifications
+
+1. Toggle notifications (avatar menu, Settings, or Ctrl+K, then "notifications").
+- [ ] **Expect** it toggles on/off and the state survives restart.
+2. With it on and an assignment due within the next day or three, restart the app.
+- [x] **Expect** a Windows notification for the deadline.
+3. Restart again.
+- [x] **Expect** the same alert does **not** fire a second time.
+4. When a new grade is posted (or after a grade appeared in the last 3 days).
+- [x] **Expect** a grade notification, grouped if there are many (never a flood; at most 3 at a time).
+5. Switch the bell off and restart.
+- [x] **Expect** no notifications.
+
+## 10. Per-account settings
+
+1. In account A set: disable one course, hide one folder, add a grade plan, switch the bell off.
+2. Sign out, sign in to account B (or a different site) or sample mode.
+- [ ] **Expect** none of A's settings appear (course list, hidden folders, grade plans, bell state all fresh).
+3. Make a different change in B, sign out, sign back into A.
+- [ ] **Expect** A's settings are back and B's changes are not in A.
+4. Open `%APPDATA%\EtherLex\settings\`.
+- [ ] **Expect** one `<host>.json` per account; the old `settings.json` is renamed `settings.json.migrated`.
+5. First launch after the update (if you have an older install).
+- [ ] **Expect** your existing account keeps its old settings.
+
+## 11. Robustness
+
+1. Turn the network off while on the Assignments page and press refresh.
+- [x] **Expect** a calm error or "offline" note; cached data stays visible.
+2. Put the wrong token in (revoke it in Canvas) and refresh.
+- [ ] **Expect** a clear "token invalid, sign in again" path, not a blank screen.
+3. Resize the window from very small to maximised.
+- [x] **Expect** no overflow stripes (yellow/black); layout adapts.
+4. Leave the app running 30 minutes in the background, then use it.
+- [x] **Expect** it still responds, memory stays reasonable (Task Manager, less than about 500 MB).
+5. Click everything quickly (open/close dialogs, switch tabs with Alt+1..5 rapidly).
+- [x] **Expect** no crash, no stuck spinner.
+
+## 12. Performance feel (profile build)
+
+1. Press **F9** and scroll Assignments, Activity and Files with long lists.
+- [x] **Expect** steady frames, no long red spikes.
+2. Open and close a dialog 10 times.
+- [x] **Expect** it opens without a visible hitch.
+3. Switch tabs rapidly.
+- [x] **Expect** instant switching, no flash of empty content when data is cached.
+
+## 13. Release build and installer
+
+1. `flutter build windows --release`
+- [x] **Expect** it builds with no errors.
+2. Run `build\windows\x64\runner\Release\etherlex.exe` directly.
+- [x] **Expect** the app starts; sign-in persists; notifications work.
+3. Install Inno Setup 6 and run `ISCC.exe /DAppVersion=0.1.0 installer\etherlex.iss`.
+- [x] **Expect** `installer\Output\EtherLex-Setup-0.1.0.exe`.
+4. Run the installer on a clean user (or another PC without Flutter).
+- [] **Expect** it installs without admin rights, creates a Start menu entry, and the app starts.
+5. Uninstall from Windows Settings → Apps.
+- [ ] **Expect** the program is removed. (Your data in `%APPDATA%\EtherLex` stays by design; delete it by hand to fully reset.)
+6. Push a tag like `v0.1.0` to GitHub.
+- [ ] **Expect** the Release workflow attaches the installer to a release; the CI workflow is green on every push.
+
+## 14. Look and feel (redesign)
+
+1. Avatar menu → Theme: Light, Dark, Match Windows; and the sun/moon button in the title bar.
+- [ ] **Expect** every screen, dialog, menu and toast reads well in both themes; the choice survives restart.
+2. Settings → Font: Handwritten and Clean.
+- [ ] **Expect** the whole UI switches; document previews always use the clean font.
+3. Narrow the window below about 1080 px, then below 860 px.
+- [ ] **Expect** the sidebar becomes a floating icon rail; details panes become dialogs; the Calendar becomes a day list.
+4. Title bar: drag empty space, double-click it, right-click it, use minimise/maximise/close; hover maximise on Windows 11; resize from the top edge and the top corners; drag a maximised window down from the title bar.
+- [ ] **Expect** normal window behaviour, the window menu on right-click, and the Snap Layouts flyout on hover (the maximise button highlights while hovered and pressed).
+- [ ] **Expect** resizing stays smooth: with F9 on, the top (raster) graph stays mostly green while you drag a corner.
+5. Ctrl+K: type "dark", a course name, and part of an assignment title.
+- [ ] **Expect** matching commands first, then assignments and announcements; Enter runs or opens; Esc closes.
+6. Ctrl+/ and Ctrl+,
+- [ ] **Expect** the shortcuts window (filterable) and Settings.
+7. Keyboard only: Tab through the title bar and dialogs.
+- [ ] **Expect** a violet focus ring on whatever has focus (never after a mouse click).
+
+---
+
+## Bug report template
+
+- Step number:
+- What I did:
+- What I expected:
+- What happened (screenshot or console text):
+- Account/course involved (do not paste your token):
+
+## Bugs
+
+### Bug 1
+
+- Module: Assignments
+- Step Number: 1
+- What I did: opened the assignments **using ALT+1**
+- What I expected: Assignments getting open
+- What happened: Exactly what I expected, but with a windows annoying sound effect

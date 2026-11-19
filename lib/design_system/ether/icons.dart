@@ -1,0 +1,61 @@
+import 'package:flutter/widgets.dart';
+import 'package:lucide_icons_flutter/lucide_icons.dart';
+import 'package:material_ui/material_ui.dart' show Icons;
+
+/// The only file that names icons, so swapping a glyph is a one-line change.
+abstract final class EIcons {
+  static const IconData assignments = LucideIcons.listChecks;
+  static const IconData activity = LucideIcons.zap;
+  static const IconData calendar = LucideIcons.calendarDays;
+  static const IconData grades = LucideIcons.graduationCap;
+  static const IconData files = LucideIcons.folder;
+  static const IconData folderClosed = LucideIcons.folderClosed;
+  static const IconData courses = LucideIcons.library;
+  static const IconData search = LucideIcons.search;
+  static const IconData sun = LucideIcons.sun;
+  static const IconData moon = LucideIcons.moon;
+  static const IconData monitor = LucideIcons.monitor;
+  static const IconData pen = LucideIcons.penLine;
+  static const IconData bell = LucideIcons.bell;
+  static const IconData bellOff = LucideIcons.bellOff;
+  static const IconData signOut = LucideIcons.logOut;
+  static const IconData check = LucideIcons.check;
+  static const IconData chevronRight = LucideIcons.chevronRight;
+  static const IconData chevronLeft = LucideIcons.chevronLeft;
+  static const IconData eye = LucideIcons.eye;
+  static const IconData eyeOff = LucideIcons.eyeOff;
+  static const IconData brand = LucideIcons.feather;
+  static const IconData minimize = LucideIcons.minus;
+  static const IconData maximize = LucideIcons.square;
+  static const IconData restore = LucideIcons.copy;
+  static const IconData close = LucideIcons.x;
+  static const IconData refresh = LucideIcons.refreshCw;
+  static const IconData star = LucideIcons.star;
+
+  /// Lucide has no filled star; Material's matches its weight closely.
+  static const IconData starFilled = Icons.star_rounded;
+  static const IconData download = LucideIcons.download;
+  static const IconData upload = LucideIcons.upload;
+  static const IconData externalLink = LucideIcons.externalLink;
+  static const IconData inbox = LucideIcons.inbox;
+  static const IconData alert = LucideIcons.circleAlert;
+  static const IconData announcement = LucideIcons.megaphone;
+  static const IconData discussion = LucideIcons.messagesSquare;
+  static const IconData message = LucideIcons.mail;
+  static const IconData fileText = LucideIcons.fileText;
+  static const IconData fileSlides = LucideIcons.presentation;
+  static const IconData fileSheet = LucideIcons.sheet;
+  static const IconData fileArchive = LucideIcons.archive;
+  static const IconData fileImage = LucideIcons.image;
+  static const IconData fileVideo = LucideIcons.video;
+  static const IconData fileCode = LucideIcons.fileCode;
+  static const IconData file = LucideIcons.file;
+  static const IconData plus = LucideIcons.plus;
+  static const IconData edit = LucideIcons.pencil;
+  static const IconData trash = LucideIcons.trash2;
+  static const IconData sparkles = LucideIcons.sparkles;
+  static const IconData settings = LucideIcons.settings;
+  static const IconData keyboard = LucideIcons.keyboard;
+  static const IconData loader = LucideIcons.loaderCircle;
+  static const IconData help = LucideIcons.circleHelp;
+}
