@@ -32,7 +32,15 @@ jobs:
         run: |
           choco install innosetup -y --no-progress
           $v = "${{ github.ref_name }}".TrimStart('v')
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DAppVersion=$v" installer\etherlex.iss
+          # Same places installer\build.ps1 looks (Inno Setup 7 first), with 6 as a fallback.
+          $iscc = @(
+            "${env:ProgramFiles(x86)}\Inno Setup 7\ISCC.exe",
+            "$env:ProgramFiles\Inno Setup 7\ISCC.exe",
+            "$env:LOCALAPPDATA\Programs\Inno Setup 7\ISCC.exe",
+            "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc) { throw 'Inno Setup 7 (ISCC.exe) was not found after the install' }
+          & $iscc "/DAppVersion=$v" installer\etherlex.iss
       - name: Checksum and release notes
         shell: pwsh
         run: |

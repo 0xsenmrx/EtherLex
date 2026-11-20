@@ -169,7 +169,11 @@ class SyncNotifier extends Notifier<SyncState> {
       state = SyncState(lastUpdated: DateTime.now());
     } on CanvasException catch (e) {
       if (stale()) return;
-      state = SyncState(error: e.message, lastUpdated: last);
+      state = SyncState(
+        error: e.message,
+        authFailed: e.kind == CanvasErrorKind.unauthorized,
+        lastUpdated: last,
+      );
     } catch (_) {
       if (stale()) return;
       state = SyncState(error: 'Could not refresh. Please try again.', lastUpdated: last);

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart' show Tooltip;
 
 import '../../core/motion/spring_value.dart';
 import '../../core/motion/springs.dart';
@@ -65,7 +66,7 @@ class ESyncButton extends StatelessWidget {
     if (state.loading) {
       label = 'Updating…';
     } else if (state.error != null) {
-      label = 'Update failed';
+      label = state.authFailed ? 'Token rejected' : 'Update failed';
     } else if (last != null) {
       label = 'Updated ${last.hour.toString().padLeft(2, '0')}:${last.minute.toString().padLeft(2, '0')}';
     } else {
@@ -75,7 +76,10 @@ class ESyncButton extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (label != null) ...[
-          Text(label, style: t.metaMuted.copyWith(color: state.error != null ? c.danger : null)),
+          Tooltip(
+            message: state.error ?? '',
+            child: Text(label, style: t.metaMuted.copyWith(color: state.error != null ? c.danger : null)),
+          ),
           const SizedBox(width: 10),
         ],
         ETap(
