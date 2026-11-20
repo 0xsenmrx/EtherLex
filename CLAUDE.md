@@ -31,10 +31,10 @@ Premium, smooth, desktop-first Flutter companion for Canvas LMS. Windows first. 
 - Dart raw strings cannot contain `\'`: use triple-quoted raw strings for regexes with both quote kinds.
 - Lints: use null-aware elements (`?value`) instead of `if (x != null) x`.
 - Add a test for every piece of pure logic (parsing, grade maths, alerts, cache). Files in `test/` mirror the feature.
-- Only the user's own data and the Canvas API are touched. Never log tokens.
+- Only the user's own data and the Canvas API are touched, plus the public GitHub Releases of this repo for the update check (`features/update`; nothing about the user is sent; it can be switched off in Settings). Never log tokens.
 
 ## Status
-Done: sign-in, assignments, activity, calendar week, global search (Ctrl+K / Ctrl+F), clickable links, deadline and grade notifications, submissions and teacher feedback download, grades with planner and class standing, file browser, preview, offline cache, per-account settings.
+Done: update check from GitHub Releases (release notes come from the `## <version>` section of CHANGELOG.md, so every tag needs one and the tag must match the pubspec version), sign-in, assignments, activity, calendar week, global search (Ctrl+K / Ctrl+F), clickable links, deadline and grade notifications, submissions and teacher feedback download, grades with planner and class standing, file browser, preview, offline cache, per-account settings.
 Unverified against real Canvas: `score_statistics`, grades, feedback files, multi-file submit.
 Keep `features/palette/domain/shortcuts.dart` in step with every CallbackShortcuts.
 Manual test plan: `docs/TESTING.md`.

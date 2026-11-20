@@ -18,6 +18,12 @@ jobs:
           channel: stable
           flutter-version: 3.47.8
           cache: true
+      - name: Tag must match the app version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}".TrimStart('v')
+          $pub = (Select-String -Path pubspec.yaml -Pattern '^version:\s*([0-9]+\.[0-9]+\.[0-9]+)').Matches[0].Groups[1].Value
+          if ($tag -ne $pub) { throw "Tag v$tag does not match pubspec.yaml version $pub" }
       - run: flutter pub get
       - run: flutter test
       - run: flutter build windows --release
@@ -27,6 +33,27 @@ jobs:
           choco install innosetup -y --no-progress
           $v = "${{ github.ref_name }}".TrimStart('v')
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "/DAppVersion=$v" installer\etherlex.iss
+      - name: Checksum and release notes
+        shell: pwsh
+        run: |
+          $v = "${{ github.ref_name }}".TrimStart('v')
+          $setup = "installer\Output\EtherLex-Setup-$v.exe"
+          $hash = (Get-FileHash $setup -Algorithm SHA256).Hash.ToLower()
+          "$hash  EtherLex-Setup-$v.exe" | Out-File -Encoding ascii "$setup.sha256"
+          # The release notes are the "## <version>" section of CHANGELOG.md.
+          # The app shows them in its update dialog.
+          $lines = Get-Content CHANGELOG.md
+          $start = ($lines | Select-String -Pattern "^## $([regex]::Escape($v))\s*$" | Select-Object -First 1).LineNumber
+          if (-not $start) { throw "CHANGELOG.md has no '## $v' section" }
+          $notes = @()
+          for ($i = $start; $i -lt $lines.Count; $i++) {
+            if ($lines[$i] -match '^## ') { break }
+            $notes += $lines[$i]
+          }
+          ($notes -join "`n").Trim() | Out-File -Encoding utf8 release-notes.md
       - uses: softprops/action-gh-release@v2
         with:
-          files: installer/Output/EtherLex-Setup-*.exe
+          body_path: release-notes.md
+          files: |
+            installer/Output/EtherLex-Setup-*.exe
+            installer/Output/EtherLex-Setup-*.exe.sha256

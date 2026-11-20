@@ -2,7 +2,7 @@
 ; first. ISCC alone packs whatever release build is lying around, however old.
 ; Output: installer\Output\EtherLex-Setup-<version>.exe
 #ifndef AppVersion
-  #define AppVersion "0.2.1"
+  #define AppVersion "0.2.2"
 #endif
 
 [Setup]
@@ -38,3 +38,5 @@ Name: "{autodesktop}\EtherLex"; Filename: "{app}\etherlex.exe"; Tasks: desktopic
 
 [Run]
 Filename: "{app}\etherlex.exe"; Description: "Start EtherLex"; Flags: nowait postinstall skipifsilent
+; An in-app update runs the setup silently: open the new version when it is done.
+Filename: "{app}\etherlex.exe"; Flags: nowait; Check: WizardSilent
