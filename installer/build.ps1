@@ -15,11 +15,11 @@ flutter build windows --release
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 $iscc = @(
-  "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
-  "$env:ProgramFiles\Inno Setup 6\ISCC.exe",
-  "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe"
+  "${env:ProgramFiles(x86)}\Inno Setup 7\ISCC.exe",
+  "$env:ProgramFiles\Inno Setup 7\ISCC.exe",
+  "$env:LOCALAPPDATA\Programs\Inno Setup 7\ISCC.exe"
 ) | Where-Object { Test-Path $_ } | Select-Object -First 1
-if (-not $iscc) { throw 'Inno Setup 6 (ISCC.exe) was not found. Install it from jrsoftware.org.' }
+if (-not $iscc) { throw 'Inno Setup 7 (ISCC.exe) was not found. Install it from jrsoftware.org.' }
 
 & $iscc "/DAppVersion=$version" installer\etherlex.iss
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
