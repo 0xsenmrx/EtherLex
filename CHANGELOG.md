@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2
+
+### New
+- EtherLex now tells you when a new version is out. A message appears shortly after start, "What's new" shows what changed, and "Update and restart" downloads, checks and installs it without uninstalling anything. Your settings and offline files stay.
+- Settings has a new Updates section: check now, or switch the automatic check off.
+
 ## 0.2.1
 
 ### Fixed
