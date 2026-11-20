@@ -1,7 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/sync/sync_state.dart';
 import '../../design_system/ether/controls.dart';
 import '../../design_system/theme/ether_theme.dart';
 import '../../features/activity/presentation/activity_providers.dart';
