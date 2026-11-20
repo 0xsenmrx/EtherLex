@@ -74,7 +74,7 @@ List<SearchHit> searchAll(
     final cid = i.courseId;
     if (cid != null && excludedCourses.contains(cid)) continue;
     final c = cid == null ? null : courses[cid];
-    final s = scoreOf(i.title, c?.label ?? '', i.body);
+    final s = scoreOf(i.title, c?.label ?? '', i.plainBody);
     if (s > 0) {
       hits.add(SearchHit(kind: HitKind.activity, title: i.title, course: c, score: s, activity: i));
     }

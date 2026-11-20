@@ -24,7 +24,7 @@ ActivityItem? parseActivity(Map<String, dynamic> j, {String? host}) {
   if (title.isEmpty) title = assignmentName is String ? assignmentName : 'Update';
 
   final message = j['message'];
-  var body = message is String ? htmlToText(message, links: true, origin: host == null ? null : 'https://$host') : '';
+  var body = message is String ? htmlToText(message, links: true, fileLinks: true, origin: host == null ? null : 'https://$host') : '';
 
   if (kind == ActivityKind.grade) {
     final grade = j['grade'];
@@ -97,7 +97,7 @@ ActivityItem? parseAnnouncement(Map<String, dynamic> j, {String? host}) {
     id: 'Announcement-${id.toInt()}',
     kind: ActivityKind.announcement,
     title: title.isEmpty ? 'Announcement' : title,
-    body: message is String ? htmlToText(message, maxLength: 6000, links: true, origin: host == null ? null : 'https://$host') : '',
+    body: message is String ? htmlToText(message, maxLength: 6000, links: true, fileLinks: true, origin: host == null ? null : 'https://$host') : '',
     createdAt: when,
     courseId: course,
     url: url is String && url.isNotEmpty ? url : null,

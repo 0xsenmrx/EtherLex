@@ -54,7 +54,7 @@ class ActivityRow extends StatelessWidget {
     final c = context.colors;
     final t = context.text;
     final color = activityColor(item.kind);
-    final excerpt = activityExcerpt(item.body);
+    final excerpt = activityExcerpt(item.plainBody);
     final courseId = item.courseId;
 
     return SizedBox(
