@@ -12,6 +12,7 @@ import '../../../design_system/theme/ether_theme.dart';
 import '../../assignments/presentation/assignments_providers.dart';
 import '../../auth/domain/auth_provider.dart';
 import '../../files/data/file_cache.dart';
+import '../../chat/presentation/ai_settings_section.dart';
 import '../../files/presentation/files_providers.dart';
 import '../../notifications/presentation/notifications_providers.dart';
 import '../../update/data/update_service.dart';
@@ -113,6 +114,7 @@ class SettingsDialog extends ConsumerWidget {
               onChanged: (_) => ref.read(notificationsProvider.notifier).toggle(),
             ),
           ),
+          const AiSettingsSection(),
           if (courses.isNotEmpty) ...[
             const _Section('Courses', hint: 'Turned-off courses leave every list and count'),
             for (final course in courses)
