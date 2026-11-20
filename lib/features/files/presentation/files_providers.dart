@@ -96,3 +96,16 @@ class HiddenFileCoursesNotifier extends Notifier<Set<int>> {
 
 final hiddenFileCoursesProvider =
     NotifierProvider<HiddenFileCoursesNotifier, Set<int>>(HiddenFileCoursesNotifier.new);
+
+/// A file another screen (a link in an announcement) wants the Files tab to
+/// show. Files takes it once and clears it.
+class FileFocusNotifier extends Notifier<FileEntry?> {
+  @override
+  FileEntry? build() => null;
+
+  void request(FileEntry file) => state = file;
+
+  void clear() => state = null;
+}
+
+final fileFocusProvider = NotifierProvider<FileFocusNotifier, FileEntry?>(FileFocusNotifier.new);
