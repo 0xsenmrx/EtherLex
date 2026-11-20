@@ -15,6 +15,7 @@ import '../../features/update/presentation/update_providers.dart';
 import '../app_info.dart';
 import 'rail.dart';
 import 'sidebar.dart';
+import 'token_banner.dart';
 import 'top_bar.dart';
 
 class AppShell extends ConsumerWidget {
@@ -32,6 +33,7 @@ class AppShell extends ConsumerWidget {
     ref.watch(notificationsProvider);
     // Looks for a new release shortly after start (see Settings > Updates).
     ref.watch(updateStartupProvider);
+    final rejected = ref.watch(tokenRejectedProvider);
     ref.listen(updateProvider, (prev, next) {
       final info = next.info;
       if (info == null || !next.announce || next.status != UpdateStatus.available) return;
@@ -63,6 +65,7 @@ class AppShell extends ConsumerWidget {
             return Column(
               children: [
                 TopBar(compact: !wide, onSearch: () => showCommandPalette(context)),
+                if (rejected) const TokenBanner(),
                 Expanded(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
