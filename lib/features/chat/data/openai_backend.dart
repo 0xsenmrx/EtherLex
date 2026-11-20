@@ -2,12 +2,11 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 
+import '../domain/ai_settings.dart';
 import '../domain/chat_backend.dart';
 import '../domain/chat_models.dart';
 import 'http_stream.dart';
 import 'sse.dart';
-
-const String kOpenAiBaseUrl = 'https://api.openai.com/v1';
 
 /// Any service that speaks the OpenAI "chat completions" protocol: OpenAI,
 /// OpenRouter, Groq, or a model running on this computer (Ollama, LM Studio).

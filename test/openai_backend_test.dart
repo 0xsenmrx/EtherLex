@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:etherlex/features/chat/data/openai_backend.dart';
 import 'package:etherlex/features/chat/data/sse.dart';
+import 'package:etherlex/features/chat/domain/ai_settings.dart';
 import 'package:etherlex/features/chat/domain/chat_backend.dart';
 import 'package:etherlex/features/chat/domain/chat_models.dart';
 import 'package:flutter_test/flutter_test.dart';
