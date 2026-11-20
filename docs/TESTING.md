@@ -200,7 +200,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5**
 1. Turn the network off while on the Assignments page and press refresh.
 - [x] **Expect** a calm error or "offline" note; cached data stays visible.
 2. Put the wrong token in (revoke it in Canvas) and refresh.
-- [ ] **Expect** a clear "token invalid, sign in again" path, not a blank screen.
+- [ ] **Expect** the refresh button says "Token rejected" (hover shows the reason) and a red bar under the title bar offers **Sign in again**, which takes you to the connect screen. The cached data stays visible until then. A refresh that works clears the bar.
 3. Resize the window from very small to maximised.
 - [x] **Expect** no overflow stripes (yellow/black); layout adapts.
 4. Leave the app running 30 minutes in the background, then use it.
