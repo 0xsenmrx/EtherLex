@@ -4,7 +4,7 @@ Do the parts in order. Each step says what to do, then **Expect** what you shoul
 
 Data you need: a real Canvas account with a personal access token, at least one course with files, some assignments (one submitted, one graded with teacher feedback, one with a due date within 3 days if possible), and if possible a second Canvas account or site.
 
-Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5** Assignments, Activity, Calendar, Grades, Files, **Ctrl+,** settings, **Ctrl+/** all shortcuts, **Esc / Backspace / Alt+Left** back in Files, **F9** performance overlay.
+Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6** Assignments, Activity, Calendar, Grades, Files, Assistant, **Ctrl+,** settings, **Ctrl+/** all shortcuts, **Esc / Backspace / Alt+Left** back in Files, **F9** performance overlay.
 
 ---
 
@@ -249,6 +249,23 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5**
 - [ ] **Expect** the shortcuts window (filterable) and Settings.
 7. Keyboard only: Tab through the title bar and dialogs.
 - [ ] **Expect** a violet focus ring on whatever has focus (never after a mouse click).
+
+## 15. AI assistant (needs your own API key)
+
+1. Sample mode: open **Assistant** (Alt+6) and send "hello".
+- [ ] **Expect** your message on the right, "Thinking..." and then a canned answer that appears piece by piece. Copy puts the answer on the clipboard; "Answer again" replaces it.
+2. Real account with no key: open **Assistant**.
+- [ ] **Expect** "Add an API key to start" with an Open settings button that opens Settings.
+3. Settings, AI assistant: pick Anthropic, paste a key, Save. Open **Assistant** and ask a question.
+- [ ] **Expect** a streamed answer with Markdown (lists, bold, code blocks) shown properly. Settings says the key is saved and never shows it again. Remove key brings the empty state back.
+4. Press Shift+Enter in the box, then Enter.
+- [ ] **Expect** a new line, then the message is sent. While an answer is coming, the send button becomes Stop and keeps what arrived.
+5. Enter a wrong key and ask something.
+- [ ] **Expect** a red banner "The API key was not accepted" with a Settings button. Turn Wi-Fi off and ask: "offline" banner with Retry; Retry works once Wi-Fi is back.
+6. New chat, ask something else, then History.
+- [ ] **Expect** both chats listed newest first; clicking one opens it; the bin deletes it. Restart the app: chats are still there.
+7. Settings, OpenAI-compatible: type a model name and the base URL of your service, Save.
+- [ ] **Expect** answers stream from that service. Your key is not in `%APPDATA%/EtherLex` (it is in the Windows credential store).
 
 ---
 
