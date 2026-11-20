@@ -18,6 +18,13 @@ void main() {
     expect(s.openAiBaseUrl, kOpenAiBaseUrl);
   });
 
+  test('DeepSeek is a provider with its own default model and address', () {
+    final s = const AiSettings().copyWith(provider: AiProvider.deepseek);
+    expect(s.model, 'deepseek-chat');
+    expect(AiProvider.deepseek.label, 'DeepSeek');
+    expect(kDeepSeekBaseUrl, 'https://api.deepseek.com');
+  });
+
   test('each provider remembers its own model', () {
     final s = const AiSettings().withModel(AiProvider.openai, ' gpt-x ').copyWith(provider: AiProvider.openai);
     expect(s.model, 'gpt-x');

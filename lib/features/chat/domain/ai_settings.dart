@@ -1,8 +1,10 @@
 const String kOpenAiBaseUrl = 'https://api.openai.com/v1';
+const String kDeepSeekBaseUrl = 'https://api.deepseek.com';
 
 enum AiProvider {
   anthropic('Anthropic (Claude)', 'claude-sonnet-5-5'),
-  openai('OpenAI-compatible', '');
+  openai('OpenAI-compatible', ''),
+  deepseek('DeepSeek', 'deepseek-chat');
 
   const AiProvider(this.label, this.defaultModel);
 

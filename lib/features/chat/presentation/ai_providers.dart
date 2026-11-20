@@ -87,6 +87,7 @@ final chatBackendProvider = Provider<Future<ChatBackend> Function()>((ref) {
     return switch (settings.provider) {
       AiProvider.anthropic => AnthropicBackend(apiKey: key, model: settings.model),
       AiProvider.openai => OpenAiBackend(apiKey: key, model: settings.model, baseUrl: settings.openAiBaseUrl),
+      AiProvider.deepseek => OpenAiBackend(apiKey: key, model: settings.model, baseUrl: kDeepSeekBaseUrl),
     };
   };
 });
