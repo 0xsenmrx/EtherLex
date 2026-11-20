@@ -66,7 +66,7 @@ class _FilesPageState extends ConsumerState<FilesPage> {
   Future<Course?> _courseById(int id) async {
     try {
       final all = ref.read(coursesProvider).value ?? await ref.read(coursesProvider.future);
-      return all.where((c) => c.id == id).firstOrNull;
+      return all?.where((c) => c.id == id).firstOrNull;
     } catch (_) {
       return null;
     }
