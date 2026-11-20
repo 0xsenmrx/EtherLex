@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1
+
+### Fixed
+- Opening a PDF and scrolling it quickly could freeze the window black until the app was restarted. The cause is a Flutter 3.50.0 bug (flutter/flutter#196618), so EtherLex now builds with Flutter 3.47.8.
+
 ## 0.2.0
 
 A new look and a faster, steadier app.

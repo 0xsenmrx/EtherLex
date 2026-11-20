@@ -2,7 +2,7 @@
 ; first. ISCC alone packs whatever release build is lying around, however old.
 ; Output: installer\Output\EtherLex-Setup-<version>.exe
 #ifndef AppVersion
-  #define AppVersion "0.2.0"
+  #define AppVersion "0.2.1"
 #endif
 
 [Setup]
@@ -20,6 +20,8 @@ SolidCompression=yes
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=lowest
+; Same AppId as earlier versions: running a newer setup upgrades in place and keeps settings.
+CloseApplications=yes
 UninstallDisplayIcon={app}\etherlex.exe
 SetupIconFile=..\windows\runner\resources\app_icon.ico
 WizardStyle=modern
