@@ -4,17 +4,17 @@ Do the parts in order. Each step says what to do, then **Expect** what you shoul
 
 Data you need: a real Canvas account with a personal access token, at least one course with files, some assignments (one submitted, one graded with teacher feedback, one with a due date within 3 days if possible), and if possible a second Canvas account or site.
 
-Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5** Assignments, Activity, Calendar, Grades, Files, **Ctrl+,** settings, **Ctrl+/** all shortcuts, **Esc / Backspace / Alt+Left** back in Files, **F9** performance overlay.
+Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6** Assignments, Activity, Calendar, Grades, Files, Assistant, **Ctrl+,** settings, **Ctrl+/** all shortcuts, **Esc / Backspace / Alt+Left** back in Files, **F9** performance overlay.
 
 ---
 
-## 0. Automatic checks (2 min)
+## 0. Automatic checks (2 min) [DONE]
 
 - [x] `flutter analyze` → **Expect** "No issues found".
 - [x] `flutter test` → **Expect** "All tests passed".
 - [x] `flutter run -d windows --profile` → **Expect** the window opens with no red errors in the console.
 
-## 1. Sign-in and sample mode
+## 1. Sign-in and sample mode [DONE]
 
 1. Start with a clean state: sign out if signed in (avatar menu top right, or Settings → Sign out; it asks first).
 - [x] **Expect** the "Connect to Canvas" screen.
@@ -31,14 +31,14 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5**
 7. Sign out again and sign back in with the real token.
 - [x] **Expect** your real data returns.
 
-## 2. Assignments
+## 2. Assignments [DONE]
 
 1. Press **Alt+1**.
 - [x] **Expect** your assignments grouped/sorted sensibly, with course colour and due time.
 2. Click the refresh control.
 - [x] **Expect** a short spinner, then the list updates without jumping to the top.
 3. Click an assignment.
-- [ ] **Expect** the details pane on the right (a dialog in a narrow window) with the description; links are clickable and open in your browser. J/K move and the pane follows; Esc closes it.
+- [x] **Expect** the details pane on the right (a dialog in a narrow window) with the description; links are clickable and open in your browser. J/K move and the pane follows; Esc closes it.
 4. Star an assignment, close and reopen the app.
 - [x] **Expect** the star is still there.
 5. In the sidebar select one course, then another, then clear.
@@ -50,7 +50,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5**
 8. Download your submitted file.
 - [x] **Expect** a toast "Saved to Downloads" with Open/Show; the file is in Downloads and opens.
 9. On a **graded** assignment with teacher feedback.
-- [-] **Expect** the grade, teacher comments, and any attached feedback files listed.
+- [x] **Expect** the grade, teacher comments, and any attached feedback files listed.
 10. Download a feedback file.
 - [x] **Expect** it saves to Downloads and opens correctly.
 11. Submit test (use a throw-away assignment or ask first): drag a file onto the dialog, then try the file picker.
@@ -60,7 +60,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5**
 13. Make the dialog content large (long description or lots of feedback).
 - [x] Known: the card grows to full height. Only note anything that is unusable (cannot scroll or close). Esc must close it.
 
-## 3. Activity
+## 3. Activity [DONE]
 
 1. Press **Alt+2**.
 - [x] **Expect** announcements and grade updates with course names and times.
@@ -70,11 +70,11 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5**
 - [x] **Expect** smooth scrolling, no stutter. Press **F9** and confirm frames stay in the green.
 - [x] Known gap: no keyboard navigation yet.
 4. In sample mode open "Lecture 1 slides and Problem Set 1". Click "Lecture 1 - Introduction.pdf", then repeat with "Problem Set 1.pdf".
-- [ ] **Expect** both file names are in the link colour with a pointer cursor. A click closes the dialog (narrow window) and opens Files on that course and folder, with the file selected and scrolled to the middle; Enter opens the preview. "Problem Set 1.pdf" has no course in its link and still works.
+- [x] **Expect** both file names are in the link colour with a pointer cursor. A click closes the dialog (narrow window) and opens Files on that course and folder, with the file selected and scrolled to the middle; Enter opens the preview. "Problem Set 1.pdf" has no course in its link and still works.
 5. With a real account, open an announcement that links a file, and one whose file is locked or deleted.
-- [ ] **Expect** the first lands on the file. The second shows "That file isn't available." with "Open in Canvas", and nothing crashes.
+- [x] **Expect** the first lands on the file. The second shows "That file isn't available." with "Open in Canvas", and nothing crashes.
 
-## 4. Calendar
+## 4. Calendar [DONE]
 
 1. Press **Alt+3**.
 - [x] **Expect** a week view with this week; today is marked.
@@ -85,7 +85,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5**
 4. Compare two items you know against Canvas's own calendar.
 - [x] **Expect** the same day and time (check the time zone is yours).
 
-## 5. Grades and planner
+## 5. Grades and planner [DONE]
 
 1. Press **Alt+4**.
 - [x] **Expect** one card per course with percent, letter (if Canvas gives one), and final grade where available. Compare each with Canvas.
@@ -108,10 +108,10 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5**
 10. Course card on the Grades list.
 - [x] **Expect** it shows "yours X% · likely L" once a plan exists.
 
-## 6. Search
+## 6. Search [DONE]
 
 1. Press **Ctrl+K** (then try **Ctrl+F**).
-- [ ] **Expect** the palette opens near the top with the cursor in it. Ctrl+K lists pages and actions before you type; Ctrl+F shows search only.
+- [x] **Expect** the palette opens near the top with the cursor in it. Ctrl+K lists pages and actions before you type; Ctrl+F shows search only.
 2. Type a word from an assignment, an announcement, a grade entry and a file name (one search each).
 - [x] **Expect** results for each kind, labelled by type.
 3. Arrow keys + Enter on a result.
@@ -121,7 +121,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5**
 5. Search for nonsense text.
 - [x] **Expect** a clean "no results" state.
 
-## 7. Files and preview
+## 7. Files and preview [DONE]
 
 1. Press **Alt+5**.
 - [x] **Expect** a list of courses; hovering one begins loading its files.
@@ -141,7 +141,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5**
 - [x] **Expect** "Saved to Downloads". Download the same file twice.
 - [x] **Expect** the second copy gets a unique name, nothing overwritten.
 
-## 8. Offline cache
+## 8. Offline cache [DONE]
 
 1. Open a PDF preview, close it, open it again.
 - [x] **Expect** the second open is instant (no download wait).
@@ -170,10 +170,10 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5**
 13. Update check: replace a file on Canvas (new upload with the same name), then refresh and open it.
 - [x] **Expect** the new content opens, and only one copy of that file remains in the cache folder.
 
-## 9. Notifications
+## 9. Notifications [DONE]
 
 1. Toggle notifications (avatar menu, Settings, or Ctrl+K, then "notifications").
-- [ ] **Expect** it toggles on/off and the state survives restart.
+- [x] **Expect** it toggles on/off and the state survives restart.
 2. With it on and an assignment due within the next day or three, restart the app.
 - [x] **Expect** a Windows notification for the deadline.
 3. Restart again.
@@ -195,12 +195,12 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5**
 5. First launch after the update (if you have an older install).
 - [ ] **Expect** your existing account keeps its old settings.
 
-## 11. Robustness
+## 11. Robustness [DONE]
 
 1. Turn the network off while on the Assignments page and press refresh.
 - [x] **Expect** a calm error or "offline" note; cached data stays visible.
 2. Put the wrong token in (revoke it in Canvas) and refresh.
-- [ ] **Expect** the refresh button says "Token rejected" (hover shows the reason) and a red bar under the title bar offers **Sign in again**, which takes you to the connect screen. The cached data stays visible until then. A refresh that works clears the bar.
+- [x] **Expect** the refresh button says "Token rejected" (hover shows the reason) and a red bar under the title bar offers **Sign in again**, which takes you to the connect screen. The cached data stays visible until then. A refresh that works clears the bar.
 3. Resize the window from very small to maximised.
 - [x] **Expect** no overflow stripes (yellow/black); layout adapts.
 4. Leave the app running 30 minutes in the background, then use it.
@@ -208,7 +208,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5**
 5. Click everything quickly (open/close dialogs, switch tabs with Alt+1..5 rapidly).
 - [x] **Expect** no crash, no stuck spinner.
 
-## 12. Performance feel (profile build)
+## 12. Performance feel (profile build) [DONE]
 
 1. Press **F9** and scroll Assignments, Activity and Files with long lists.
 - [x] **Expect** steady frames, no long red spikes.
@@ -217,7 +217,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5**
 3. Switch tabs rapidly.
 - [x] **Expect** instant switching, no flash of empty content when data is cached.
 
-## 13. Release build and installer
+## 13. Release build and installer [DONE]
 
 1. `flutter build windows --release`
 - [x] **Expect** it builds with no errors.
@@ -226,46 +226,43 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5**
 3. Install Inno Setup 6 and run `ISCC.exe /DAppVersion=0.1.0 installer\etherlex.iss`.
 - [x] **Expect** `installer\Output\EtherLex-Setup-0.1.0.exe`.
 4. Run the installer on a clean user (or another PC without Flutter).
-- [] **Expect** it installs without admin rights, creates a Start menu entry, and the app starts.
+- [x] **Expect** it installs without admin rights, creates a Start menu entry, and the app starts.
 5. Uninstall from Windows Settings → Apps.
-- [ ] **Expect** the program is removed. (Your data in `%APPDATA%\EtherLex` stays by design; delete it by hand to fully reset.)
+- [x] **Expect** the program is removed. (Your data in `%APPDATA%\EtherLex` stays by design; delete it by hand to fully reset.)
 6. Push a tag like `v0.1.0` to GitHub.
-- [ ] **Expect** the Release workflow attaches the installer to a release; the CI workflow is green on every push.
+- [x] **Expect** the Release workflow attaches the installer to a release; the CI workflow is green on every push.
 
-## 14. Look and feel (redesign)
+## 14. Look and feel (redesign) [DONE]
 
 1. Avatar menu → Theme: Light, Dark, Match Windows; and the sun/moon button in the title bar.
-- [ ] **Expect** every screen, dialog, menu and toast reads well in both themes; the choice survives restart.
+- [x] **Expect** every screen, dialog, menu and toast reads well in both themes; the choice survives restart.
 2. Settings → Font: Handwritten and Clean.
-- [ ] **Expect** the whole UI switches; document previews always use the clean font.
+- [x] **Expect** the whole UI switches; document previews always use the clean font.
 3. Narrow the window below about 1080 px, then below 860 px.
-- [ ] **Expect** the sidebar becomes a floating icon rail; details panes become dialogs; the Calendar becomes a day list.
+- [x] **Expect** the sidebar becomes a floating icon rail; details panes become dialogs; the Calendar becomes a day list.
 4. Title bar: drag empty space, double-click it, right-click it, use minimise/maximise/close; hover maximise on Windows 11; resize from the top edge and the top corners; drag a maximised window down from the title bar.
-- [ ] **Expect** normal window behaviour, the window menu on right-click, and the Snap Layouts flyout on hover (the maximise button highlights while hovered and pressed).
-- [ ] **Expect** resizing stays smooth: with F9 on, the top (raster) graph stays mostly green while you drag a corner.
+- [x] **Expect** normal window behaviour, the window menu on right-click, and the Snap Layouts flyout on hover (the maximise button highlights while hovered and pressed).
+- [x] **Expect** resizing stays smooth: with F9 on, the top (raster) graph stays mostly green while you drag a corner.
 5. Ctrl+K: type "dark", a course name, and part of an assignment title.
-- [ ] **Expect** matching commands first, then assignments and announcements; Enter runs or opens; Esc closes.
+- [x] **Expect** matching commands first, then assignments and announcements; Enter runs or opens; Esc closes.
 6. Ctrl+/ and Ctrl+,
-- [ ] **Expect** the shortcuts window (filterable) and Settings.
+- [x] **Expect** the shortcuts window (filterable) and Settings.
 7. Keyboard only: Tab through the title bar and dialogs.
-- [ ] **Expect** a violet focus ring on whatever has focus (never after a mouse click).
+- [x] **Expect** a violet focus ring on whatever has focus (never after a mouse click).
 
----
+## 15. AI assistant (needs your own API key)
 
-## Bug report template
-
-- Step number:
-- What I did:
-- What I expected:
-- What happened (screenshot or console text):
-- Account/course involved (do not paste your token):
-
-## Bugs
-
-### Bug 1
-
-- Module: Assignments
-- Step Number: 1
-- What I did: opened the assignments **using ALT+1**
-- What I expected: Assignments getting open
-- What happened: Exactly what I expected, but with a windows annoying sound effect
+1. Sample mode: open **Assistant** (Alt+6) and send "hello".
+- [ ] **Expect** your message on the right, "Thinking..." and then a canned answer that appears piece by piece. Copy puts the answer on the clipboard; "Answer again" replaces it.
+2. Real account with no key: open **Assistant**.
+- [ ] **Expect** "Add an API key to start" with an Open settings button that opens Settings.
+3. Settings, AI assistant: pick Anthropic, paste a key, Save. Open **Assistant** and ask a question.
+- [ ] **Expect** a streamed answer with Markdown (lists, bold, code blocks) shown properly. Settings says the key is saved and never shows it again. Remove key brings the empty state back.
+4. Press Shift+Enter in the box, then Enter.
+- [ ] **Expect** a new line, then the message is sent. While an answer is coming, the send button becomes Stop and keeps what arrived.
+5. Enter a wrong key and ask something.
+- [ ] **Expect** a red banner "The API key was not accepted" with a Settings button. Turn Wi-Fi off and ask: "offline" banner with Retry; Retry works once Wi-Fi is back.
+6. New chat, ask something else, then History.
+- [ ] **Expect** both chats listed newest first; clicking one opens it; the bin deletes it. Restart the app: chats are still there.
+7. Settings, OpenAI-compatible: type a model name and the base URL of your service, Save.
+- [ ] **Expect** answers stream from that service. Your key is not in `%APPDATA%/EtherLex` (it is in the Windows credential store).
