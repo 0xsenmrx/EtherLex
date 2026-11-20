@@ -55,6 +55,7 @@ class AppShell extends ConsumerWidget {
         const SingleActivator(LogicalKeyboardKey.digit3, alt: true): () => context.go('/calendar'),
         const SingleActivator(LogicalKeyboardKey.digit4, alt: true): () => context.go('/grades'),
         const SingleActivator(LogicalKeyboardKey.digit5, alt: true): () => context.go('/files'),
+        const SingleActivator(LogicalKeyboardKey.digit6, alt: true): () => context.go('/chat'),
       },
       child: DotGrid(
         child: BreakpointBuilder<bool>(
