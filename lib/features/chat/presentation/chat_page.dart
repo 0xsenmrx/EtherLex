@@ -201,6 +201,8 @@ class _InputBar extends StatelessWidget {
                 cursorColor: c.accent,
                 decoration: InputDecoration(
                   isDense: true,
+                  // 36 px tall with one line: the text sits level with the send button.
+                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
                   border: InputBorder.none,
                   hintText: 'Message the assistant. Enter sends, Shift+Enter adds a line.',
                   hintStyle: t.body.copyWith(color: c.textTertiary),
