@@ -10,6 +10,7 @@ import '../../../design_system/ether/icons.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../../auth/domain/auth_provider.dart';
 import '../../courses/domain/course.dart';
+import '../../files/presentation/file_link.dart';
 import '../domain/activity_item.dart';
 import 'activity_images.dart';
 import 'activity_row.dart';
@@ -93,7 +94,17 @@ class ActivityDetail extends ConsumerWidget {
         Text(item.title, style: t.title),
         if (item.body.isNotEmpty) ...[
           const SizedBox(height: 16),
-          LinkText(item.body, style: t.bodySecondary.copyWith(height: 1.6)),
+          LinkText(
+            item.body,
+            style: t.bodySecondary.copyWith(height: 1.6),
+            // A link that names no course is in the course of the post.
+            onFile: (courseId, fileId) => openFileLink(
+              context,
+              ref,
+              courseId: courseId == 0 ? item.courseId : courseId,
+              fileId: fileId,
+            ),
+          ),
         ],
         if (item.images.isNotEmpty) ActivityImages(tokens: item.images),
         if (canOpen) ...[

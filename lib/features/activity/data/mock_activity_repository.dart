@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../../../core/utils/file_link_markup.dart';
 import '../domain/activity_item.dart';
 import '../domain/activity_repository.dart';
 
@@ -19,6 +20,15 @@ class MockActivityRepository implements ActivityRepository {
         body: 'The midterm will now take place in Hall B instead of Room 204.\nPlease arrive 15 minutes early and bring your ID.',
         courseId: 1,
         createdAt: ago(minutes: 25),
+      ),
+      ActivityItem(
+        id: 'a4',
+        kind: ActivityKind.announcement,
+        title: 'Lecture 1 slides and Problem Set 1',
+        body: 'The slides are up: ${fileLinkMarker(courseId: 1, fileId: 1002, name: 'Lecture 1 - Introduction.pdf')}\n'
+            'Problem Set 1 is due next Friday: ${fileLinkMarker(courseId: 0, fileId: 1004, name: 'Problem Set 1.pdf')}',
+        courseId: 1,
+        createdAt: ago(hours: 1),
       ),
       ActivityItem(
         id: 'g1',

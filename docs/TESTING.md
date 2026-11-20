@@ -69,6 +69,10 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..5**
 3. Scroll fast with the mouse wheel and with the trackpad if you have one.
 - [x] **Expect** smooth scrolling, no stutter. Press **F9** and confirm frames stay in the green.
 - [x] Known gap: no keyboard navigation yet.
+4. In sample mode open "Lecture 1 slides and Problem Set 1". Click "Lecture 1 - Introduction.pdf", then repeat with "Problem Set 1.pdf".
+- [ ] **Expect** both file names are in the link colour with a pointer cursor. A click closes the dialog (narrow window) and opens Files on that course and folder, with the file selected and scrolled to the middle; Enter opens the preview. "Problem Set 1.pdf" has no course in its link and still works.
+5. With a real account, open an announcement that links a file, and one whose file is locked or deleted.
+- [ ] **Expect** the first lands on the file. The second shows "That file isn't available." with "Open in Canvas", and nothing crashes.
 
 ## 4. Calendar
 

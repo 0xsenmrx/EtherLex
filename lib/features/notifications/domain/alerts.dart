@@ -97,7 +97,7 @@ AlertBatch gradeAlerts({
     alerts.add(Alert(
       key: key,
       title: i.title,
-      body: [if (course != null) course.shortLabel, if (i.body.isNotEmpty) i.body.split('\n').first else 'New grade'].join('  ·  '),
+      body: [if (course != null) course.shortLabel, if (i.body.isNotEmpty) i.plainBody.split('\n').first else 'New grade'].join('  ·  '),
     ));
   }
   return AlertBatch(alerts, keys);

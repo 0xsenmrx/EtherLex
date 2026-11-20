@@ -44,6 +44,61 @@ class _FilesPageState extends ConsumerState<FilesPage> {
   bool _showHidden = false;
   final FocusNode _focus = FocusNode();
 
+  // A file to select once its folder is on screen (from a link in a message).
+  // The tick makes the list start over even when the folder is already open.
+  int? _revealId;
+  int _revealTick = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    ref.listenManual<FileEntry?>(fileFocusProvider, (_, file) {
+      if (file == null) return;
+      // Providers must not change while the tree is being built.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(fileFocusProvider.notifier).clear();
+        _showFile(file);
+      });
+    }, fireImmediately: true);
+  }
+
+  Future<Course?> _courseById(int id) async {
+    try {
+      final all = ref.read(coursesProvider).value ?? await ref.read(coursesProvider.future);
+      return all?.where((c) => c.id == id).firstOrNull;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Opens the course and folder of [file] and selects it.
+  Future<void> _showFile(FileEntry file) async {
+    final course = await _courseById(file.courseId);
+    if (!mounted) return;
+    if (course == null) {
+      ref.read(toastProvider.notifier).show("That file's course is not in your list.");
+      return;
+    }
+    var entry = file;
+    var path = const <int>[];
+    try {
+      final data = await ref.read(courseFilesProvider(course.id).future);
+      // The listing knows the real folder; the single-file answer may not.
+      entry = data.files.where((f) => f.id == file.id).firstOrNull ?? file;
+      path = [for (final c in viewFolder(data, entry.folderId).breadcrumb) c.id];
+    } catch (_) {
+      // The course page shows the error with its retry button.
+    }
+    if (!mounted) return;
+    setState(() {
+      _course = course;
+      _path = path;
+      _revealId = entry.id;
+      _revealTick++;
+    });
+  }
+
   @override
   void dispose() {
     _focus.dispose();
@@ -98,7 +153,9 @@ class _FilesPageState extends ConsumerState<FilesPage> {
           final hiddenIds = ref.watch(hiddenFoldersProvider);
           final hiddenNotifier = ref.read(hiddenFoldersProvider.notifier);
           return _FileList(
-            key: ValueKey('list-${course.id}-${_path.lastOrNull}'),
+            key: ValueKey('list-${course.id}-${_path.lastOrNull}-$_revealTick'),
+            revealFileId: _revealId,
+            onRevealed: () => _revealId = null,
             files: v.files,
             folders: [for (final f in v.folders) if (!hiddenIds.contains(f.id)) f],
             hiddenFolders: [for (final f in v.folders) if (hiddenIds.contains(f.id)) f],
@@ -299,11 +356,18 @@ mixin _RowCursor<T extends StatefulWidget> on State<T> {
     setState(() {
       cursor = cursor < 0 ? (delta > 0 ? 0 : rows.length - 1) : (cursor + delta).clamp(0, rows.length - 1);
     });
-    if (!scroll.hasClients) return;
+    scrollToCursor();
+  }
+
+  /// Scrolls just enough to show the cursor row, or puts it in the middle.
+  void scrollToCursor({bool center = false}) {
+    if (!scroll.hasClients || cursor < 0) return;
     final top = cursor * kFileRowExtent;
     final view = scroll.position.viewportDimension;
     double? target;
-    if (top < scroll.offset) {
+    if (center) {
+      target = top - (view - kFileRowExtent) / 2;
+    } else if (top < scroll.offset) {
       target = top;
     } else if (top + kFileRowExtent > scroll.offset + view) {
       target = top + kFileRowExtent - view;
@@ -504,7 +568,13 @@ class _FileList extends StatefulWidget {
     required this.onDownload,
     required this.onHide,
     required this.onRestore,
+    this.revealFileId,
+    this.onRevealed,
   });
+
+  /// A file to put the cursor on when the list first appears.
+  final int? revealFileId;
+  final VoidCallback? onRevealed;
 
   final List<FolderNode> folders;
   final List<FolderNode> hiddenFolders;
@@ -527,6 +597,21 @@ class _FileListState extends State<_FileList> with _RowCursor<_FileList> {
   // cache change, not on every rebuild of the visible rows.
   final Map<int, bool> _offline = {};
   int _offlineRevision = -1;
+
+  @override
+  void initState() {
+    super.initState();
+    final id = widget.revealFileId;
+    if (id == null) return;
+    final i = widget.files.indexWhere((f) => f.id == id);
+    // Rows are the folders first, then the files.
+    if (i >= 0) cursor = widget.folders.length + i;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (i >= 0) scrollToCursor(center: true);
+      widget.onRevealed?.call();
+    });
+  }
 
   bool _isOffline(FileEntry file) {
     if (_offlineRevision != fileCacheRevision.value) {
