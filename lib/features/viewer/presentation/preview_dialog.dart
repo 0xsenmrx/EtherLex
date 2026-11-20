@@ -200,8 +200,6 @@ class _Body extends StatelessWidget {
             backgroundColor: context.colors.sunken,
             // Default 0.2 feels sluggish with a mouse wheel.
             scrollByMouseWheel: 0.5,
-            // Keep rendered pages so scrolling back does not re-render them.
-            limitRenderingCache: false,
           ),
         );
       case PreviewKind.image:
