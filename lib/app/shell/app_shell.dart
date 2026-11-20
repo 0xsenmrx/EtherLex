@@ -3,12 +3,16 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/notify/toast.dart';
 import '../../design_system/ether/breakpoint.dart';
 import '../../design_system/ether/dot_grid.dart';
 import '../../features/notifications/presentation/notifications_providers.dart';
 import '../../features/palette/presentation/command_palette.dart';
 import '../../features/palette/presentation/shortcuts_dialog.dart';
 import '../../features/settings/presentation/settings_dialog.dart';
+import '../../features/update/presentation/update_dialog.dart';
+import '../../features/update/presentation/update_providers.dart';
+import '../app_info.dart';
 import 'rail.dart';
 import 'sidebar.dart';
 import 'top_bar.dart';
@@ -26,6 +30,19 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Keeps the deadline and grade alerts running while signed in.
     ref.watch(notificationsProvider);
+    // Looks for a new release shortly after start (see Settings > Updates).
+    ref.watch(updateStartupProvider);
+    ref.listen(updateProvider, (prev, next) {
+      final info = next.info;
+      if (info == null || !next.announce || next.status != UpdateStatus.available) return;
+      if (prev?.status == UpdateStatus.available) return;
+      ref.read(toastProvider.notifier).show(
+            '$kAppName ${info.version} is available',
+            actionLabel: "What's new",
+            onAction: () => showUpdateDialog(context),
+            duration: const Duration(seconds: 15),
+          );
+    });
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.keyK, control: true): () => showCommandPalette(context),

@@ -14,6 +14,9 @@ import '../../auth/domain/auth_provider.dart';
 import '../../files/data/file_cache.dart';
 import '../../files/presentation/files_providers.dart';
 import '../../notifications/presentation/notifications_providers.dart';
+import '../../update/data/update_service.dart';
+import '../../update/presentation/update_dialog.dart';
+import '../../update/presentation/update_providers.dart';
 
 /// Ctrl+,: account, look, notifications, courses, offline storage.
 Future<void> showSettings(BuildContext context) =>
@@ -35,6 +38,23 @@ class SettingsDialog extends ConsumerWidget {
     final disabled = ref.watch(disabledCoursesProvider);
     final disabledNotifier = ref.read(disabledCoursesProvider.notifier);
     final host = Uri.tryParse(session?.baseUrl ?? '')?.host ?? '';
+    final updateState = ref.watch(updateProvider);
+    final updatePrefs = ref.watch(updatePrefsProvider);
+    final (String updateTitle, String? updateSub) = switch (updateState.status) {
+      UpdateStatus.checking => ('Checking for updates...', null),
+      UpdateStatus.downloading => ('Downloading the update...', null),
+      UpdateStatus.available => ('Version ${updateState.info?.version} is available', 'You have $kAppVersion'),
+      UpdateStatus.upToDate => ("You're up to date", 'Version $kAppVersion'),
+      UpdateStatus.failed => ('Could not check for updates', updateState.message),
+      UpdateStatus.idle => ('Updates', 'Version $kAppVersion'),
+    };
+
+    Future<void> checkNow() async {
+      final updates = ref.read(updateProvider.notifier);
+      if (ref.read(updateProvider).status != UpdateStatus.available) await updates.check(manual: true);
+      if (!context.mounted) return;
+      if (ref.read(updateProvider).status == UpdateStatus.available) await showUpdateDialog(context);
+    }
 
     Future<void> signOut() async {
       final auth = ref.read(authProvider.notifier);
@@ -124,6 +144,27 @@ class SettingsDialog extends ConsumerWidget {
               );
             },
           ),
+          if (UpdateService.supported) ...[
+            const _Section('Updates'),
+            _Row(
+              title: 'Check automatically',
+              subtitle: 'Asks GitHub for a new release about twice a day. Nothing about you is sent.',
+              trailing: ESwitch(
+                value: updatePrefs.autoCheck,
+                onChanged: ref.read(updatePrefsProvider.notifier).setAutoCheck,
+              ),
+            ),
+            _Row(
+              title: updateTitle,
+              subtitle: updateSub,
+              trailing: EButton(
+                label: updateState.status == UpdateStatus.available ? "See what's new" : 'Check now',
+                kind: EButtonKind.ghost,
+                loading: updateState.status == UpdateStatus.checking,
+                onTap: updateState.status == UpdateStatus.downloading ? null : checkNow,
+              ),
+            ),
+          ],
           const _Section('About'),
           _Row(title: kAppName, subtitle: 'Version $kAppVersion'),
           const SizedBox(height: 4),
