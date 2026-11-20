@@ -66,7 +66,9 @@ class _MarkdownViewState extends State<MarkdownView> {
     }
     return ListView(
       padding: const EdgeInsets.fromLTRB(28, 8, 28, 28),
-      scrollCacheExtent: const ScrollCacheExtent.pixels(600),
+      // Flutter is pinned to 3.47, which only has cacheExtent. Use scrollCacheExtent after unpinning (CLAUDE.md).
+      // ignore: deprecated_member_use
+      cacheExtent: 600,
       children: children,
     );
   }

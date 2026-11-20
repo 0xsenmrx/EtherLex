@@ -3,6 +3,7 @@
 Premium, smooth, desktop-first Flutter companion for Canvas LMS. Windows first. Package `etherlex`, app name in `lib/app/app_info.dart`.
 
 ## Commands
+- Flutter is pinned to **3.47.8** (`environment.flutter` in pubspec, CI and release workflows). 3.50.0 loses the GPU context while pdfrx decodes page images (flutter/flutter#196618); remove the pin only after that is fixed and PDF scrolling is verified. Note 3.47 has no `ScrollCacheExtent`: use `cacheExtent`.
 - `flutter pub get` after any pubspec change
 - `dart run build_runner build --delete-conflicting-outputs` after any Drift schema change (schema is v3)
 - `flutter analyze` and `flutter test` must both be clean before a change is done

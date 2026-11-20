@@ -177,7 +177,9 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
     } else {
       body = ListView.builder(
             controller: _scroll,
-            scrollCacheExtent: const ScrollCacheExtent.pixels(800),
+            // Flutter is pinned to 3.47, which only has cacheExtent. Use scrollCacheExtent after unpinning (CLAUDE.md).
+            // ignore: deprecated_member_use
+            cacheExtent: 800,
             padding: const EdgeInsets.fromLTRB(16, 0, 4, 32),
             itemCount: _feed.length,
             itemExtentBuilder: (index, _) =>

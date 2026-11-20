@@ -357,7 +357,9 @@ class _AssignmentsPageState extends ConsumerState<AssignmentsPage> {
           Expanded(
             child: ListView.builder(
                   controller: _scroll,
-                  scrollCacheExtent: const ScrollCacheExtent.pixels(800),
+                  // Flutter is pinned to 3.47, which only has cacheExtent. Use scrollCacheExtent after unpinning (CLAUDE.md).
+                  // ignore: deprecated_member_use
+                  cacheExtent: 800,
                   padding: const EdgeInsets.only(bottom: 32),
                   itemCount: _entries.length,
                   itemExtentBuilder: (index, _) =>

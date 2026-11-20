@@ -4,7 +4,10 @@ publish_to: 'none'
 version: 0.2.0+2
 
 environment:
-  sdk: ^3.14.0
+  sdk: ^3.13.0
+  # Flutter 3.50.0 hangs the GPU while pdfrx decodes page images (flutter/flutter#196618).
+  # Stay on 3.47.x until that is fixed upstream.
+  flutter: ">=3.47.0 <3.50.0"
 
 dependencies:
   flutter:

@@ -285,7 +285,9 @@ class _PlainTextState extends State<_PlainText> {
     final count = (lines.length / chunk).ceil();
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(28, 18, 28, 28),
-      scrollCacheExtent: const ScrollCacheExtent.pixels(800),
+      // Flutter is pinned to 3.47, which only has cacheExtent. Use scrollCacheExtent after unpinning (CLAUDE.md).
+      // ignore: deprecated_member_use
+      cacheExtent: 800,
       itemCount: count,
       itemBuilder: (context, i) {
         final part = lines.sublist(i * chunk, ((i + 1) * chunk).clamp(0, lines.length)).join('\n');
@@ -328,7 +330,9 @@ class _DocLoaderState extends State<_DocLoader> {
         }
         return ListView.builder(
           padding: const EdgeInsets.fromLTRB(36, 22, 36, 32),
-          scrollCacheExtent: const ScrollCacheExtent.pixels(800),
+          // Flutter is pinned to 3.47, which only has cacheExtent. Use scrollCacheExtent after unpinning (CLAUDE.md).
+          // ignore: deprecated_member_use
+          cacheExtent: 800,
           itemCount: blocks.length + 1,
           itemBuilder: (context, i) {
             if (i == 0) {

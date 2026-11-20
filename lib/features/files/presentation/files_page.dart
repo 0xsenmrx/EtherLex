@@ -349,7 +349,9 @@ mixin _RowCursor<T extends StatefulWidget> on State<T> {
           Expanded(
             child: ListView.builder(
               controller: scroll,
-              scrollCacheExtent: const ScrollCacheExtent.pixels(800),
+              // Flutter is pinned to 3.47, which only has cacheExtent. Use scrollCacheExtent after unpinning (CLAUDE.md).
+              // ignore: deprecated_member_use
+              cacheExtent: 800,
               padding: const EdgeInsets.only(bottom: 32),
               itemExtent: kFileRowExtent,
               itemCount: rows.length,

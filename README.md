@@ -14,6 +14,7 @@ Sign in with a Canvas personal access token, or try it with sample data.
 - Light and dark themes, a handwritten or clean font, deadline and grade notifications, separate settings per Canvas account.
 
 ## Develop
+- Flutter 3.47.8 (pinned, see CLAUDE.md)
 - Run: `flutter run -d windows --profile` (F9 shows frame times)
 - Check: `flutter analyze` and `flutter test`
 - Installer: `powershell -ExecutionPolicy Bypass -File installer\build.ps1` builds the release app and the installer in one go (needs Inno Setup 6). Don't run ISCC alone: it packs whatever release build is lying around, however old. Pushing a `v*` tag builds it and attaches it to a GitHub release.
