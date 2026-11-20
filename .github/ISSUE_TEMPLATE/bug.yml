@@ -1,0 +1,38 @@
+name: Bug report
+description: Something in EtherLex does not work
+labels: [bug]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happens
+      description: One problem per issue. Say what you see, not what you think the cause is.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to Files
+        2. Open a PDF
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What should happen
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Console output, screenshots, EtherLex version (Settings > About), Windows version, anything you ruled out.
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: How we will know it is fixed.
+      placeholder: "- [ ] ..."
