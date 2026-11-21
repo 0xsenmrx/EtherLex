@@ -31,7 +31,7 @@ Premium, smooth, desktop-first Flutter companion for Canvas LMS. Windows first. 
 - Dart raw strings cannot contain `\'`: use triple-quoted raw strings for regexes with both quote kinds.
 - Lints: use null-aware elements (`?value`) instead of `if (x != null) x`.
 - Add a test for every piece of pure logic (parsing, grade maths, alerts, cache). Files in `test/` mirror the feature.
-- Only the user's own data and the Canvas API are touched, plus the public GitHub Releases of this repo for the update check (`features/update`; nothing about the user is sent; it can be switched off in Settings). Never log tokens.
+- Only the user's own data and the Canvas API are touched, plus the public GitHub Releases of this repo for the update check (`features/update`; nothing about the user is sent; it can be switched off in Settings), plus the AI service the user chose for the assistant (their own API key). That service receives what the user types and only what they attach from Canvas (assignments, grades, announcements, files, pictures), after a one-time consent per service and account (`ai_consent.dart`); attachments are never added automatically. Never log tokens or API keys.
 
 ## Status
 Done: update check from GitHub Releases (release notes come from the `## <version>` section of CHANGELOG.md, so every tag needs one and the tag must match the pubspec version), sign-in, assignments, activity, calendar week, global search (Ctrl+K / Ctrl+F), clickable links, deadline and grade notifications, submissions and teacher feedback download, grades with planner and class standing, file browser, preview, offline cache, per-account settings.
