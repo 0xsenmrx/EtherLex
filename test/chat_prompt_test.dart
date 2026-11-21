@@ -1,5 +1,6 @@
 import 'package:etherlex/features/chat/data/sample_chat_backend.dart';
 import 'package:etherlex/features/chat/domain/chat_prompt.dart';
+import 'package:etherlex/features/chat/domain/context_item.dart';
 import 'package:etherlex/features/chat/domain/proposed_actions.dart';
 import 'package:etherlex/features/grades/domain/plan_proposal.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +10,15 @@ void main() {
     final p = chatSystemPrompt(DateTime(2026, 11, 20)); // a Friday
     expect(p, contains('Friday, 2026-11-20'));
     expect(chatSystemPrompt(DateTime(2026, 3, 2)), contains('Monday, 2026-03-02'));
+  });
+
+  test('the course names are in the prompt when given, and only then', () {
+    const list = CoursesContext(lines: [CourseLine(name: 'Discrete Mathematics', code: 'MATH2160J'), CourseLine(name: 'Linear Algebra', hidden: true)]);
+    final withList = chatSystemPrompt(DateTime(2026, 11, 20), courses: list);
+    expect(withList, contains('- Discrete Mathematics (MATH2160J); shown'));
+    expect(withList, contains('- Linear Algebra; hidden in EtherLex'));
+    expect(chatSystemPrompt(DateTime(2026, 11, 20)), isNot(contains('Discrete Mathematics')));
+    expect(chatSystemPrompt(DateTime(2026, 11, 20), courses: const CoursesContext(lines: [])), isNot(contains("The student's courses")));
   });
 
   test('the sample assistant streams its answer in pieces that add up', () async {

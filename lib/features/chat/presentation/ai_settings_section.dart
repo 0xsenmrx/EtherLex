@@ -107,7 +107,7 @@ class _AiSettingsSectionState extends ConsumerState<AiSettingsSection> {
         ),
         const SizedBox(height: 6),
         Text(
-          'Your messages go to the service you chose, nothing else. Data from Canvas is sent only when you attach it to a question.',
+          'Your messages go to the service you chose, nothing else. Data from Canvas is sent only when you attach it to a question, apart from the names of your courses.',
           style: t.metaMuted,
         ),
         if (allowed) ...[

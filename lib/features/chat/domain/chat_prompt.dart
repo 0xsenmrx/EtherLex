@@ -1,4 +1,5 @@
 import '../../grades/domain/plan_proposal.dart';
+import 'context_item.dart';
 import 'proposed_actions.dart';
 
 const List<String> _weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -37,12 +38,15 @@ const String _actionsInstructions =
     '(hide with false, show with true), and {"type":"open","page":"grades"} (assignments, activity, '
     'calendar, grades, files or chat). Marking done only changes EtherLex and submits nothing to Canvas. You cannot submit '
     'work, change anything else in the app, or change anything outside what these blocks describe: say so '
-    'if asked. Never guess which assignments are meant: if it is not clear, ask. For courses write the name as the student wrote it, or as it appears in an attached course list; for a vague group ("my math courses") name each course only if a course list is attached, otherwise ask which ones, and mention that attaching the course list lets you do it at once. For things that '
+    'if asked. Never guess which assignments are meant: if it is not clear, ask. For courses use the exact name from the course list below when there is one, and propose one entry per course for a group the student describes ("my math courses"); if a group is unclear, ask. Without a list, write the name as the student wrote it. For things that '
     'do not matter much (a rough study estimate, a likely class distribution) you may give an estimate in '
     'plain text, but call it an estimate. Never say a change is made: the student sees a card under your answer and presses Apply.';
 
 /// What the assistant is told before the conversation starts.
-String chatSystemPrompt(DateTime now) {
+///
+/// [courses] is the student's course list (names, codes, which are hidden in
+/// the app); it is only passed once they have allowed sending Canvas data.
+String chatSystemPrompt(DateTime now, {CoursesContext? courses}) {
   final month = now.month.toString().padLeft(2, '0');
   final day = now.day.toString().padLeft(2, '0');
   return 'You are the assistant inside EtherLex, a desktop app that helps a student '
@@ -50,5 +54,6 @@ String chatSystemPrompt(DateTime now) {
       'Answer clearly and concisely, and use Markdown when it helps. '
       'If you are not sure of something, say so instead of guessing. '
       '$_planInstructions $_actionsInstructions '
+      '${courses == null || courses.lines.isEmpty ? '' : 'The student\'s courses (use these names):\n${courses.text}\n'}'
       'Today is ${_weekdays[now.weekday - 1]}, ${now.year}-$month-$day.';
 }

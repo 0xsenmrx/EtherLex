@@ -47,7 +47,8 @@ Future<bool> ensureConsent(BuildContext context, WidgetRef ref) async {
     title: 'Send Canvas data to ${provider.label}?',
     message: 'What you attach (assignments, grades, announcements, files or pictures) is sent to '
         '${provider.label} together with your question, using your own API key. '
-        'EtherLex sends nothing else, and only when you attach it. '
+        'The names of your courses go along with every question, so it can find the one you mean. '
+        'EtherLex sends nothing else. '
         'You can take this permission back in Settings.',
     confirmLabel: 'Allow',
   );
@@ -143,17 +144,6 @@ class _AttachDialog extends StatelessWidget {
               ],
               ref.read(coursesByIdProvider),
             ),
-          ),
-          _row(
-            context,
-            icon: EIcons.files,
-            title: 'Course list',
-            subtitle: 'Your courses by name, and which are hidden',
-            build: () async => CoursesContext(lines: [
-              for (final c in [...(ref.read(coursesProvider).value ?? const <Course>[])]
-                ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase())))
-                CourseLine(name: c.name, code: c.code, hidden: disabled.contains(c.id)),
-            ]),
           ),
           const EMenuDivider(),
           _row(

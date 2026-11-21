@@ -2,12 +2,15 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../assignments/presentation/assignments_providers.dart';
 import '../../auth/domain/auth_provider.dart';
+import '../../courses/domain/course.dart';
 import '../data/chat_store.dart';
 import '../domain/chat_backend.dart';
 import '../domain/chat_models.dart';
 import '../domain/chat_prompt.dart';
 import '../domain/context_item.dart';
+import 'ai_consent.dart';
 import 'ai_providers.dart';
 
 /// The saved conversations of the signed-in account (sample mode has its own).
@@ -195,6 +198,17 @@ class ChatController extends Notifier<ChatState> {
       ? e
       : const ChatException(ChatErrorKind.unexpected, 'Something went wrong. Please try again.');
 
+  /// The student's course names, so "hide my math courses" can be answered
+  /// exactly. Sent only after they allowed sending Canvas data to this service.
+  CoursesContext? _courseList() {
+    final session = ref.read(authProvider).value;
+    final allowed = session != null && (session.isSample || ref.read(aiConsentProvider).contains(ref.read(aiSettingsProvider).provider));
+    if (!allowed) return null;
+    final disabled = ref.read(disabledCoursesProvider);
+    final courses = [...(ref.read(coursesProvider).value ?? const <Course>[])]..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return CoursesContext(lines: [for (final c in courses) CourseLine(name: c.name, code: c.code, hidden: disabled.contains(c.id))]);
+  }
+
   Future<void> _run(ChatStore store, String conversationId) async {
     final conv = _find(conversationId);
     if (conv == null) return;
@@ -216,7 +230,7 @@ class ChatController extends Notifier<ChatState> {
           for (final m in history)
             ChatMessage(id: m.id, role: m.role, text: m.promptText, createdAt: m.createdAt, images: m.images),
         ];
-        _sub = backend.reply(messages: forModel, system: chatSystemPrompt(DateTime.now())).listen(
+        _sub = backend.reply(messages: forModel, system: chatSystemPrompt(DateTime.now(), courses: _courseList())).listen(
           (piece) => _append(conversationId, answer.id, piece),
           onError: (Object e, StackTrace _) {
             failure = _asChatException(e);
