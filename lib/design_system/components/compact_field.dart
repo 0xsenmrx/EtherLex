@@ -14,6 +14,9 @@ class CompactField extends StatefulWidget {
     this.width = 76,
     this.hint,
     this.suffix,
+    this.numeric = true,
+    this.autofocus = false,
+    this.focusNode,
   });
 
   final String initial;
@@ -22,13 +25,20 @@ class CompactField extends StatefulWidget {
   final String? hint;
   final String? suffix;
 
+  /// Numbers only (the default); false lets any text in, for a search box.
+  final bool numeric;
+  final bool autofocus;
+
+  /// Lets the parent move the cursor here; the parent owns and disposes it.
+  final FocusNode? focusNode;
+
   @override
   State<CompactField> createState() => _CompactFieldState();
 }
 
 class _CompactFieldState extends State<CompactField> {
   late final TextEditingController _controller = TextEditingController(text: widget.initial);
-  final FocusNode _focus = FocusNode();
+  late final FocusNode _focus = widget.focusNode ?? FocusNode();
   bool _focused = false;
 
   @override
@@ -42,7 +52,7 @@ class _CompactFieldState extends State<CompactField> {
   @override
   void dispose() {
     _controller.dispose();
-    _focus.dispose();
+    if (widget.focusNode == null) _focus.dispose();
     super.dispose();
   }
 
@@ -64,9 +74,10 @@ class _CompactFieldState extends State<CompactField> {
         controller: _controller,
         focusNode: _focus,
         onChanged: widget.onChanged,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
-        style: t.number.copyWith(color: c.textPrimary),
+        autofocus: widget.autofocus,
+        keyboardType: widget.numeric ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
+        inputFormatters: widget.numeric ? [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))] : null,
+        style: (widget.numeric ? t.number : t.body).copyWith(color: c.textPrimary),
         cursorColor: c.accent,
         decoration: InputDecoration(
           isDense: true,

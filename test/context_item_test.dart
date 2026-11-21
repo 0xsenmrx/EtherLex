@@ -57,4 +57,23 @@ void main() {
     expect(all, contains('more attachments were left out'));
     expect(all.length, lessThan(kMaxContextChars + 2000));
   });
+
+  test('a file longer than the limit says on its chip that only the first part is sent', () {
+    expect(FileContext(name: 'a.pdf', content: 'x' * 10).label, 'a.pdf');
+    expect(FileContext(name: 'a.pdf', content: 'x' * (kMaxItemChars + 1)).label, 'a.pdf (first part)');
+  });
+
+  test('the whole file can be sent, up to its own larger limit', () {
+    final long = FileContext(name: 'a.pdf', content: 'x' * (kMaxItemChars * 3));
+    expect(long.isLong, isTrue);
+    expect(contextPromptFor([long]), contains('more characters not sent'));
+    final whole = long.asWhole();
+    expect(whole.isLong, isFalse);
+    expect(whole.key, long.key);
+    expect(whole.label, 'a.pdf (whole file)');
+    expect(contextPromptFor([whole]), isNot(contains('not sent')));
+    final huge = FileContext(name: 'h', content: 'y' * (kMaxWholeChars + 10), whole: true);
+    expect(huge.label, 'h (first part)');
+    expect(contextPromptFor([huge]), contains('[cut: 10 more characters not sent]'));
+  });
 }

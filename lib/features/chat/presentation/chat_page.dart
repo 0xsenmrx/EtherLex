@@ -14,6 +14,7 @@ import '../../../design_system/ether/tap.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../../auth/domain/auth_provider.dart';
 import '../../settings/presentation/settings_dialog.dart';
+import '../domain/ai_settings.dart';
 import '../domain/chat_backend.dart';
 import '../domain/chat_models.dart';
 import '../domain/context_item.dart';
@@ -64,6 +65,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       // The service may have been changed since the items were attached.
       if (_attached.isNotEmpty && !await ensureConsent(context, ref)) return;
       if (!mounted) return;
+      final provider = ref.read(aiSettingsProvider).provider;
+      if (!provider.readsImages && _attached.any((a) => a is ImageContext)) {
+        setState(() => _attachError = ChatException(ChatErrorKind.unexpected, _noPictures(provider)));
+        return;
+      }
       final items = [..._attached];
       _input.clear();
       setState(_attached.clear);
@@ -78,6 +84,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   bool _loadingAttach = false;
   ChatException? _attachError;
   ContextBuilder? _failedBuild;
+
+  static String _noPictures(AiProvider p) =>
+      '${p.label} cannot read pictures yet. Choose another service in Settings, or attach a text file instead.';
 
   Future<void> _attach() async {
     if (_loadingAttach) return;
@@ -96,6 +105,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     try {
       final item = await build();
       if (!mounted) return;
+      final provider = ref.read(aiSettingsProvider).provider;
+      if (item is ImageContext && !provider.readsImages) {
+        setState(() {
+          _loadingAttach = false;
+          _attachError = ChatException(ChatErrorKind.unexpected, _noPictures(provider));
+        });
+        return;
+      }
       setState(() {
         _loadingAttach = false;
         if (item != null) {
@@ -108,10 +125,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       if (!mounted) return;
       setState(() {
         _loadingAttach = false;
-        _failedBuild = build;
+        _failedBuild = e is AttachException && !e.retryable ? null : build;
         _attachError = ChatException(
           ChatErrorKind.unexpected,
-          e is CanvasException ? e.message : 'Could not load that from Canvas. Check your connection and try again.',
+          e is CanvasException ? e.message : e is AttachException ? e.message : 'Could not load that from Canvas. Check your connection and try again.',
         );
       });
     }
@@ -222,7 +239,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   if (_attached.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
-                      child: AttachChips(items: _attached, onRemove: (i) => setState(() => _attached.remove(i))),
+                      child: AttachChips(
+                        items: _attached,
+                        onRemove: (i) => setState(() => _attached.remove(i)),
+                        onSendWhole: (f) => setState(() {
+                          final at = _attached.indexOf(f);
+                          if (at >= 0) _attached[at] = f.asWhole();
+                        }),
+                      ),
                     ),
                   _InputBar(
                     controller: _input,
