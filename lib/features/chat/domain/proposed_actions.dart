@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import '../../assignments/domain/assignment.dart';
 import '../../courses/domain/course.dart';
+import 'proposed_settings.dart';
 
 /// The word after the opening fence of the block the assistant writes when it
 /// proposes changes to assignments (starring, marking done).
@@ -29,9 +30,12 @@ class ProposedAction {
 }
 
 class ActionsProposal {
-  const ActionsProposal({required this.actions, this.note});
+  const ActionsProposal({this.actions = const [], this.settings = const [], this.note});
 
   final List<ProposedAction> actions;
+
+  /// Changes to the app's own settings, or pages to open.
+  final List<SettingChange> settings;
   final String? note;
 }
 
@@ -46,8 +50,17 @@ ActionsProposal? parseActions(String source) {
     return null;
   }
   if (j is! Map) return null;
-  final raw = j['actions'];
-  if (raw is! List || raw.isEmpty || raw.length > 20) return null;
+  final raw = j['actions'] ?? const [];
+  if (raw is! List || raw.length > 20) return null;
+  final rawSettings = j['settings'] ?? const [];
+  if (rawSettings is! List || rawSettings.length > 10) return null;
+  final settings = <SettingChange>[];
+  for (final r in rawSettings) {
+    final c = parseSetting(r);
+    if (c == null) return null;
+    settings.add(c);
+  }
+  if (raw.isEmpty && settings.isEmpty) return null;
   final actions = <ProposedAction>[];
   var ids = 0;
   for (final a in raw) {
@@ -67,6 +80,7 @@ ActionsProposal? parseActions(String source) {
   final note = j['note'];
   return ActionsProposal(
     actions: actions,
+    settings: settings,
     note: note is String && note.trim().isNotEmpty && note.length <= 300 ? note.trim() : null,
   );
 }

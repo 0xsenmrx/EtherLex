@@ -42,6 +42,23 @@ void main() {
     });
   });
 
+  group('settings in the same block', () {
+    test('a block may carry settings alone, or with assignment actions', () {
+      final p = parseActions('{"settings":[{"type":"theme","value":"dark"},{"type":"open","page":"grades"}]}')!;
+      expect(p.actions, isEmpty);
+      expect(p.settings.length, 2);
+      final both = parseActions('{"actions":[{"type":"star","assignments":[1]}],"settings":[{"type":"notifications","value":false}]}')!;
+      expect(both.actions.length, 1);
+      expect(both.settings.length, 1);
+    });
+
+    test('one bad setting, or too many, refuses the whole block', () {
+      expect(parseActions('{"settings":[{"type":"theme","value":"dark"},{"type":"api_key","value":"x"}]}'), isNull);
+      expect(parseActions('{"settings":[]}'), isNull);
+      expect(parseActions('{"settings":[${List.filled(11, '{"type":"theme","value":"dark"}').join(',')}]}'), isNull);
+    });
+  });
+
   group('previewActions', () {
     test('marks what changes, what is already so, and what does not exist', () {
       final p = parseActions('{"actions":[{"type":"star","assignments":[1,2,99]},{"type":"done","assignments":[3]}]}')!;
