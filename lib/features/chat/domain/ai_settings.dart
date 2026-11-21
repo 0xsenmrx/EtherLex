@@ -4,11 +4,16 @@ const String kDeepSeekBaseUrl = 'https://api.deepseek.com';
 enum AiProvider {
   anthropic('Anthropic (Claude)', 'claude-sonnet-5-5'),
   openai('OpenAI-compatible', ''),
-  deepseek('DeepSeek', 'deepseek-chat');
+  deepseek('DeepSeek', 'deepseek-chat', readsImages: false);
 
-  const AiProvider(this.label, this.defaultModel);
+  const AiProvider(this.label, this.defaultModel, {this.readsImages = true});
 
   final String label;
+
+  /// False when the service has no way to take a picture, so EtherLex says so
+  /// instead of sending it. (For "OpenAI-compatible" it depends on the model
+  /// typed in Settings; the service answers with an error if it cannot.)
+  final bool readsImages;
 
   /// Empty when there is no sensible default: the user types a model name.
   final String defaultModel;

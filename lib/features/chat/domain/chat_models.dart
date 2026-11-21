@@ -1,9 +1,21 @@
+import 'dart:typed_data';
+
 enum ChatRole { user, assistant }
 
 int _counter = 0;
 
 /// A short id that is unique on this computer (time plus a counter).
 String newChatId() => '${DateTime.now().microsecondsSinceEpoch.toRadixString(36)}-${_counter++}';
+
+/// A picture sent with a message. Only kept in memory: saved chats keep the
+/// chip label but not the bytes.
+class ChatImage {
+  const ChatImage({required this.name, required this.mimeType, required this.bytes});
+
+  final String name;
+  final String mimeType;
+  final Uint8List bytes;
+}
 
 class ChatMessage {
   const ChatMessage({
@@ -13,6 +25,7 @@ class ChatMessage {
     required this.createdAt,
     this.context = '',
     this.attached = const [],
+    this.images = const [],
   });
 
   final String id;
@@ -29,6 +42,9 @@ class ChatMessage {
   /// The chips shown under the message, e.g. "Open assignments (4)".
   final List<String> attached;
 
+  /// Pictures attached to this message (not saved with the chat).
+  final List<ChatImage> images;
+
   /// Everything the model gets for this message: attachments, then the words.
   String get promptText => context.isEmpty ? text : '$context\n\n$text';
 
@@ -39,6 +55,7 @@ class ChatMessage {
         createdAt: createdAt,
         context: context,
         attached: attached,
+        images: images,
       );
 
   Map<String, Object> toJson() => {

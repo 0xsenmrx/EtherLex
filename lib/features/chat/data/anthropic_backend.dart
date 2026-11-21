@@ -58,9 +58,21 @@ Map<String, Object> anthropicBody({
       'system': system,
       'messages': [
         for (final m in messages)
-          if (m.text.trim().isNotEmpty) {'role': m.role.name, 'content': m.text},
+          if (m.text.trim().isNotEmpty) {'role': m.role.name, 'content': anthropicContent(m)},
       ],
     };
+
+/// Plain text, or (with pictures) the pictures first and then the text.
+Object anthropicContent(ChatMessage m) => m.images.isEmpty
+    ? m.text
+    : [
+        for (final i in m.images)
+          {
+            'type': 'image',
+            'source': {'type': 'base64', 'media_type': i.mimeType, 'data': base64Encode(i.bytes)},
+          },
+        {'type': 'text', 'text': m.text},
+      ];
 
 /// The new text of one event, null for events that carry none. An `error`
 /// event (sent when a stream fails half way) is thrown as a [ChatException].

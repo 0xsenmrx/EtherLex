@@ -59,9 +59,21 @@ Map<String, Object> openAiBody({
       'messages': [
         if (system.trim().isNotEmpty) {'role': 'system', 'content': system},
         for (final m in messages)
-          if (m.text.trim().isNotEmpty) {'role': m.role.name, 'content': m.text},
+          if (m.text.trim().isNotEmpty) {'role': m.role.name, 'content': openAiContent(m)},
       ],
     };
+
+/// Plain text, or (with pictures) the text and then each picture as a data URL.
+Object openAiContent(ChatMessage m) => m.images.isEmpty
+    ? m.text
+    : [
+        {'type': 'text', 'text': m.text},
+        for (final i in m.images)
+          {
+            'type': 'image_url',
+            'image_url': {'url': 'data:${i.mimeType};base64,${base64Encode(i.bytes)}'},
+          },
+      ];
 
 /// The new text of one event: null for events that carry none and for the
 /// closing `[DONE]`. An error object in the stream is thrown as a [ChatException].
