@@ -7,6 +7,7 @@ import '../data/chat_store.dart';
 import '../domain/chat_backend.dart';
 import '../domain/chat_models.dart';
 import '../domain/chat_prompt.dart';
+import '../domain/context_item.dart';
 import 'ai_providers.dart';
 
 /// The saved conversations of the signed-in account (sample mode has its own).
@@ -131,9 +132,10 @@ class ChatController extends Notifier<ChatState> {
 
   void dismissError() => state = state.withError(null);
 
-  /// Sends [text] as the next question and streams the answer into the chat.
-  /// Completes when the answer is finished, stopped or failed.
-  Future<void> send(String text) async {
+  /// Sends [text] as the next question, with what the student attached from
+  /// Canvas ([items]), and streams the answer into the chat. Completes when the
+  /// answer is finished, stopped or failed.
+  Future<void> send(String text, {List<ContextItem> items = const []}) async {
     final t = text.trim();
     if (t.isEmpty || state.streaming) return;
     await whenLoaded();
@@ -144,7 +146,17 @@ class ChatController extends Notifier<ChatState> {
         ChatConversation(id: newChatId(), title: ChatConversation.titleFrom(t), createdAt: now, updatedAt: now);
     final conv = base.copyWith(
       updatedAt: now,
-      messages: [...base.messages, ChatMessage(id: newChatId(), role: ChatRole.user, text: t, createdAt: now)],
+      messages: [
+        ...base.messages,
+        ChatMessage(
+          id: newChatId(),
+          role: ChatRole.user,
+          text: t,
+          createdAt: now,
+          context: contextPromptFor(items),
+          attached: [for (final i in items) i.label],
+        ),
+      ],
     );
     _put(conv);
     state = state.withCurrent(conv.id).withError(null);
@@ -195,7 +207,12 @@ class ChatController extends Notifier<ChatState> {
       final backend = await ref.read(chatBackendProvider)();
       // Stop may have been pressed while the backend was being made.
       if (!done.isCompleted) {
-        _sub = backend.reply(messages: history, system: chatSystemPrompt(DateTime.now())).listen(
+        // The model sees each question together with what was attached to it.
+        final forModel = [
+          for (final m in history)
+            ChatMessage(id: m.id, role: m.role, text: m.promptText, createdAt: m.createdAt),
+        ];
+        _sub = backend.reply(messages: forModel, system: chatSystemPrompt(DateTime.now())).listen(
           (piece) => _append(conversationId, answer.id, piece),
           onError: (Object e, StackTrace _) {
             failure = _asChatException(e);

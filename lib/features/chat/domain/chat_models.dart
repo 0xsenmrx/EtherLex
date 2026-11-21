@@ -11,21 +11,43 @@ class ChatMessage {
     required this.role,
     required this.text,
     required this.createdAt,
+    this.context = '',
+    this.attached = const [],
   });
 
   final String id;
   final ChatRole role;
+
+  /// What the student typed (or the answer). This is what the chat shows.
   final String text;
   final DateTime createdAt;
 
-  ChatMessage copyWith({String? text}) =>
-      ChatMessage(id: id, role: role, text: text ?? this.text, createdAt: createdAt);
+  /// The text of what the student attached from Canvas, as sent to the model.
+  /// Kept so later questions in the chat still see it. Never shown as text.
+  final String context;
+
+  /// The chips shown under the message, e.g. "Open assignments (4)".
+  final List<String> attached;
+
+  /// Everything the model gets for this message: attachments, then the words.
+  String get promptText => context.isEmpty ? text : '$context\n\n$text';
+
+  ChatMessage copyWith({String? text}) => ChatMessage(
+        id: id,
+        role: role,
+        text: text ?? this.text,
+        createdAt: createdAt,
+        context: context,
+        attached: attached,
+      );
 
   Map<String, Object> toJson() => {
         'id': id,
         'role': role.name,
         'text': text,
         'at': createdAt.toUtc().toIso8601String(),
+        if (context.isNotEmpty) 'ctx': context,
+        if (attached.isNotEmpty) 'att': attached,
       };
 
   /// Null when [j] is not a message (a damaged file never throws).
@@ -36,7 +58,16 @@ class ChatMessage {
     final at = DateTime.tryParse('${j['at']}')?.toLocal();
     final role = ChatRole.values.where((r) => r.name == j['role']).firstOrNull;
     if (id is! String || text is! String || at == null || role == null) return null;
-    return ChatMessage(id: id, role: role, text: text, createdAt: at);
+    final ctx = j['ctx'];
+    final att = j['att'];
+    return ChatMessage(
+      id: id,
+      role: role,
+      text: text,
+      createdAt: at,
+      context: ctx is String ? ctx : '',
+      attached: [if (att is List) for (final a in att) if (a is String) a],
+    );
   }
 }
 
