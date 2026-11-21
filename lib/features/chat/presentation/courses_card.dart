@@ -5,7 +5,7 @@ import '../../../core/appearance/appearance.dart';
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/dialog.dart';
 import '../../../design_system/ether/icons.dart';
-import '../../../design_system/ether/list.dart';
+import '../../../design_system/ether/tap.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../../assignments/presentation/assignments_providers.dart';
 import '../../courses/domain/course.dart';
@@ -112,6 +112,30 @@ class _CoursesCardState extends ConsumerState<CoursesCard> {
     }
   }
 
+  /// "Shown" / "Hidden" as it is now; when a change is waiting, "Will hide" /
+  /// "Will show" in the warm colour. Tapping it flips the wish.
+  Widget _statePill(BuildContext context, {required bool shownNow, required bool? want, required VoidCallback? onTap}) {
+    final c = context.colors;
+    final t = context.text;
+    final pending = want != null && want != shownNow;
+    final label = pending ? (want ? 'Will show' : 'Will hide') : (shownNow ? 'Shown' : 'Hidden');
+    final color = pending ? c.dueSoon : (shownNow ? c.textPrimary : c.textTertiary);
+    return ETap(
+      onTap: onTap,
+      builder: (context, s) => Container(
+        width: 84,
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: s.hovered && onTap != null ? c.hover : const Color(0x00000000),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: pending ? c.dueSoon : c.line),
+        ),
+        child: Text(label, style: t.label.copyWith(color: color)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
@@ -147,7 +171,7 @@ class _CoursesCardState extends ConsumerState<CoursesCard> {
               Icon(EIcons.sparkles, size: 16, color: c.accent),
               const SizedBox(width: 8),
               Expanded(child: Text('Your courses', style: t.label)),
-              Text('ticked = shown in EtherLex', style: t.metaMuted),
+              Text('tap Shown or Hidden to change it', style: t.metaMuted),
             ],
           ),
           const SizedBox(height: 6),
@@ -157,11 +181,6 @@ class _CoursesCardState extends ConsumerState<CoursesCard> {
             for (final course in listed)
               Row(
                 children: [
-                  ECheck(
-                    checked: applied == null ? (_want[course.id] ?? !disabled.contains(course.id)) : !disabled.contains(course.id),
-                    onTap: applied != null ? () {} : () => setState(() => _want[course.id] = !(_want[course.id] ?? !disabled.contains(course.id))),
-                  ),
-                  const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       course.name,
@@ -171,6 +190,24 @@ class _CoursesCardState extends ConsumerState<CoursesCard> {
                     ),
                   ),
                   if (course.code.isNotEmpty && course.code != course.name) ...[const SizedBox(width: 8), Text(course.code, style: t.metaMuted)],
+                  const SizedBox(width: 10),
+                  _statePill(
+                    context,
+                    shownNow: !disabled.contains(course.id),
+                    want: applied == null ? _want[course.id] : null,
+                    onTap: applied != null
+                        ? null
+                        : () => setState(() {
+                              final now = !disabled.contains(course.id);
+                              final cur = _want[course.id] ?? now;
+                              // Back to how it is now: no pending change.
+                              if (!cur == now) {
+                                _want.remove(course.id);
+                              } else {
+                                _want[course.id] = !cur;
+                              }
+                            }),
+                  ),
                 ],
               ),
           const SizedBox(height: 8),
@@ -181,7 +218,7 @@ class _CoursesCardState extends ConsumerState<CoursesCard> {
               children: [
                 Expanded(
                   child: Text(
-                    changes == 0 ? 'Tick or untick courses, then press Apply.' : 'Nothing changes until you press Apply.',
+                    changes == 0 ? 'Tap a course\'s Shown / Hidden to change it, then press Apply.' : 'Nothing changes until you press Apply.',
                     style: t.metaMuted,
                   ),
                 ),
