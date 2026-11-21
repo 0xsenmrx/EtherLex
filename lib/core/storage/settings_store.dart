@@ -21,6 +21,10 @@ abstract interface class SettingsStore {
   /// keyed by course id as text.
   Future<Map<String, dynamic>> readGradePlans();
   Future<void> writeGradePlans(Map<String, dynamic> plans);
+
+  /// Names of the AI services this account agreed to send Canvas data to.
+  Future<Set<String>> readAiConsent();
+  Future<void> writeAiConsent(Set<String> providers);
 }
 
 /// Tiny JSON file in the user's app-data folder (not secret, so not in the
@@ -144,5 +148,17 @@ class FileSettingsStore implements SettingsStore {
   @override
   Future<void> writeGradePlans(Map<String, dynamic> plans) async {
     await _update((map) => map['gradePlans'] = plans);
+  }
+
+  @override
+  Future<Set<String>> readAiConsent() async {
+    final raw = (await _readMap())['aiConsent'];
+    if (raw is! List) return <String>{};
+    return {for (final v in raw) if (v is String) v};
+  }
+
+  @override
+  Future<void> writeAiConsent(Set<String> providers) async {
+    await _update((map) => map['aiConsent'] = providers.toList()..sort());
   }
 }

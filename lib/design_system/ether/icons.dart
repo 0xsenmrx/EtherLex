@@ -57,6 +57,7 @@ abstract final class EIcons {
   static const IconData send = LucideIcons.arrowUp;
   static const IconData stop = LucideIcons.square;
   static const IconData copy = LucideIcons.copy;
+  static const IconData attach = LucideIcons.paperclip;
   static const IconData history = LucideIcons.history;
   static const IconData settings = LucideIcons.settings;
   static const IconData keyboard = LucideIcons.keyboard;

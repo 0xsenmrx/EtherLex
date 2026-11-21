@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart' show InputBorder, InputDecoration, SelectableText, TextField;
 
 import '../../../core/motion/smooth_scroll.dart';
+import '../../../core/network/canvas_exception.dart';
 import '../../../core/utils/date_format.dart';
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/dialog.dart';
@@ -15,8 +16,10 @@ import '../../auth/domain/auth_provider.dart';
 import '../../settings/presentation/settings_dialog.dart';
 import '../domain/chat_backend.dart';
 import '../domain/chat_models.dart';
+import '../domain/context_item.dart';
 import 'ai_providers.dart';
 import 'chat_controller.dart';
+import 'chat_attach.dart';
 import 'chat_markdown_view.dart';
 import 'copy_button.dart';
 
@@ -33,6 +36,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   final _inputFocus = FocusNode();
   final _scroll = SmoothScrollController();
 
+  /// What will be sent with the next message.
+  final List<ContextItem> _attached = [];
+
   @override
   void dispose() {
     _input.dispose();
@@ -48,12 +54,67 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     });
   }
 
-  void _send() {
+  bool _sending = false;
+
+  Future<void> _send() async {
     final text = _input.text.trim();
-    if (text.isEmpty || ref.read(chatControllerProvider).streaming) return;
-    _input.clear();
-    ref.read(chatControllerProvider.notifier).send(text);
-    _toEnd();
+    if (text.isEmpty || _sending || ref.read(chatControllerProvider).streaming) return;
+    _sending = true;
+    try {
+      // The service may have been changed since the items were attached.
+      if (_attached.isNotEmpty && !await ensureConsent(context, ref)) return;
+      if (!mounted) return;
+      final items = [..._attached];
+      _input.clear();
+      setState(_attached.clear);
+      ref.read(chatControllerProvider.notifier).send(text, items: items);
+      _toEnd();
+    } finally {
+      _sending = false;
+    }
+  }
+
+  /// Fetching something to attach can take a moment, and can fail.
+  bool _loadingAttach = false;
+  ChatException? _attachError;
+  ContextBuilder? _failedBuild;
+
+  Future<void> _attach() async {
+    if (_loadingAttach) return;
+    if (!await ensureConsent(context, ref) || !mounted) return;
+    final build = await pickContext(context, ref);
+    if (build == null || !mounted) return;
+    await _load(build);
+  }
+
+  Future<void> _load(ContextBuilder build) async {
+    setState(() {
+      _loadingAttach = true;
+      _attachError = null;
+      _failedBuild = null;
+    });
+    try {
+      final item = await build();
+      if (!mounted) return;
+      setState(() {
+        _loadingAttach = false;
+        if (item != null) {
+          _attached.removeWhere((a) => a.key == item.key);
+          _attached.add(item);
+        }
+      });
+      _inputFocus.requestFocus();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loadingAttach = false;
+        _failedBuild = build;
+        _attachError = ChatException(
+          ChatErrorKind.unexpected,
+          e is CanvasException ? e.message : 'Could not load that from Canvas. Check your connection and try again.',
+        );
+      });
+    }
   }
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
@@ -134,18 +195,45 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 : null,
             onDismiss: controller.dismissError,
           ),
+        if (_attachError case final e?)
+          _ErrorBanner(
+            error: e,
+            // Tries the same fetch again; it never re-asks the last question.
+            onRetry: _failedBuild == null ? null : () => _load(_failedBuild!),
+            onSettings: null,
+            onDismiss: () => setState(() {
+              _attachError = null;
+              _failedBuild = null;
+            }),
+          ),
         Padding(
           padding: const EdgeInsets.fromLTRB(28, 4, 28, 20),
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 760),
-              child: _InputBar(
-                controller: _input,
-                focus: _inputFocus,
-                onKey: _onKey,
-                streaming: state.streaming,
-                onSend: _send,
-                onStop: controller.stop,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (_loadingAttach)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text('Loading from Canvas…', style: context.text.meta),
+                    ),
+                  if (_attached.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: AttachChips(items: _attached, onRemove: (i) => setState(() => _attached.remove(i))),
+                    ),
+                  _InputBar(
+                    controller: _input,
+                    focus: _inputFocus,
+                    onKey: _onKey,
+                    streaming: state.streaming,
+                    onSend: _send,
+                    onStop: controller.stop,
+                    onAttach: _attach,
+                  ),
+                ],
               ),
             ),
           ),
@@ -166,6 +254,7 @@ class _InputBar extends StatelessWidget {
     required this.streaming,
     required this.onSend,
     required this.onStop,
+    required this.onAttach,
   });
 
   final TextEditingController controller;
@@ -174,13 +263,14 @@ class _InputBar extends StatelessWidget {
   final bool streaming;
   final VoidCallback onSend;
   final VoidCallback onStop;
+  final VoidCallback onAttach;
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
     final t = context.text;
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
       decoration: BoxDecoration(
         color: c.surface,
         borderRadius: BorderRadius.circular(14),
@@ -189,6 +279,8 @@ class _InputBar extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
+          EIconButton(icon: EIcons.attach, tooltip: 'Attach from Canvas', onTap: onAttach, bordered: false),
+          const SizedBox(width: 8),
           Expanded(
             // At least as tall as the send button, with the text centred in it.
             child: ConstrainedBox(
@@ -248,7 +340,17 @@ class _Bubble extends StatelessWidget {
                 constraints: const BoxConstraints(maxWidth: 560),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(color: c.accentSoft, borderRadius: BorderRadius.circular(14)),
-                child: SelectableText(message.text, style: t.body),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SelectableText(message.text, style: t.body),
+                    if (message.attached.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Text('Attached: ${message.attached.join(', ')}', style: t.meta),
+                    ],
+                  ],
+                ),
               )
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

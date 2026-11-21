@@ -25,5 +25,7 @@ Sign in with a Canvas personal access token, or try it with sample data.
 ## Privacy
 Your token is kept in the Windows credential store and only ever sent to your own Canvas. Settings, the offline cache and grade plans stay in `%APPDATA%\EtherLex`.
 
+The optional AI assistant uses your own API key (kept in the Windows credential store). Your messages go to the AI service you choose. Data from Canvas (assignments, grades, announcements, files) is sent to it only when you attach it to a question, after you allow it once for that service, and you can take that permission back in Settings. Nothing is sent to anyone else.
+
 ## License
 MIT, see [LICENSE](LICENSE). Inter font: SIL Open Font License (`assets/fonts/Inter-LICENSE.txt`).

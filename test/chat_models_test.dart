@@ -67,4 +67,30 @@ void main() {
       expect(c.messages.single.text, 'ok');
     });
   });
+
+  test('attachments survive a save and are part of what the model gets', () {
+    final m = ChatMessage(
+      id: 'm',
+      role: ChatRole.user,
+      text: 'When is it due?',
+      createdAt: DateTime.utc(2026, 11, 21),
+      context: 'CTX',
+      attached: const ['Open assignments (2)'],
+    );
+    final back = ChatMessage.fromJson(m.toJson())!;
+    expect(back.context, 'CTX');
+    expect(back.attached, ['Open assignments (2)']);
+    expect(back.text, 'When is it due?');
+    expect(back.promptText, 'CTX\n\nWhen is it due?');
+    expect(back.copyWith(text: 'x').attached, ['Open assignments (2)']);
+  });
+
+  test('a message without attachments stays as small as before', () {
+    final m = ChatMessage(id: 'm', role: ChatRole.user, text: 'hi', createdAt: DateTime.utc(2026));
+    expect(m.toJson().keys, containsAll(['id', 'role', 'text', 'at']));
+    expect(m.toJson().containsKey('ctx'), isFalse);
+    expect(m.toJson().containsKey('att'), isFalse);
+    expect(m.promptText, 'hi');
+    expect(ChatMessage.fromJson(m.toJson())!.attached, isEmpty);
+  });
 }

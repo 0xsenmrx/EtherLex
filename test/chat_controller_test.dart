@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:etherlex/features/chat/data/chat_store.dart';
 import 'package:etherlex/features/chat/domain/chat_backend.dart';
 import 'package:etherlex/features/chat/domain/chat_models.dart';
+import 'package:etherlex/features/chat/domain/context_item.dart';
 import 'package:etherlex/features/chat/presentation/ai_providers.dart';
 import 'package:etherlex/features/chat/presentation/chat_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -178,6 +179,31 @@ void main() {
 
     await source.close();
     await first;
+  });
+
+  test('attachments go to the model with the question but the chat shows only the question', () async {
+    final backend = ScriptBackend((_) => pieces(['ok']));
+    final t = start(backend);
+    await t.controller.send(
+      'What is due first?',
+      items: [
+        AssignmentsContext(title: 'Open assignments', lines: [
+          AssignmentLine(course: 'PHYS101', title: 'Lab 2', dueAt: DateTime(2026, 11, 25)),
+        ]),
+      ],
+    );
+    final sent = backend.seen.last.single.text;
+    expect(sent, contains('PHYS101: Lab 2'));
+    expect(sent, endsWith('What is due first?'));
+
+    final shown = t.container.read(chatControllerProvider).current!.messages.first;
+    expect(shown.text, 'What is due first?');
+    expect(shown.attached, ['Open assignments (1)']);
+
+    await t.controller.send('And after that?');
+    final second = backend.seen.last;
+    expect(second.first.text, contains('PHYS101: Lab 2'));
+    expect(second.last.text, 'And after that?');
   });
 
   test('new chat, select and delete', () async {
