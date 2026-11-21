@@ -191,11 +191,13 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 3. Make a different change in B, sign out, sign back into A.
 - [ ] **Expect** A's settings are back and B's changes are not in A.
 4. Open `%APPDATA%\EtherLex\settings\`.
-- [ ] **Expect** one `<host>_u<user id>.json` per account (a different file for each person, even on the same site); the old `settings.json` is renamed `settings.json.migrated`.
-5. First launch after the update (if you have an older install).
-- [ ] **Expect** your existing account keeps its old settings, chats, offline files and cached courses (they are moved from the `<host>` names to `<host>_u<id>` once). A second account on the same site starts empty.
+- [ ] **Expect** one `<host>_u<user id>.json` per account (a different file for each person, even on the same site). (`settings.json.migrated` sits one folder up, in `%APPDATA%\EtherLex\`, and only exists if you ever had the very old single `settings.json`.)
+5. Simulate the first launch after the update (an old-layout install). Close EtherLex. In `%APPDATA%\EtherLex\` rename account A's `settings\<host>_u<A id>.json` to `settings\<host>.json` (the same for `chats\`, `files\<host>_u<A id>`, `file_index\<host>_u<A id>` and `cache_<host>_u<A id>.sqlite`, if they exist), and `ai\<host>_u<A id>.json` to `ai.json`. Start EtherLex and sign in as **A**.
+- [ ] **Expect** A has all of it back (settings, chats, offline files, courses, AI provider) and the `<host>` names are gone, renamed to `<host>_u<id>`. Then sign in as **B**: B starts empty, with no key and the default provider.
 6. With A and B on the same site: sign in as A, wait for the sync, sign out, sign in as B right away (before it finishes).
 - [ ] **Expect** no course, assignment, grade, file or chat of A is ever visible while signed in as B, not even for a moment. Signing out and in again never deletes anything.
+7. Save an AI key as A. Sign out, sign in as B, open Settings and the Assistant.
+- [ ] **Expect** B has no key ("Add an API key to start"); A's key and provider are back when you sign in as A again.
 
 ## 11. Robustness [DONE]
 
