@@ -6,6 +6,16 @@ import 'dart:typed_data';
 const int kMaxItemChars = 12000;
 const int kMaxContextChars = 40000;
 
+/// Something that cannot be attached, with words the student can read.
+class AttachException implements Exception {
+  const AttachException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => 'AttachException: $message';
+}
+
 enum ContextKind { assignments, grades, announcements, file, image }
 
 /// Something the user chose to send along with a message. Items are plain

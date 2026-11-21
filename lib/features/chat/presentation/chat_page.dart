@@ -111,7 +111,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         _failedBuild = build;
         _attachError = ChatException(
           ChatErrorKind.unexpected,
-          e is CanvasException ? e.message : 'Could not load that from Canvas. Check your connection and try again.',
+          e is CanvasException ? e.message : e is AttachException ? e.message : 'Could not load that from Canvas. Check your connection and try again.',
         );
       });
     }

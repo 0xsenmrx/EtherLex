@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,7 +15,12 @@ import '../../assignments/domain/assignment.dart';
 import '../../assignments/presentation/assignments_providers.dart';
 import '../../auth/domain/auth_provider.dart';
 import '../../courses/domain/course.dart';
+import '../../files/domain/files_models.dart';
+import '../../files/presentation/files_providers.dart';
 import '../../grades/presentation/grades_providers.dart';
+import '../../viewer/data/file_text.dart';
+import '../../viewer/domain/preview_kind.dart';
+import '../../../core/utils/format.dart';
 import '../domain/context_builders.dart';
 import '../domain/context_item.dart';
 import 'ai_consent.dart';
@@ -54,11 +61,11 @@ class _AttachDialog extends StatelessWidget {
 
   final WidgetRef ref;
 
-  Widget _row(BuildContext context, {required IconData icon, required String title, String? subtitle, required ContextBuilder build}) {
+  Widget _row(BuildContext context, {required IconData icon, required String title, String? subtitle, ContextBuilder? build, VoidCallback? onPick}) {
     final c = context.colors;
     final t = context.text;
     return ETap(
-      onTap: () => Navigator.of(context).pop(build),
+      onTap: onPick ?? () => Navigator.of(context).pop(build),
       builder: (context, s) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
         decoration: BoxDecoration(color: s.hovered ? c.hover : const Color(0x00000000), borderRadius: BorderRadius.circular(8)),
@@ -134,6 +141,19 @@ class _AttachDialog extends StatelessWidget {
           ),
           if (courses.isNotEmpty) ...[
             const EMenuDivider(),
+            const EMenuCaption('A file or picture from a course'),
+            for (final course in courses)
+              _row(
+                context,
+                icon: EIcons.files,
+                title: course.shortLabel,
+                subtitle: 'Syllabus, slides, notes, pictures…',
+                onPick: () async {
+                  final build = await showEtherDialog<ContextBuilder>(context, (_) => _FilesDialog(ref, course), maxWidth: 520);
+                  if (build != null && context.mounted) Navigator.of(context).pop(build);
+                },
+              ),
+            const EMenuDivider(),
             const EMenuCaption('Grades of one course'),
             for (final course in courses)
               _row(
@@ -150,6 +170,104 @@ class _AttachDialog extends StatelessWidget {
         ],
       ),
       actions: [EButton(label: 'Cancel', kind: EButtonKind.ghost, onTap: () => Navigator.of(context).pop())],
+    );
+  }
+}
+
+/// Biggest picture sent, as the services accept about this much.
+const int kMaxImageBytes = 5 * 1024 * 1024;
+
+bool _attachable(String name) {
+  final k = previewKindFor(name);
+  if (k == PreviewKind.image) return imageMimeFor(name) != null;
+  return k != PreviewKind.none;
+}
+
+/// Reads [file] (downloading it if needed) into something to attach.
+Future<ContextItem> contextForFile(WidgetRef ref, FileEntry file) async {
+  final String path;
+  try {
+    path = await ref.read(filesRepositoryProvider).localPath(file);
+  } catch (_) {
+    throw const AttachException('Could not download that file from Canvas. Check your connection and try again.');
+  }
+  final mime = imageMimeFor(file.name);
+  if (mime != null) {
+    final bytes = await File(path).readAsBytes();
+    if (bytes.length > kMaxImageBytes) {
+      throw AttachException('${file.name} is ${formatBytes(bytes.length)}; pictures over ${formatBytes(kMaxImageBytes)} are not sent.');
+    }
+    return ImageContext(name: file.name, mimeType: mime, bytes: bytes);
+  }
+  final text = await readFileText(path, file.name);
+  if (text == null) {
+    throw AttachException('No readable text in ${file.name}. A scanned PDF is only pictures; attach a text version instead.');
+  }
+  return FileContext(name: file.name, content: text, fileId: file.id);
+}
+
+class _FilesDialog extends StatelessWidget {
+  const _FilesDialog(this.ref, this.course);
+
+  final WidgetRef ref;
+  final Course course;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final t = context.text;
+    return EDialog(
+      title: course.shortLabel,
+      body: FutureBuilder<CourseFiles>(
+        future: ref.read(courseFilesProvider(course.id).future),
+        builder: (context, snap) {
+          if (snap.connectionState != ConnectionState.done) {
+            return Padding(padding: const EdgeInsets.all(16), child: Text('Loading files…', style: t.meta));
+          }
+          if (snap.hasError) {
+            return Padding(padding: const EdgeInsets.all(16), child: Text('Could not load the files of this course.', style: t.meta));
+          }
+          final hidden = ref.read(hiddenFoldersProvider);
+          final files = [
+            for (final f in filesUnder(snap.data!, null, skip: hidden))
+              if (_attachable(f.name)) f,
+          ]..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+          if (files.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text('No PDF, Word, PowerPoint, text or picture files in this course.', style: t.meta),
+            );
+          }
+          return ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 360),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (final f in files)
+                    ETap(
+                      onTap: () => Navigator.of(context).pop<ContextBuilder>(() => contextForFile(ref, f)),
+                      builder: (context, s) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                        decoration: BoxDecoration(color: s.hovered ? c.hover : const Color(0x00000000), borderRadius: BorderRadius.circular(8)),
+                        child: Row(
+                          children: [
+                            Icon(previewKindFor(f.name) == PreviewKind.image ? EIcons.fileImage : EIcons.fileText, size: 16, color: c.textSecondary),
+                            const SizedBox(width: 12),
+                            Expanded(child: Text(f.name, style: t.label, maxLines: 1, overflow: TextOverflow.ellipsis)),
+                            const SizedBox(width: 8),
+                            Text(formatBytes(f.size), style: t.meta),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+      actions: [EButton(label: 'Back', kind: EButtonKind.ghost, onTap: () => Navigator.of(context).pop())],
     );
   }
 }
