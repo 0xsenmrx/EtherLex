@@ -1,5 +1,6 @@
 import 'package:etherlex/features/assignments/domain/assignment.dart';
 import 'package:etherlex/features/chat/domain/proposed_actions.dart';
+import 'package:etherlex/features/chat/domain/proposed_settings.dart';
 import 'package:etherlex/features/courses/domain/course.dart';
 import 'package:flutter_test/flutter_test.dart';
 
