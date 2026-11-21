@@ -9,13 +9,14 @@ class NavDestination {
   final IconData icon;
 }
 
-/// Order matches Alt+1..5.
+/// Order matches Alt+1..6.
 const List<NavDestination> kDestinations = [
   NavDestination('Assignments', '/assignments', EIcons.assignments),
   NavDestination('Activity', '/activity', EIcons.activity),
   NavDestination('Calendar', '/calendar', EIcons.calendar),
   NavDestination('Grades', '/grades', EIcons.grades),
   NavDestination('Files', '/files', EIcons.files),
+  NavDestination('Assistant', '/chat', EIcons.sparkles),
 ];
 
 int destinationIndexFor(String location) {

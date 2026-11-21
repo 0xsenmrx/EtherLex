@@ -54,6 +54,10 @@ abstract final class EIcons {
   static const IconData edit = LucideIcons.pencil;
   static const IconData trash = LucideIcons.trash2;
   static const IconData sparkles = LucideIcons.sparkles;
+  static const IconData send = LucideIcons.arrowUp;
+  static const IconData stop = LucideIcons.square;
+  static const IconData copy = LucideIcons.copy;
+  static const IconData history = LucideIcons.history;
   static const IconData settings = LucideIcons.settings;
   static const IconData keyboard = LucideIcons.keyboard;
   static const IconData loader = LucideIcons.loaderCircle;

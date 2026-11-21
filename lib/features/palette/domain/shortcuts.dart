@@ -19,6 +19,7 @@ const List<ShortcutInfo> kShortcuts = [
   ShortcutInfo('Everywhere', ['Alt', '3'], 'Go to Calendar'),
   ShortcutInfo('Everywhere', ['Alt', '4'], 'Go to Grades'),
   ShortcutInfo('Everywhere', ['Alt', '5'], 'Go to Files'),
+  ShortcutInfo('Everywhere', ['Alt', '6'], 'Go to Assistant'),
   ShortcutInfo('Everywhere', ['Ctrl', ','], 'Settings'),
   ShortcutInfo('Everywhere', ['Ctrl', '/'], 'Keyboard shortcuts'),
   ShortcutInfo('Everywhere', ['Ctrl', 'R'], 'Refresh this page (also F5)'),

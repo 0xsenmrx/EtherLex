@@ -10,6 +10,7 @@ import '../features/assignments/presentation/assignments_page.dart';
 import '../features/auth/domain/auth_provider.dart';
 import '../features/auth/presentation/setup_page.dart';
 import '../features/calendar/presentation/calendar_page.dart';
+import '../features/chat/presentation/chat_page.dart';
 import '../features/files/presentation/files_page.dart';
 import '../features/grades/presentation/grades_page.dart';
 import 'shell/app_shell.dart';
@@ -94,6 +95,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/files',
             pageBuilder: (context, state) => _page(state, const FilesPage()),
+          ),
+          GoRoute(
+            path: '/chat',
+            pageBuilder: (context, state) => _page(state, const ChatPage()),
           ),
         ],
       ),

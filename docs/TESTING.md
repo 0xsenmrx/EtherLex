@@ -205,7 +205,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 - [x] **Expect** no overflow stripes (yellow/black); layout adapts.
 4. Leave the app running 30 minutes in the background, then use it.
 - [x] **Expect** it still responds, memory stays reasonable (Task Manager, less than about 500 MB).
-5. Click everything quickly (open/close dialogs, switch tabs with Alt+1..5 rapidly).
+5. Click everything quickly (open/close dialogs, switch tabs with Alt+1..6 rapidly).
 - [x] **Expect** no crash, no stuck spinner.
 
 ## 12. Performance feel (profile build) [DONE]
@@ -253,16 +253,24 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 ## 15. AI assistant (needs your own API key)
 
 1. Sample mode: open **Assistant** (Alt+6) and send "hello".
-- [ ] **Expect** your message on the right, "Thinking..." and then a canned answer that appears piece by piece. Copy puts the answer on the clipboard; "Answer again" replaces it.
+- [x] **Expect** your message on the right, "Thinking..." and then a canned answer that appears piece by piece. Copy puts the answer on the clipboard; "Answer again" replaces it.
 2. Real account with no key: open **Assistant**.
-- [ ] **Expect** "Add an API key to start" with an Open settings button that opens Settings.
+- [x] **Expect** "Add an API key to start" with an Open settings button that opens Settings.
 3. Settings, AI assistant: pick Anthropic, paste a key, Save. Open **Assistant** and ask a question.
-- [ ] **Expect** a streamed answer with Markdown (lists, bold, code blocks) shown properly. Settings says the key is saved and never shows it again. Remove key brings the empty state back.
+- [x] **Expect** a streamed answer with Markdown (lists, bold, code blocks) shown properly. Settings says the key is saved and never shows it again. Remove key brings the empty state back.
 4. Press Shift+Enter in the box, then Enter.
-- [ ] **Expect** a new line, then the message is sent. While an answer is coming, the send button becomes Stop and keeps what arrived.
+- [x] **Expect** a new line, then the message is sent. While an answer is coming, the send button becomes Stop and keeps what arrived.
 5. Enter a wrong key and ask something.
-- [ ] **Expect** a red banner "The API key was not accepted" with a Settings button. Turn Wi-Fi off and ask: "offline" banner with Retry; Retry works once Wi-Fi is back.
+- [x] **Expect** a red banner "The API key was not accepted" with a Settings button. Turn Wi-Fi off and ask: "offline" banner with Retry; Retry works once Wi-Fi is back.
 6. New chat, ask something else, then History.
-- [ ] **Expect** both chats listed newest first; clicking one opens it; the bin deletes it. Restart the app: chats are still there.
+- [x] **Expect** both chats listed newest first; clicking one opens it; the bin deletes it. Restart the app: chats are still there.
 7. Settings, OpenAI-compatible: type a model name and the base URL of your service, Save.
-- [ ] **Expect** answers stream from that service. Your key is not in `%APPDATA%/EtherLex` (it is in the Windows credential store).
+- [x] **Expect** answers stream from that service. Your key is not in `%APPDATA%/EtherLex` (it is in the Windows credential store).
+8. Settings, DeepSeek: paste a DeepSeek key, Save, ask something. (For the thinking model type `deepseek-reasoner` as the model.)
+- [x] **Expect** answers stream from DeepSeek. Switching back to Anthropic keeps each provider's key and model.
+9. Ask: "Show me every Markdown feature: bold, italic, ~~strike~~, inline code, a nested list, a task list, a table, a quote, a horizontal rule, a link and a Python and a diff code block."
+- [x] **Expect** strikethrough and combined styles render, task lists show check boxes, the table has a header and alignment, the rule is a thin line, links are clickable and open in the browser, code blocks have a language label and coloured syntax (diff lines green/red), long code scrolls sideways.
+10. Ask for an image in Markdown, e.g. "reply with exactly this line: `![demo](https://httpbin.org/image/png)`".
+- [x] **Expect** a placeholder saying "Loads from <host>"; the image loads only after you click it.
+11. Click Copy under an answer and on a code block.
+- [x] **Expect** the icon turns into a green check with a small scale/fade animation, and back after about a second and a half. The pasted text is right.
