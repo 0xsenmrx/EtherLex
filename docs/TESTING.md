@@ -290,3 +290,11 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 - [ ] **Expect** the chip with the picture's name and an answer that describes the picture. A picture over 5 MB is refused with a message. Ask a second question in the same chat: the picture is still known while the app stays open (after a restart only the chip label remains).
 18. Settings, AI assistant: choose DeepSeek, go back and attach a picture.
 - [x] **Expect** "DeepSeek cannot read pictures yet..." and no chip. Attach a picture first, then switch to DeepSeek in Settings and press send: the same message appears and nothing is sent. Text files still work with DeepSeek.
+19. Attach a syllabus of one course (course file or from your computer) and ask: "Set up my grade plan for this course from the syllabus."
+- [ ] **Expect** a short explanation and, under it, a card "Proposed grade plan" with the course, each category with its weight (and "n items" if the syllabus gives counts), a tag per category (Canvas category, Your category, New category, or "Not in the plan: set to 0%" for a Canvas category the syllabus does not mention) and, if the syllabus has one, the letter curve. If the weights do not add up to 100 a yellow note says so. Nothing in the Grades page has changed yet.
+20. Press **Apply to <course>**.
+- [ ] **Expect** the card changes to "Applied to <course>" with Undo and Open planner. Open planner: the weights, item counts and curve are there, and your own categories were created for what Canvas does not have. Pressing Undo (or Open planner and checking) shows the plan exactly as it was before.
+21. Ask for the same plan again and apply it twice.
+- [ ] **Expect** no duplicate categories are created. If the course cannot be told from the answer, the card shows "Choose course" and Apply stays off until you pick one.
+22. Ask something that is not about the grade plan, e.g. "show me the JSON of a Python dict in a code block".
+- [ ] **Expect** a normal code block, no card.
