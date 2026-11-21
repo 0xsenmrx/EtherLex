@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -255,14 +257,7 @@ class _Bubble extends StatelessWidget {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        EIconButton(
-                          icon: EIcons.copy,
-                          tooltip: 'Copy',
-                          size: 28,
-                          iconSize: 14,
-                          bordered: false,
-                          onTap: () => Clipboard.setData(ClipboardData(text: message.text)),
-                        ),
+                        _CopyButton(text: message.text),
                         if (onRegenerate != null)
                           EIconButton(
                             icon: EIcons.refresh,
@@ -383,4 +378,47 @@ class _HistoryDialog extends ConsumerWidget {
       actions: [EButton(label: 'Close', onTap: () => Navigator.of(context).pop())],
     );
   }
+}
+
+/// Copies [text]; the icon turns into a green check for a moment so you can
+/// see it worked.
+class _CopyButton extends StatefulWidget {
+  const _CopyButton({required this.text});
+
+  final String text;
+
+  @override
+  State<_CopyButton> createState() => _CopyButtonState();
+}
+
+class _CopyButtonState extends State<_CopyButton> {
+  bool _copied = false;
+  Timer? _timer;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _copy() async {
+    await Clipboard.setData(ClipboardData(text: widget.text));
+    if (!mounted) return;
+    setState(() => _copied = true);
+    _timer?.cancel();
+    _timer = Timer(const Duration(milliseconds: 1500), () {
+      if (mounted) setState(() => _copied = false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => EIconButton(
+        icon: _copied ? EIcons.check : EIcons.copy,
+        tooltip: _copied ? 'Copied' : 'Copy',
+        size: 28,
+        iconSize: 14,
+        bordered: false,
+        color: _copied ? context.colors.success : null,
+        onTap: _copy,
+      );
 }
