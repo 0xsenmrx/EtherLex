@@ -1,4 +1,5 @@
 import '../../grades/domain/plan_proposal.dart';
+import 'proposed_actions.dart';
 
 const List<String> _weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -13,7 +14,23 @@ const String _planInstructions =
     'Weights are percent of the course grade and should add up to 100. "count" (how many assignments '
     'there will be) and "curve" (letter -> percent of the class that gets it; only A+, A, A-, B+, B, B-, '
     'C+, C, C-, D, F) are optional. Include only what the document really states; leave out anything it '
-    'does not. Never say the plan is applied: the student sees a card under your answer and presses Apply.';
+    'does not. If the syllabus groups work differently from the categories Canvas has (listed in the '
+    'attached grades), you may add "moves": [{"assignment":123,"category":"Lab"}] using the item numbers '
+    'shown as [#123] in the attached list; never invent a number. '
+    'Never say the plan is applied: the student sees a card under your answer and presses Apply.';
+
+/// How the assistant proposes starring or marking assignments done.
+const String _actionsInstructions =
+    'When the student asks you to star or unstar assignments, or to mark them done or not done, reply with '
+    'a few plain sentences and exactly one fenced code block whose language is $kActionsFence, containing '
+    'only JSON like this: {"actions":[{"type":"star","assignments":[12,15]},'
+    '{"type":"done","assignments":[12],"value":false}],"note":"short remark"}. '
+    '"type" is star or done; "value" is true (default) or false. Use only the item numbers shown as [#12] '
+    'in the attached lists, never invent one, and if the right assignment is not in the attached lists, say '
+    'so and ask the student to attach it. Mark something done only when the student says it is finished or '
+    'asks you to. Marking done only changes EtherLex and submits nothing to Canvas. You cannot submit '
+    'work, change anything else in the app, or change anything outside what these blocks describe: say so '
+    'if asked. Never say a change is made: the student sees a card under your answer and presses Apply.';
 
 /// What the assistant is told before the conversation starts.
 String chatSystemPrompt(DateTime now) {
@@ -23,6 +40,6 @@ String chatSystemPrompt(DateTime now) {
       'with their Canvas courses. Help with courses, assignments and studying. '
       'Answer clearly and concisely, and use Markdown when it helps. '
       'If you are not sure of something, say so instead of guessing. '
-      '$_planInstructions '
+      '$_planInstructions $_actionsInstructions '
       'Today is ${_weekdays[now.weekday - 1]}, ${now.year}-$month-$day.';
 }

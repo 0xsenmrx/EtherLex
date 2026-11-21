@@ -1,5 +1,6 @@
 import 'package:etherlex/features/chat/data/sample_chat_backend.dart';
 import 'package:etherlex/features/chat/domain/chat_prompt.dart';
+import 'package:etherlex/features/chat/domain/proposed_actions.dart';
 import 'package:etherlex/features/grades/domain/plan_proposal.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -20,5 +21,13 @@ void main() {
     final p = chatSystemPrompt(DateTime(2026, 11, 20));
     expect(p, contains('language is $kPlanFence'));
     expect(p, contains('Never say the plan is applied'));
+  });
+
+  test('it explains the actions block, the item numbers, and that it cannot submit', () {
+    final p = chatSystemPrompt(DateTime(2026, 11, 20));
+    expect(p, contains('language is $kActionsFence'));
+    expect(p, contains('[#12]'));
+    expect(p, contains('submits nothing to Canvas'));
+    expect(p, contains('"moves"'));
   });
 }
