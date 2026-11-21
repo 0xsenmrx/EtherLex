@@ -8,6 +8,12 @@ import 'grades.dart';
 /// proposes a grade plan.
 const String kPlanFence = 'etherlex-plan';
 
+/// Parts of a plan the assistant may estimate instead of reading from a
+/// document, as long as it says so ("guessed"). Weights, categories and moves
+/// are never on this list: they change the real grade and must come from the
+/// document.
+const Set<String> kGuessable = {'curve', 'counts'};
+
 class ProposedCategory {
   const ProposedCategory({required this.name, required this.weight, this.count});
 
@@ -32,7 +38,14 @@ class ProposedMove {
 /// A grade plan the assistant read out of a syllabus. It changes nothing by
 /// itself: the student sees it as a card and presses Apply.
 class PlanProposal {
-  const PlanProposal({this.course, this.categories = const [], this.curve = const {}, this.moves = const [], this.note});
+  const PlanProposal({
+    this.course,
+    this.categories = const [],
+    this.curve = const {},
+    this.moves = const [],
+    this.guessed = const {},
+    this.note,
+  });
 
   /// The course as the assistant named it; matched to a real course later.
   final String? course;
@@ -43,6 +56,9 @@ class PlanProposal {
 
   /// Assignments to put in a category, when Canvas groups them differently.
   final List<ProposedMove> moves;
+
+  /// Which of [kGuessable] are the assistant's estimate, not the document's.
+  final Set<String> guessed;
   final String? note;
 
   double get weightTotal => categories.fold(0, (a, c) => a + c.weight);
@@ -109,12 +125,21 @@ PlanProposal? parseProposal(String source) {
     }
   }
 
+  // Only the parts that may be estimated are looked at; anything else listed is ignored.
+  final rawGuessed = j['guessed'];
+  final guessed = <String>{
+    if (rawGuessed is List)
+      for (final g in rawGuessed)
+        if (g is String && kGuessable.contains(g)) g,
+  };
+
   if (categories.isEmpty && curve.isEmpty && moves.isEmpty) return null;
   return PlanProposal(
     course: text(j['course'], 120),
     categories: categories,
     curve: curve,
     moves: moves,
+    guessed: guessed,
     note: text(j['note'], 300),
   );
 }

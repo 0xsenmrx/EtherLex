@@ -51,6 +51,19 @@ void main() {
     });
   });
 
+  group('guessed parts', () {
+    test('curve and counts may be flagged as estimates; nothing else counts', () {
+      final p = parseProposal('{"curve":{"A":10},"guessed":["curve","weights","counts",3]}')!;
+      expect(p.guessed, {'curve', 'counts'});
+      expect(parseProposal('{"curve":{"A":10}}')!.guessed, isEmpty);
+      expect(parseProposal('{"curve":{"A":10},"guessed":"curve"}')!.guessed, isEmpty);
+    });
+
+    test('weights, categories and moves are not guessable', () {
+      expect(kGuessable, {'curve', 'counts'});
+    });
+  });
+
   group('matchCourse', () {
     const courses = [
       Course(id: 1, name: 'Physics II', code: 'PHYS2'),
