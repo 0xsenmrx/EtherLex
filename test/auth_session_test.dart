@@ -22,13 +22,12 @@ class _MemoryCredentials implements CredentialsStore {
 }
 
 class _Adapter implements HttpClientAdapter {
-  _Adapter(this.status, [this.body = '{"id": 77, "name": "Arsen"}']);
+  _Adapter(this.status);
   final int status;
-  final String body;
 
   @override
   Future<ResponseBody> fetch(RequestOptions options, Stream<Uint8List>? requestStream, Future<void>? cancelFuture) async =>
-      ResponseBody.fromString(body, status, headers: {
+      ResponseBody.fromString('{"id": 77, "name": "Arsen"}', status, headers: {
         Headers.contentTypeHeader: [Headers.jsonContentType],
       });
 
