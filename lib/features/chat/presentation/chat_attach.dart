@@ -188,7 +188,7 @@ class _AttachDialog extends StatelessWidget {
                 subtitle: course.name == course.shortLabel ? null : course.name,
                 build: () async {
                   final work = await ref.read(courseWorkProvider(course.id).future);
-                  return courseGradesContext(course, ref.read(courseGradesProvider)[course.id], work.items);
+                  return courseGradesContext(course, ref.read(courseGradesProvider)[course.id], work.items, groups: work.groups);
                 },
               ),
           ],
