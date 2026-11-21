@@ -14,6 +14,7 @@ import '../../viewer/presentation/markdown_view.dart';
 import '../domain/chat_blocks.dart';
 import '../domain/chat_inline.dart';
 import '../domain/code_highlight.dart';
+import 'copy_button.dart';
 
 /// An assistant answer, drawn as GitHub-style Markdown: headings, nested and
 /// task lists, tables, quotes, rules, links, highlighted code with a copy
@@ -333,9 +334,17 @@ class _CodeBlockViewState extends State<_CodeBlockView> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(_copied ? EIcons.check : EIcons.copy, size: 13, color: c.textSecondary),
+                        CopyIcon(copied: _copied, size: 13, color: _copied ? c.success : c.textSecondary),
                         const SizedBox(width: 5),
-                        Text(_copied ? 'Copied' : 'Copy', style: t.metaMuted),
+                        AnimatedSize(
+                          duration: const Duration(milliseconds: 180),
+                          curve: Curves.easeOutCubic,
+                          alignment: Alignment.centerLeft,
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 180),
+                            child: Text(_copied ? 'Copied' : 'Copy', key: ValueKey<bool>(_copied), style: t.metaMuted),
+                          ),
+                        ),
                       ],
                     ),
                   ),
