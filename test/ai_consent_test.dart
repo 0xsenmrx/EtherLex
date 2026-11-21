@@ -49,7 +49,8 @@ void main() {
       ..grant(AiProvider.openai)
       ..revoke(AiProvider.anthropic);
     expect(a.read(aiConsentProvider), {AiProvider.openai});
-    await until(() => File('${dir.path}/a.json').readAsStringSync().contains('openai'));
+    final file = File('${dir.path}/a.json');
+    await until(() => file.existsSync() && file.readAsStringSync().contains('openai'));
     final again = container('a');
     await until(() => again.read(aiConsentProvider).isNotEmpty);
     expect(again.read(aiConsentProvider), {AiProvider.openai});
