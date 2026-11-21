@@ -276,3 +276,11 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 - [x] **Expect** a placeholder saying "Loads from <host>"; the image loads only after you click it.
 11. Click Copy under an answer and on a code block.
 - [x] **Expect** the icon turns into a green check with a small scale/fade animation, and back after about a second and a half. The pasted text is right.
+12. Attach: in the Assistant click the paperclip, pick **Open assignments**, then ask "What should I do first?".
+- [ ] **Expect** a "Send Canvas data to <service>?" dialog the first time; after Allow, a chip "Open assignments (n)" above the box, "Loading from Canvas..." while it fetches. The answer uses your real due dates, and the sent message shows "Attached: Open assignments (n)". Courses you disabled are not in the list.
+13. Pick **Grades overview** before ever opening the Grades page, then **Grades of one course**.
+- [ ] **Expect** both load (a short "Loading from Canvas..."), every course is listed, and a course without a grade says "no grade yet". Remove a chip with its x: it is not sent.
+14. Turn Wi-Fi off, pick **Grades of one course** for a course you have not opened.
+- [ ] **Expect** an error banner about the connection with Retry. Retry repeats the fetch (never re-asks your last question); dismiss with the x.
+15. Settings, AI assistant: click "Take permission back", then attach something again.
+- [ ] **Expect** the permission dialog appears again. Sign in as another account: it also asks again.
