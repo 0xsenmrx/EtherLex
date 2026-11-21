@@ -9,6 +9,7 @@ class AuthSession {
     required this.baseUrl,
     required this.token,
     required this.userName,
+    this.userId,
     this.isSample = false,
   });
 
@@ -16,11 +17,16 @@ class AuthSession {
       : baseUrl = '',
         token = '',
         userName = 'Sample data',
+        userId = null,
         isSample = true;
 
   final String baseUrl;
   final String token;
   final String userName;
+
+  /// The Canvas user id; null only for a sign-in saved by an older version
+  /// whose id could not be fetched yet.
+  final int? userId;
   final bool isSample;
 }
 
@@ -40,7 +46,18 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     try {
       final c = await ref.read(credentialsStoreProvider).read();
       if (c == null) return null;
-      return AuthSession(baseUrl: c.baseUrl, token: c.token, userName: c.userName);
+      var id = c.userId;
+      if (id == null) {
+        // Saved by an older version: learn the id now. Offline or rejected, the
+        // session still opens and the id is tried again at the next start.
+        try {
+          id = (await ref.read(canvasClientFactoryProvider)(c.baseUrl, c.token).fetchSelf()).id;
+          await ref.read(credentialsStoreProvider).save(
+                Credentials(baseUrl: c.baseUrl, token: c.token, userName: c.userName, userId: id),
+              );
+        } catch (_) {}
+      }
+      return AuthSession(baseUrl: c.baseUrl, token: c.token, userName: c.userName, userId: id);
     } catch (_) {
       return null;
     }
@@ -52,9 +69,9 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     final token = rawToken.trim();
     final user = await ref.read(canvasClientFactoryProvider)(baseUrl, token).fetchSelf();
     await ref.read(credentialsStoreProvider).save(
-          Credentials(baseUrl: baseUrl, token: token, userName: user.name),
+          Credentials(baseUrl: baseUrl, token: token, userName: user.name, userId: user.id),
         );
-    state = AsyncData(AuthSession(baseUrl: baseUrl, token: token, userName: user.name));
+    state = AsyncData(AuthSession(baseUrl: baseUrl, token: token, userName: user.name, userId: user.id));
   }
 
   void useSample() => state = const AsyncData(AuthSession.sample());
