@@ -130,11 +130,13 @@ class _ActionsCardState extends ConsumerState<ActionsCard> {
       if (!ok || !mounted) return;
     }
     setState(() => _busy = true);
+    // Made before anything is awaited: it holds the context for opening a page.
+    final target = _AppTarget(ref, context);
     final notifier = ref.read(appliedActionsProvider.notifier);
     ActionUndo undo = {ActionKind.star: {}, ActionKind.done: {}};
     try {
       undo = await applyActions(lines, setStarred: _setStarred, setDone: _setDone);
-      final settingsUndo = applySettings(settings, _AppTarget(ref, context));
+      final settingsUndo = applySettings(settings, target);
       notifier.mark(widget.source, AppliedActions(lines: lines, undo: undo, settingLines: settings, settingsUndo: settingsUndo));
     } on ApplyFailed catch (e) {
       notifier.mark(widget.source, AppliedActions(lines: lines, undo: e.done, failure: 'It stopped part way. What was changed can be undone.'));
@@ -153,9 +155,10 @@ class _ActionsCardState extends ConsumerState<ActionsCard> {
   Future<void> _undo(AppliedActions a) async {
     if (_busy) return;
     setState(() => _busy = true);
+    final target = _AppTarget(ref, context);
     try {
       await undoActions(a.undo, setStarred: _setStarred, setDone: _setDone);
-      if (a.settingsUndo != null) undoSettings(a.settingsUndo!, _AppTarget(ref, context));
+      if (a.settingsUndo != null) undoSettings(a.settingsUndo!, target);
       ref.read(appliedActionsProvider.notifier).clear(widget.source);
     } catch (_) {
       // Leave the card as it is so Undo can be tried again.
