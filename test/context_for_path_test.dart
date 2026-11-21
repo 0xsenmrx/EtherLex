@@ -36,7 +36,7 @@ void main() {
     final empty = File('${dir.path}/empty.txt')..writeAsStringSync('');
     expect(
       contextForPath(empty.path, 'empty.txt'),
-      throwsA(isA<AttachException>().having((e) => e.message, 'message', contains('No readable text'))),
+      throwsA(isA<AttachException>().having((e) => e.message, 'message', contains('Could not find any text'))),
     );
   });
 }
