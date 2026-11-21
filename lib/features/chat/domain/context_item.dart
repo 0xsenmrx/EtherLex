@@ -3,8 +3,8 @@ import 'dart:typed_data';
 /// The most text one attached item adds to a message, and all items together.
 /// Longer text is cut with a note, so one big file cannot fill the model's
 /// memory or the bill.
-const int kMaxItemChars = 12000;
-const int kMaxContextChars = 40000;
+const int kMaxItemChars = 80000;
+const int kMaxContextChars = 120000;
 
 /// Something that cannot be attached, with words the student can read.
 class AttachException implements Exception {
@@ -177,7 +177,7 @@ class FileContext extends ContextItem {
   String get key => 'file:${fileId ?? name}';
 
   @override
-  String get label => name;
+  String get label => content.length > kMaxItemChars ? '$name (first part)' : name;
 
   @override
   String get text => content;

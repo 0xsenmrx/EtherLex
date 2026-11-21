@@ -57,4 +57,9 @@ void main() {
     expect(all, contains('more attachments were left out'));
     expect(all.length, lessThan(kMaxContextChars + 2000));
   });
+
+  test('a file longer than the limit says on its chip that only the first part is sent', () {
+    expect(FileContext(name: 'a.pdf', content: 'x' * 10).label, 'a.pdf');
+    expect(FileContext(name: 'a.pdf', content: 'x' * (kMaxItemChars + 1)).label, 'a.pdf (first part)');
+  });
 }
