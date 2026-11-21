@@ -6,6 +6,7 @@ import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/list.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../domain/ai_settings.dart';
+import 'ai_consent.dart';
 import 'ai_providers.dart';
 
 /// Settings for the assistant: which service, your own API key, the model.
@@ -55,6 +56,7 @@ class _AiSettingsSectionState extends ConsumerState<AiSettingsSection> {
     final t = context.text;
     final settings = ref.watch(aiSettingsProvider);
     final hasKey = ref.watch(aiKeysProvider).contains(settings.provider);
+    final allowed = ref.watch(aiConsentProvider).contains(settings.provider);
     _sync(settings);
     final provider = settings.provider;
     return Column(
@@ -105,9 +107,23 @@ class _AiSettingsSectionState extends ConsumerState<AiSettingsSection> {
         ),
         const SizedBox(height: 6),
         Text(
-          'Your messages go to the service you chose, nothing else. Nothing from Canvas is sent yet.',
+          'Your messages go to the service you chose, nothing else. Data from Canvas is sent only when you attach it to a question.',
           style: t.metaMuted,
         ),
+        if (allowed) ...[
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(child: Text('You allowed sending attached Canvas data to ${provider.label}.', style: t.meta)),
+              const SizedBox(width: 8),
+              EButton(
+                label: 'Take permission back',
+                kind: EButtonKind.ghost,
+                onTap: () => ref.read(aiConsentProvider.notifier).revoke(provider),
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
