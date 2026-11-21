@@ -30,4 +30,18 @@ void main() {
     expect(p, contains('submits nothing to Canvas'));
     expect(p, contains('"moves"'));
   });
+
+  test('guessing is allowed only for the curve and counts, and must be flagged', () {
+    final p = chatSystemPrompt(DateTime(2026, 11, 20));
+    expect(p, contains('never guess'));
+    expect(p, contains('"guessed":["curve"]'));
+    expect(p, contains('call it an estimate'));
+  });
+
+  test('it lists the settings it may propose', () {
+    final p = chatSystemPrompt(DateTime(2026, 11, 20));
+    for (final w in ['"settings"', '"theme"', '"notifications"', '"open"']) {
+      expect(p, contains(w));
+    }
+  });
 }

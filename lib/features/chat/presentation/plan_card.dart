@@ -163,7 +163,7 @@ class _PlanCardState extends ConsumerState<PlanCard> {
                   ],
                 ),
                 Text(
-                  '${formatPercent(r.weight)}${r.count == null ? '' : ' · ${r.count} items'}',
+                  '${formatPercent(r.weight)}${r.count == null ? '' : ' · ${r.count} items${p.guessed.contains('counts') ? ' (guess)' : ''}'}',
                   style: t.number,
                 ),
               ),
@@ -199,9 +199,14 @@ class _PlanCardState extends ConsumerState<PlanCard> {
           if (p.curve.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
-              'Letter curve: ${[for (final e in p.curve.entries) '${e.key} ${formatPercent(e.value)}'].join(' · ')} of the class',
-              style: t.meta,
+              'Letter curve${p.guessed.contains('curve') ? ' (a guess, not from your documents)' : ''}: '
+              '${[for (final e in p.curve.entries) '${e.key} ${formatPercent(e.value)}'].join(' · ')} of the class',
+              style: p.guessed.contains('curve') ? t.meta.copyWith(color: c.dueSoon) : t.meta,
             ),
+          ],
+          if (p.guessed.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text('Guesses are estimates, not facts. Check them before relying on them.', style: t.meta.copyWith(color: c.dueSoon)),
           ],
           if (p.categories.isNotEmpty && (total - 100).abs() > 0.01) ...[
             const SizedBox(height: 6),

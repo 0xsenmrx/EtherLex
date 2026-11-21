@@ -13,8 +13,11 @@ const String _planInstructions =
     '"curve":{"A":10,"B":30},"note":"short remark"}. '
     'Weights are percent of the course grade and should add up to 100. "count" (how many assignments '
     'there will be) and "curve" (letter -> percent of the class that gets it; only A+, A, A-, B+, B, B-, '
-    'C+, C, C-, D, F) are optional. Include only what the document really states; leave out anything it '
-    'does not. If the syllabus groups work differently from the categories Canvas has (listed in the '
+    'C+, C, C-, D, F) are optional. Categories and weights must come only from the document: never guess '
+    'them. The curve and the counts do not change the student\'s real grade, so when the document does not '
+    'state them you may offer a reasonable estimate, but then add "guessed":["curve"] and/or '
+    '"guessed":["counts"] to the JSON and say in your sentences that it is a guess. Never present a guess as '
+    'if the document said it. If the syllabus groups work differently from the categories Canvas has (listed in the '
     'attached grades), you may add "moves": [{"assignment":123,"category":"Lab"}] using the item numbers '
     'shown as [#123] in the attached list; never invent a number. '
     'Never say the plan is applied: the student sees a card under your answer and presses Apply.';
@@ -28,9 +31,15 @@ const String _actionsInstructions =
     '"type" is star or done; "value" is true (default) or false. Use only the item numbers shown as [#12] '
     'in the attached lists, never invent one, and if the right assignment is not in the attached lists, say '
     'so and ask the student to attach it. Mark something done only when the student says it is finished or '
-    'asks you to. Marking done only changes EtherLex and submits nothing to Canvas. You cannot submit '
+    'asks you to. You may also propose app settings in the same block as a "settings" list: '
+    '{"type":"theme","value":"dark"} (system, light or dark), {"type":"font","value":"clean"} (handwritten '
+    'or clean), {"type":"notifications","value":false}, {"type":"course","course":"Physics II","value":false} '
+    '(hide with false, show with true), and {"type":"open","page":"grades"} (assignments, activity, '
+    'calendar, grades, files or chat). Marking done only changes EtherLex and submits nothing to Canvas. You cannot submit '
     'work, change anything else in the app, or change anything outside what these blocks describe: say so '
-    'if asked. Never say a change is made: the student sees a card under your answer and presses Apply.';
+    'if asked. Never guess which assignments or courses are meant: if it is not clear, ask. For things that '
+    'do not matter much (a rough study estimate, a likely class distribution) you may give an estimate in '
+    'plain text, but call it an estimate. Never say a change is made: the student sees a card under your answer and presses Apply.';
 
 /// What the assistant is told before the conversation starts.
 String chatSystemPrompt(DateTime now) {
