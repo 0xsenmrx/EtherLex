@@ -63,8 +63,8 @@ class ActionsCard extends ConsumerStatefulWidget {
   ConsumerState<ActionsCard> createState() => _ActionsCardState();
 }
 
-class _AppTarget implements SettingsTarget {
-  _AppTarget(this.ref, this.context);
+class AppTarget implements SettingsTarget {
+  AppTarget(this.ref, this.context);
 
   final WidgetRef ref;
   final BuildContext context;
@@ -95,13 +95,13 @@ class _AppTarget implements SettingsTarget {
 class _ActionsCardState extends ConsumerState<ActionsCard> {
   bool _busy = false;
 
-  /// Courses the person picked for names that did not match one: name as written -> id.
-  final Map<String, int> _picked = {};
+  /// Courses the person picked for lines that did not match one: place in the list -> id.
+  final Map<int, int> _picked = {};
 
-  Future<void> _choose(String name) async {
+  Future<void> _choose(int index) async {
     final all = ref.read(coursesProvider).value ?? const <Course>[];
     final course = await pickCourse(context, all);
-    if (course != null && mounted) setState(() => _picked[name] = course.id);
+    if (course != null && mounted) setState(() => _picked[index] = course.id);
   }
 
   Future<void> _setStarred(int id, bool v) => ref.read(assignmentsRepositoryProvider).setStarred(id, v);
@@ -141,7 +141,7 @@ class _ActionsCardState extends ConsumerState<ActionsCard> {
     }
     setState(() => _busy = true);
     // Made before anything is awaited: it holds the context for opening a page.
-    final target = _AppTarget(ref, context);
+    final target = AppTarget(ref, context);
     final notifier = ref.read(appliedActionsProvider.notifier);
     ActionUndo undo = {ActionKind.star: {}, ActionKind.done: {}};
     try {
@@ -165,7 +165,7 @@ class _ActionsCardState extends ConsumerState<ActionsCard> {
   Future<void> _undo(AppliedActions a) async {
     if (_busy) return;
     setState(() => _busy = true);
-    final target = _AppTarget(ref, context);
+    final target = AppTarget(ref, context);
     try {
       await undoActions(a.undo, setStarred: _setStarred, setDone: _setDone);
       if (a.settingsUndo != null) undoSettings(a.settingsUndo!, target);
@@ -276,7 +276,7 @@ class _ActionsCardState extends ConsumerState<ActionsCard> {
               what: l.detail,
               active: l.effect == SettingEffect.change,
               note: _settingEffect(l.effect),
-              onChoose: applied == null && l.effect == SettingEffect.unknown && l.text != null ? () => _choose(l.text!) : null,
+              onChoose: applied == null && l.effect == SettingEffect.unknown && l.text != null ? () => _choose(l.index) : null,
             ),
           if (widget.proposal.note != null) ...[
             const SizedBox(height: 6),

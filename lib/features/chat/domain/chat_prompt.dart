@@ -1,5 +1,6 @@
 import '../../grades/domain/plan_proposal.dart';
 import 'context_item.dart';
+import 'proposed_courses.dart';
 import 'proposed_actions.dart';
 
 const List<String> _weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -38,7 +39,7 @@ const String _actionsInstructions =
     '(hide with false, show with true), and {"type":"open","page":"grades"} (assignments, activity, '
     'calendar, grades, files or chat). Marking done only changes EtherLex and submits nothing to Canvas. You cannot submit '
     'work, change anything else in the app, or change anything outside what these blocks describe: say so '
-    'if asked. Never guess which assignments are meant: if it is not clear, ask. For courses use the exact name from the course list below when there is one, and propose one entry per course for a group the student describes ("my math courses"); if a group is unclear, ask. Without a list, write the name as the student wrote it. For things that '
+    'if asked. Never guess which assignments are meant: if it is not clear, ask. For courses use the exact name from the course list below when there is one, and propose one entry per course for a group the student describes ("my math courses"); if you cannot tell which course is meant, write "?" as the course name and the student will pick it on the card. When the student asks to see, list or manage their courses, reply with one sentence and a fenced block whose language is $kCoursesFence containing {} (or {"show":"hidden"} or {"show":"shown"}): the card lists the real courses with switches. Do not list them yourself. Without a course list, write the name as the student wrote it. For things that '
     'do not matter much (a rough study estimate, a likely class distribution) you may give an estimate in '
     'plain text, but call it an estimate. Never say a change is made: the student sees a card under your answer and presses Apply.';
 

@@ -309,8 +309,10 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 27. Ask: "Switch to the dark theme and the clean font, and turn notifications off."
 - [x] **Expect** a "Proposed changes" card with Theme, Font and Notifications lines (a line that is already so says "already so"). Nothing changes until Apply; after Apply the app looks different; Undo puts the theme, font and notifications back.
 28. Ask: "Hide <one of your courses>", then "show it again". Also try a vague name that fits two courses (e.g. "hide physics" when you have two).
-- [ ] **Expect** Apply asks "Hide 1 course?" first; the course leaves the lists; Undo or "show it again" brings it back. A vague name is shown as "no single course matches" with a "Choose course" button: pick one and the line becomes a change; nothing is ever guessed. A typo ("Discrete Mathmatics") still finds its course. When some lines would be skipped, the card says "N will be skipped" and Apply still does the rest (try "dark theme, and hide X" when the theme is already dark).
-- [ ] Without attaching anything, ask "hide my math courses" (after you have allowed sending Canvas data once): the assistant proposes one line per math course, using your exact course names.
+- [x] **Expect** Apply asks "Hide 1 course?" first; the course leaves the lists; Undo or "show it again" brings it back. A vague name is shown as "no single course matches" with a "Choose course" button: pick one and the line becomes a change; nothing is ever guessed. A typo ("Discrete Mathmatics") still finds its course. When some lines would be skipped, the card says "N will be skipped" and Apply still does the rest (try "dark theme, and hide X" when the theme is already dark).
+- [x] Without attaching anything, ask "hide my math courses" (after you have allowed sending Canvas data once): the assistant proposes one line per math course, using your exact course names.
+- [ ] Ask "hide a course" without saying which: the card has a line "Which course?" with a "Choose course" button; picking one turns it into a change.
+- [ ] Ask "show me my courses": a card lists the real courses with ticks (ticked = shown). Untick two, press Apply (it asks before hiding), then Undo. Try "which courses are hidden?" too: only the hidden ones are listed.
 29. Ask: "Take me to my grades."
 - [x] **Expect** a card with "Open Grades"; Apply goes to the Grades page.
 30. Attach a syllabus that has no grade curve and ask for a grade plan, then ask "also guess how the class is usually distributed".

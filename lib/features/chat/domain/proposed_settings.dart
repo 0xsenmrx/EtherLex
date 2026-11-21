@@ -22,6 +22,10 @@ enum SettingKind {
 /// Pages the assistant may open, as the app's routes name them.
 const List<String> kOpenPages = ['assignments', 'activity', 'calendar', 'grades', 'files', 'chat'];
 
+/// What the assistant writes as the course when it cannot tell which one is
+/// meant: the card then asks the student to choose.
+const String kAskCourse = '?';
+
 /// One change to the app's own settings, or a page to open.
 class SettingChange {
   const SettingChange({required this.kind, this.text, this.flag});
@@ -89,7 +93,11 @@ class SettingLine {
     this.courseId,
     this.previousText,
     this.previousFlag,
+    this.index = 0,
   });
+
+  /// Its place in the proposal's settings list.
+  final int index;
 
   final SettingKind kind;
 
@@ -112,10 +120,11 @@ String _cap(String s) => s.isEmpty ? s : '${s[0].toUpperCase()}${s.substring(1)}
 
 /// What applying [changes] would do, line by line. A course that is not found,
 /// or that several courses fit, is "unknown": nothing is guessed. [courseChoices]
-/// holds what the person picked for such a line (the name as written -> course id).
-List<SettingLine> previewSettings(List<SettingChange> changes, SettingsSnapshot now, {Map<String, int> courseChoices = const {}}) {
+/// holds what the person picked for such a line (its place in [changes] -> course id).
+List<SettingLine> previewSettings(List<SettingChange> changes, SettingsSnapshot now, {Map<int, int> courseChoices = const {}}) {
   final out = <SettingLine>[];
-  for (final c in changes) {
+  for (var index = 0; index < changes.length; index++) {
+    final c = changes[index];
     switch (c.kind) {
       case SettingKind.theme:
         final same = now.theme.name == c.text;
@@ -147,15 +156,16 @@ List<SettingLine> previewSettings(List<SettingChange> changes, SettingsSnapshot 
           previousFlag: now.notifications,
         ));
       case SettingKind.course:
-        final chosen = courseChoices[c.text];
-        final course = matchCourse(c.text, now.courses) ??
-            (chosen == null ? null : now.courses.where((x) => x.id == chosen).firstOrNull);
+        final chosen = courseChoices[index];
+        final picked = chosen == null ? null : now.courses.where((x) => x.id == chosen).firstOrNull;
+        final course = picked ?? (c.text == kAskCourse ? null : matchCourse(c.text, now.courses));
         if (course == null) {
           out.add(SettingLine(
             kind: c.kind,
             label: c.flag! ? 'Show course' : 'Hide course',
-            detail: c.text!,
+            detail: c.text == kAskCourse ? 'Which course?' : c.text!,
             text: c.text,
+            index: index,
             effect: SettingEffect.unknown,
           ));
         } else {

@@ -98,11 +98,20 @@ void main() {
       final without = previewSettings(const [change], _now());
       expect(without.single.effect, SettingEffect.unknown);
       expect(without.single.text, 'Physics'); // so the card can offer "Choose course"
-      final picked = previewSettings(const [change], _now(), courseChoices: {'Physics': 2});
+      final picked = previewSettings(const [change], _now(), courseChoices: {0: 2});
       expect(picked.single.effect, SettingEffect.change);
       expect(picked.single.courseId, 2);
-      // a pick for another name changes nothing
-      expect(previewSettings(const [change], _now(), courseChoices: {'Chemistry': 2}).single.effect, SettingEffect.unknown);
+      // a pick for another line changes nothing
+      expect(previewSettings(const [change], _now(), courseChoices: {1: 2}).single.effect, SettingEffect.unknown);
+    });
+
+    test('a course the assistant could not tell asks, and each such line is picked on its own', () {
+      const ask = SettingChange(kind: SettingKind.course, text: kAskCourse, flag: false);
+      final lines = previewSettings(const [ask, ask], _now(), courseChoices: {0: 1});
+      expect(lines[0].courseId, 1);
+      expect(lines[1].effect, SettingEffect.unknown);
+      expect(lines[1].detail, 'Which course?');
+      expect(lines[1].index, 1);
     });
 
     test('hiding a hidden course is no change; showing it is', () {

@@ -17,8 +17,10 @@ import '../domain/chat_blocks.dart';
 import '../domain/chat_inline.dart';
 import '../domain/code_highlight.dart';
 import '../domain/proposed_actions.dart';
+import '../domain/proposed_courses.dart';
 import 'actions_card.dart';
 import 'copy_button.dart';
+import 'courses_card.dart';
 import 'plan_card.dart';
 
 /// An assistant answer, drawn as GitHub-style Markdown: headings, nested and
@@ -110,6 +112,9 @@ class _Render {
     } else if (k.language == kActionsFence) {
       final proposal = parseActions(k.code);
       if (proposal != null) return ActionsCard(proposal: proposal, source: '$scope|${k.code}');
+    } else if (k.language == kCoursesFence) {
+      final filter = parseCourseList(k.code);
+      if (filter != null) return CoursesCard(filter: filter, source: '$scope|${k.code}');
     }
     return _CodeBlockView(language: k.language, code: k.code);
   }
