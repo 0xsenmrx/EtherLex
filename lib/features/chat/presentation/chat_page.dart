@@ -190,7 +190,12 @@ class _InputBar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Expanded(
-            child: Focus(
+            // At least as tall as the send button, with the text centred in it.
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 36),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Focus(
               onKeyEvent: onKey,
               child: TextField(
                 controller: controller,
@@ -202,12 +207,13 @@ class _InputBar extends StatelessWidget {
                 cursorColor: c.accent,
                 decoration: InputDecoration(
                   isDense: true,
-                  // 36 px tall with one line: the text sits level with the send button.
-                  contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 6),
                   border: InputBorder.none,
                   hintText: 'Message the assistant. Enter sends, Shift+Enter adds a line.',
                   hintStyle: t.body.copyWith(color: c.textTertiary),
                 ),
+              ),
+            ),
               ),
             ),
           ),
