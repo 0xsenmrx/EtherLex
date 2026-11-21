@@ -13,7 +13,7 @@ Future<Course?> pickCourse(BuildContext context, List<Course> courses) {
 }
 
 class CoursePick extends StatelessWidget {
-  const CoursePick(this.courses);
+  const CoursePick(this.courses, {super.key});
 
   final List<Course> courses;
 

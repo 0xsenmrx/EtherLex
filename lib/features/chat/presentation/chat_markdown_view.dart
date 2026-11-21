@@ -25,9 +25,13 @@ import 'plan_card.dart';
 /// task lists, tables, quotes, rules, links, highlighted code with a copy
 /// button, and images that load only when you ask.
 class ChatMarkdown extends StatefulWidget {
-  const ChatMarkdown(this.source, {super.key});
+  const ChatMarkdown(this.source, {super.key, this.scope = ''});
 
   final String source;
+
+  /// Tells one message from another (its id), so a card in one is not taken
+  /// for the same card in another that happens to have the same text.
+  final String scope;
 
   @override
   State<ChatMarkdown> createState() => _ChatMarkdownState();
@@ -58,14 +62,16 @@ class _ChatMarkdownState extends State<ChatMarkdown> {
       _blocks = parseBlocks(widget.source);
     }
     _disposeTaps();
-    return _Render(context, _taps).blocks(_blocks, readerStyle(context), depth: 0, gap: 10);
+    return _Render(context, _taps, widget.scope).blocks(_blocks, readerStyle(context), depth: 0, gap: 10);
   }
 }
 
 /// Builds the widgets of one pass. Link recognizers go into [taps], which the
 /// widget disposes before the next pass.
 class _Render {
-  _Render(this.context, this.taps) : c = context.colors;
+  _Render(this.context, this.taps, [this.scope = '']) : c = context.colors;
+
+  final String scope;
 
   final BuildContext context;
   final List<TapGestureRecognizer> taps;
@@ -100,10 +106,10 @@ class _Render {
   Widget _codeBlock(CodeBlock k) {
     if (k.language == kPlanFence) {
       final proposal = parseProposal(k.code);
-      if (proposal != null) return PlanCard(proposal: proposal, source: k.code);
+      if (proposal != null) return PlanCard(proposal: proposal, source: '$scope|${k.code}');
     } else if (k.language == kActionsFence) {
       final proposal = parseActions(k.code);
-      if (proposal != null) return ActionsCard(proposal: proposal, source: k.code);
+      if (proposal != null) return ActionsCard(proposal: proposal, source: '$scope|${k.code}');
     }
     return _CodeBlockView(language: k.language, code: k.code);
   }
