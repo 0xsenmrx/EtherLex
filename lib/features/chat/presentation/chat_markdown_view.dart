@@ -16,6 +16,8 @@ import '../../viewer/presentation/markdown_view.dart';
 import '../domain/chat_blocks.dart';
 import '../domain/chat_inline.dart';
 import '../domain/code_highlight.dart';
+import '../domain/proposed_actions.dart';
+import 'actions_card.dart';
 import 'copy_button.dart';
 import 'plan_card.dart';
 
@@ -93,11 +95,17 @@ class _Render {
         TableBlock t => table(t, base),
       };
 
-  /// A grade plan the assistant proposes becomes a card; anything else (or a
-  /// plan that does not pass the checks) stays a code block.
+  /// A grade plan or a set of changes the assistant proposes becomes a card;
+  /// anything else (or a proposal that does not pass the checks) stays a code block.
   Widget _codeBlock(CodeBlock k) {
-    final proposal = k.language == kPlanFence ? parseProposal(k.code) : null;
-    return proposal == null ? _CodeBlockView(language: k.language, code: k.code) : PlanCard(proposal: proposal, source: k.code);
+    if (k.language == kPlanFence) {
+      final proposal = parseProposal(k.code);
+      if (proposal != null) return PlanCard(proposal: proposal, source: k.code);
+    } else if (k.language == kActionsFence) {
+      final proposal = parseActions(k.code);
+      if (proposal != null) return ActionsCard(proposal: proposal, source: k.code);
+    }
+    return _CodeBlockView(language: k.language, code: k.code);
   }
 
   Widget paragraph(String text, TextStyle base) {
