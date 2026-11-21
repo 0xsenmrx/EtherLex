@@ -34,7 +34,14 @@ Stream<String> failingAfter(List<String> parts, Object error) async* {
   throw error;
 }
 
-Future<void> tick() => Future<void>.delayed(const Duration(milliseconds: 10));
+/// Waits until [done] is true. A fixed delay is too short on a slow CI runner.
+Future<void> until(bool Function() done) async {
+  final end = DateTime.now().add(const Duration(seconds: 10));
+  while (!done()) {
+    if (DateTime.now().isAfter(end)) fail('timed out waiting for the controller');
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+  }
+}
 
 void main() {
   late Directory dir;
@@ -145,9 +152,9 @@ void main() {
     final backend = ScriptBackend((_) => source.stream);
     final t = start(backend);
     final sending = t.controller.send('hi');
-    await tick();
+    await until(() => backend.seen.isNotEmpty);
     source.add('ab');
-    await tick();
+    await until(() => t.container.read(chatControllerProvider).current?.messages.last.text == 'ab');
     expect(t.container.read(chatControllerProvider).streaming, isTrue);
 
     t.controller.stop();
@@ -165,7 +172,7 @@ void main() {
     final backend = ScriptBackend((_) => source.stream);
     final t = start(backend);
     final first = t.controller.send('one');
-    await tick();
+    await until(() => backend.seen.isNotEmpty);
     await t.controller.send('two');
     expect(backend.seen.length, 1);
 
