@@ -60,11 +60,18 @@ ActionsProposal? parseActions(String source) {
     if (c == null) return null;
     settings.add(c);
   }
-  if (raw.isEmpty && settings.isEmpty) return null;
   final actions = <ProposedAction>[];
   var ids = 0;
   for (final a in raw) {
     if (a is! Map) return null;
+    // A setting put in the "actions" list by mistake is still a setting; its
+    // kind (theme, font...) cannot be mistaken for an assignment action.
+    if (SettingKind.values.any((k) => k.name == a['type'])) {
+      final c = parseSetting(a);
+      if (c == null || settings.length >= 10) return null;
+      settings.add(c);
+      continue;
+    }
     final kind = ActionKind.values.where((k) => k.name == a['type']).firstOrNull;
     final list = a['assignments'];
     final value = a['value'] ?? true;
@@ -77,6 +84,7 @@ ActionsProposal? parseActions(String source) {
     if (ids > 200) return null;
     actions.add(ProposedAction(kind: kind, assignments: [for (final id in list) id as int], value: value));
   }
+  if (actions.isEmpty && settings.isEmpty) return null;
   final note = j['note'];
   return ActionsProposal(
     actions: actions,

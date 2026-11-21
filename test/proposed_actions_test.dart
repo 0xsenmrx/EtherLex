@@ -52,6 +52,13 @@ void main() {
       expect(both.settings.length, 1);
     });
 
+    test('settings written inside the actions list are still read as settings', () {
+      final p = parseActions('{"actions":[{"type":"theme","value":"dark"},{"type":"font","value":"clean"},{"type":"notifications","value":false},{"type":"star","assignments":[1]}]}')!;
+      expect(p.settings.map((s) => s.kind), [SettingKind.theme, SettingKind.font, SettingKind.notifications]);
+      expect(p.actions.length, 1);
+      expect(parseActions('{"actions":[{"type":"theme","value":"purple"}]}'), isNull);
+    });
+
     test('one bad setting, or too many, refuses the whole block', () {
       expect(parseActions('{"settings":[{"type":"theme","value":"dark"},{"type":"api_key","value":"x"}]}'), isNull);
       expect(parseActions('{"settings":[]}'), isNull);
