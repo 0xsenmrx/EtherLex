@@ -50,7 +50,12 @@ void main() {
       ..revoke(AiProvider.anthropic);
     expect(a.read(aiConsentProvider), {AiProvider.openai});
     final file = File('${dir.path}/a.json');
-    await until(() => file.existsSync() && file.readAsStringSync().contains('openai'));
+    // The last of the three writes: openai kept, anthropic gone again.
+    await until(() {
+      if (!file.existsSync()) return false;
+      final text = file.readAsStringSync();
+      return text.contains('openai') && !text.contains('anthropic');
+    });
     final again = container('a');
     await until(() => again.read(aiConsentProvider).isNotEmpty);
     expect(again.read(aiConsentProvider), {AiProvider.openai});
