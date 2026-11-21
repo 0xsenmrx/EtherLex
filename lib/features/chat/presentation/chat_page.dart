@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart' show InputBorder, InputDecoration, SelectableText, TextField;
 
 import '../../../core/motion/smooth_scroll.dart';
+import '../../../core/network/canvas_exception.dart';
 import '../../../core/utils/date_format.dart';
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/dialog.dart';
@@ -73,20 +74,46 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     }
   }
 
+  /// Fetching something to attach can take a moment, and can fail.
+  bool _loadingAttach = false;
+  ChatException? _attachError;
+  ContextBuilder? _failedBuild;
+
   Future<void> _attach() async {
+    if (_loadingAttach) return;
     if (!await ensureConsent(context, ref) || !mounted) return;
-    final build = await pickContext(context);
+    final build = await pickContext(context, ref);
     if (build == null || !mounted) return;
+    await _load(build);
+  }
+
+  Future<void> _load(ContextBuilder build) async {
+    setState(() {
+      _loadingAttach = true;
+      _attachError = null;
+      _failedBuild = null;
+    });
     try {
       final item = await build();
-      if (item == null || !mounted) return;
+      if (!mounted) return;
       setState(() {
-        _attached.removeWhere((a) => a.key == item.key);
-        _attached.add(item);
+        _loadingAttach = false;
+        if (item != null) {
+          _attached.removeWhere((a) => a.key == item.key);
+          _attached.add(item);
+        }
       });
       _inputFocus.requestFocus();
-    } catch (_) {
-      if (mounted) ref.read(chatControllerProvider.notifier).showError('Could not load that from Canvas. Try again.');
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loadingAttach = false;
+        _failedBuild = build;
+        _attachError = ChatException(
+          ChatErrorKind.unexpected,
+          e is CanvasException ? e.message : 'Could not load that from Canvas. Check your connection and try again.',
+        );
+      });
     }
   }
 
@@ -168,6 +195,17 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                 : null,
             onDismiss: controller.dismissError,
           ),
+        if (_attachError case final e?)
+          _ErrorBanner(
+            error: e,
+            // Tries the same fetch again; it never re-asks the last question.
+            onRetry: _failedBuild == null ? null : () => _load(_failedBuild!),
+            onSettings: null,
+            onDismiss: () => setState(() {
+              _attachError = null;
+              _failedBuild = null;
+            }),
+          ),
         Padding(
           padding: const EdgeInsets.fromLTRB(28, 4, 28, 20),
           child: Center(
@@ -176,6 +214,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  if (_loadingAttach)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Text('Loading from Canvas…', style: context.text.meta),
+                    ),
                   if (_attached.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),

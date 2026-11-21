@@ -43,12 +43,16 @@ Future<bool> ensureConsent(BuildContext context, WidgetRef ref) async {
   return ok;
 }
 
-/// The "Attach from Canvas" list. Returns what to build, or null.
-Future<ContextBuilder?> pickContext(BuildContext context) =>
-    showEtherDialog<ContextBuilder>(context, (_) => const _AttachDialog(), maxWidth: 520);
+/// The "Attach from Canvas" list. Returns what to build, or null. [ref] is the
+/// page's: what is built runs after the dialog has closed, so it must not use
+/// the dialog's own.
+Future<ContextBuilder?> pickContext(BuildContext context, WidgetRef ref) =>
+    showEtherDialog<ContextBuilder>(context, (_) => _AttachDialog(ref), maxWidth: 520);
 
-class _AttachDialog extends ConsumerWidget {
-  const _AttachDialog();
+class _AttachDialog extends StatelessWidget {
+  const _AttachDialog(this.ref);
+
+  final WidgetRef ref;
 
   Widget _row(BuildContext context, {required IconData icon, required String title, String? subtitle, required ContextBuilder build}) {
     final c = context.colors;
@@ -78,9 +82,9 @@ class _AttachDialog extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     // Courses the student hid (for example one they teach) stay out, as everywhere else in the app.
-    final disabled = ref.watch(disabledCoursesProvider);
+    final disabled = ref.read(disabledCoursesProvider);
     List<Course> visibleCourses() => [
           for (final c in ref.read(coursesProvider).value ?? const <Course>[])
             if (!disabled.contains(c.id)) c,

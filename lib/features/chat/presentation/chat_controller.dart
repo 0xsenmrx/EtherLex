@@ -132,9 +132,6 @@ class ChatController extends Notifier<ChatState> {
 
   void dismissError() => state = state.withError(null);
 
-  /// Shows [message] in the error banner (for problems that are not the AI service's).
-  void showError(String message) => state = state.withError(ChatException(ChatErrorKind.unexpected, message));
-
   /// Sends [text] as the next question, with what the student attached from
   /// Canvas ([items]), and streams the answer into the chat. Completes when the
   /// answer is finished, stopped or failed.
