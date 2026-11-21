@@ -13,6 +13,7 @@ import '../../courses/domain/course.dart';
 import '../../notifications/presentation/notifications_providers.dart';
 import '../domain/proposed_actions.dart';
 import '../domain/proposed_settings.dart';
+import 'course_pick.dart';
 
 /// Changes applied from the chat: what was shown, and how to undo it.
 class AppliedActions {
@@ -93,6 +94,15 @@ class _AppTarget implements SettingsTarget {
 
 class _ActionsCardState extends ConsumerState<ActionsCard> {
   bool _busy = false;
+
+  /// Courses the person picked for names that did not match one: name as written -> id.
+  final Map<String, int> _picked = {};
+
+  Future<void> _choose(String name) async {
+    final all = ref.read(coursesProvider).value ?? const <Course>[];
+    final course = await pickCourse(context, all);
+    if (course != null && mounted) setState(() => _picked[name] = course.id);
+  }
 
   Future<void> _setStarred(int id, bool v) => ref.read(assignmentsRepositoryProvider).setStarred(id, v);
   Future<void> _setDone(int id, bool v) => ref.read(assignmentsRepositoryProvider).setDone(id, v);
@@ -181,10 +191,11 @@ class _ActionsCardState extends ConsumerState<ActionsCard> {
   static String _settingEffect(SettingEffect e) => switch (e) {
         SettingEffect.change => '',
         SettingEffect.same => 'already so',
-        SettingEffect.unknown => 'no single course matches, skipped',
+        SettingEffect.unknown => 'no single course matches',
       };
 
-  Widget _row(BuildContext context, {required String verb, required Color verbColor, required String what, required bool active, required String note}) {
+  Widget _row(BuildContext context,
+      {required String verb, required Color verbColor, required String what, required bool active, required String note, VoidCallback? onChoose}) {
     final t = context.text;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -193,6 +204,10 @@ class _ActionsCardState extends ConsumerState<ActionsCard> {
           SizedBox(width: 110, child: Text(verb, style: t.label.copyWith(color: verbColor))),
           Expanded(child: Text(what, style: active ? t.body : t.meta, maxLines: 1, overflow: TextOverflow.ellipsis)),
           if (note.isNotEmpty) ...[const SizedBox(width: 8), Text(note, style: t.metaMuted)],
+          if (onChoose != null) ...[
+            const SizedBox(width: 8),
+            EButton(label: 'Choose course', kind: EButtonKind.ghost, onTap: onChoose),
+          ],
         ],
       ),
     );
@@ -214,9 +229,11 @@ class _ActionsCardState extends ConsumerState<ActionsCard> {
       courses: courses.values.toList(),
     );
     final lines = applied?.lines ?? previewActions(widget.proposal, assignments, courses);
-    final settings = applied == null ? previewSettings(widget.proposal.settings, snapshot) : applied.settingLines;
+    final settings = applied == null ? previewSettings(widget.proposal.settings, snapshot, courseChoices: _picked) : applied.settingLines;
     final changes = lines.where((l) => l.effect == ActionEffect.change).length +
         settings.where((l) => l.effect == SettingEffect.change).length;
+    final skipped = lines.where((l) => l.effect != ActionEffect.change).length +
+        settings.where((l) => l.effect != SettingEffect.change).length;
     final hasDone = lines.any((l) => l.kind == ActionKind.done && l.effect == ActionEffect.change);
     final shown = lines.take(30).toList();
 
@@ -259,6 +276,7 @@ class _ActionsCardState extends ConsumerState<ActionsCard> {
               what: l.detail,
               active: l.effect == SettingEffect.change,
               note: _settingEffect(l.effect),
+              onChoose: applied == null && l.effect == SettingEffect.unknown && l.text != null ? () => _choose(l.text!) : null,
             ),
           if (widget.proposal.note != null) ...[
             const SizedBox(height: 6),
@@ -279,7 +297,11 @@ class _ActionsCardState extends ConsumerState<ActionsCard> {
               children: [
                 Expanded(
                   child: Text(
-                    changes == 0 ? 'Nothing here would change anything.' : 'Nothing changes until you press Apply.',
+                    changes == 0
+                        ? 'Nothing here would change anything.'
+                        : skipped == 0
+                            ? 'Nothing changes until you press Apply.'
+                            : 'Nothing changes until you press Apply. $skipped will be skipped.',
                     style: t.metaMuted,
                   ),
                 ),
@@ -289,7 +311,7 @@ class _ActionsCardState extends ConsumerState<ActionsCard> {
                   icon: EIcons.check,
                   kind: EButtonKind.primary,
                   loading: _busy,
-                  onTap: changes == 0 ? null : () => _apply(lines, previewSettings(widget.proposal.settings, _snapshot())),
+                  onTap: changes == 0 ? null : () => _apply(lines, previewSettings(widget.proposal.settings, _snapshot(), courseChoices: _picked)),
                 ),
               ],
             )

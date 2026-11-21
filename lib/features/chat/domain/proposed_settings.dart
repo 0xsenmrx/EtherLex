@@ -111,8 +111,9 @@ class SettingLine {
 String _cap(String s) => s.isEmpty ? s : '${s[0].toUpperCase()}${s.substring(1)}';
 
 /// What applying [changes] would do, line by line. A course that is not found,
-/// or that several courses fit, is "unknown": nothing is guessed.
-List<SettingLine> previewSettings(List<SettingChange> changes, SettingsSnapshot now) {
+/// or that several courses fit, is "unknown": nothing is guessed. [courseChoices]
+/// holds what the person picked for such a line (the name as written -> course id).
+List<SettingLine> previewSettings(List<SettingChange> changes, SettingsSnapshot now, {Map<String, int> courseChoices = const {}}) {
   final out = <SettingLine>[];
   for (final c in changes) {
     switch (c.kind) {
@@ -146,12 +147,15 @@ List<SettingLine> previewSettings(List<SettingChange> changes, SettingsSnapshot 
           previousFlag: now.notifications,
         ));
       case SettingKind.course:
-        final course = matchCourse(c.text, now.courses);
+        final chosen = courseChoices[c.text];
+        final course = matchCourse(c.text, now.courses) ??
+            (chosen == null ? null : now.courses.where((x) => x.id == chosen).firstOrNull);
         if (course == null) {
           out.add(SettingLine(
             kind: c.kind,
             label: c.flag! ? 'Show course' : 'Hide course',
             detail: c.text!,
+            text: c.text,
             effect: SettingEffect.unknown,
           ));
         } else {

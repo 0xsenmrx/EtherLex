@@ -299,18 +299,19 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 22. Ask something that is not about the grade plan, e.g. "show me the JSON of a Python dict in a code block".
 - [x] **Expect** a normal code block, no card.
 23. Attach **Open assignments**, then ask: "Star the two assignments due soonest."
-- [ ] **Expect** a "Proposed changes" card listing exactly those assignments (title and course) with "Star", and "Apply 2 changes". Nothing is starred yet. Press Apply: they are starred in the Assignments list; the card says "Applied 2 changes" with Undo; Undo un-stars them.
+- [x] **Expect** a "Proposed changes" card listing exactly those assignments (title and course) with "Star", and "Apply 2 changes". Nothing is starred yet. Press Apply: they are starred in the Assignments list; the card says "Applied 2 changes" with Undo; Undo un-stars them.
 24. Ask: "Mark <an assignment you really finished> as done."
-- [ ] **Expect** the card shows "Mark done" in a warm colour with "Marking done only changes EtherLex. Nothing is submitted to Canvas." Apply asks "Mark 1 assignment as done?" once more; after confirming it is done in the list, nothing was sent to Canvas, and Undo brings it back.
+- [x] **Expect** the card shows "Mark done" in a warm colour with "Marking done only changes EtherLex. Nothing is submitted to Canvas." Apply asks "Mark 1 assignment as done?" once more; after confirming it is done in the list, nothing was sent to Canvas, and Undo brings it back.
 25. Ask the assistant to star something that was not attached (e.g. "star my chemistry homework" with only physics attached).
-- [ ] **Expect** it says it needs that assignment attached instead of guessing, or its card marks unknown ones "not found, skipped". Asking it to submit something: it says it cannot.
+- [x] **Expect** it says it needs that assignment attached instead of guessing, or its card marks unknown ones "not found, skipped". Asking it to submit something: it says it cannot.
 26. Attach the syllabus **and** **Grades of one course** for the same course, then ask for the plan again, and for assignments to be moved to match the syllabus's categories (e.g. fold "Lab Report" into "Lab").
-- [ ] **Expect** the plan card has a "Moves between categories" list with titles; Apply moves them (check in the planner); unknown ones are marked skipped; Undo restores the plan.
+- [x] **Expect** the plan card has a "Moves between categories" list with titles; Apply moves them (check in the planner); unknown ones are marked skipped; Undo restores the plan.
 27. Ask: "Switch to the dark theme and the clean font, and turn notifications off."
-- [ ] **Expect** a "Proposed changes" card with Theme, Font and Notifications lines (a line that is already so says "already so"). Nothing changes until Apply; after Apply the app looks different; Undo puts the theme, font and notifications back.
+- [x] **Expect** a "Proposed changes" card with Theme, Font and Notifications lines (a line that is already so says "already so"). Nothing changes until Apply; after Apply the app looks different; Undo puts the theme, font and notifications back.
 28. Ask: "Hide <one of your courses>", then "show it again". Also try a vague name that fits two courses (e.g. "hide physics" when you have two).
-- [ ] **Expect** Apply asks "Hide 1 course?" first; the course leaves the lists; Undo or "show it again" brings it back. A vague name is shown as "no single course matches, skipped" and nothing is hidden: it never guesses.
+- [ ] **Expect** Apply asks "Hide 1 course?" first; the course leaves the lists; Undo or "show it again" brings it back. A vague name is shown as "no single course matches" with a "Choose course" button: pick one and the line becomes a change; nothing is ever guessed. A typo ("Discrete Mathmatics") still finds its course. When some lines would be skipped, the card says "N will be skipped" and Apply still does the rest (try "dark theme, and hide X" when the theme is already dark).
+- [ ] Attach "Course list" (the + menu) and ask "hide my math courses": the assistant proposes one line per math course.
 29. Ask: "Take me to my grades."
-- [ ] **Expect** a card with "Open Grades"; Apply goes to the Grades page.
+- [x] **Expect** a card with "Open Grades"; Apply goes to the Grades page.
 30. Attach a syllabus that has no grade curve and ask for a grade plan, then ask "also guess how the class is usually distributed".
-- [ ] **Expect** the plan card shows the curve in a warm colour as "(a guess, not from your documents)" with the line "Guesses are estimates, not facts", and the assistant's text says it is a guess. Weights and categories are still only what the syllabus says.
+- [x] **Expect** the plan card shows the curve in a warm colour as "(a guess, not from your documents)" with the line "Guesses are estimates, not facts", and the assistant's text says it is a guess. Weights and categories are still only what the syllabus says.

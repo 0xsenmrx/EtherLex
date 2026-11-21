@@ -93,6 +93,18 @@ void main() {
       expect(lines[2].effect, SettingEffect.unknown);
     });
 
+    test('a course the person picked stands in for a name that matched nothing', () {
+      const change = SettingChange(kind: SettingKind.course, text: 'Physics', flag: false);
+      final without = previewSettings(const [change], _now());
+      expect(without.single.effect, SettingEffect.unknown);
+      expect(without.single.text, 'Physics'); // so the card can offer "Choose course"
+      final picked = previewSettings(const [change], _now(), courseChoices: {'Physics': 2});
+      expect(picked.single.effect, SettingEffect.change);
+      expect(picked.single.courseId, 2);
+      // a pick for another name changes nothing
+      expect(previewSettings(const [change], _now(), courseChoices: {'Chemistry': 2}).single.effect, SettingEffect.unknown);
+    });
+
     test('hiding a hidden course is no change; showing it is', () {
       final lines = previewSettings(const [
         SettingChange(kind: SettingKind.course, text: 'ECE3110J', flag: false),

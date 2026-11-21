@@ -144,6 +144,17 @@ class _AttachDialog extends StatelessWidget {
               ref.read(coursesByIdProvider),
             ),
           ),
+          _row(
+            context,
+            icon: EIcons.files,
+            title: 'Course list',
+            subtitle: 'Your courses by name, and which are hidden',
+            build: () async => CoursesContext(lines: [
+              for (final c in [...(ref.read(coursesProvider).value ?? const <Course>[])]
+                ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase())))
+                CourseLine(name: c.name, code: c.code, hidden: disabled.contains(c.id)),
+            ]),
+          ),
           const EMenuDivider(),
           _row(
             context,
@@ -395,6 +406,7 @@ class AttachChips extends StatelessWidget {
         ContextKind.announcements => EIcons.announcement,
         ContextKind.file => EIcons.fileText,
         ContextKind.image => EIcons.fileImage,
+        ContextKind.courses => EIcons.files,
       };
 
   @override

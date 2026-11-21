@@ -2,9 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design_system/ether/controls.dart';
-import '../../../design_system/ether/dialog.dart';
 import '../../../design_system/ether/icons.dart';
-import '../../../design_system/ether/tap.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../../assignments/presentation/assignments_providers.dart';
 import '../../courses/domain/course.dart';
@@ -13,6 +11,7 @@ import '../../grades/domain/grades.dart';
 import '../../grades/domain/plan_proposal.dart';
 import '../../grades/presentation/grade_plan_dialog.dart';
 import '../../grades/presentation/grades_providers.dart';
+import 'course_pick.dart';
 
 /// A plan that was applied from the chat: which course, and the plan before,
 /// so Undo can put it back. Kept for the session (and per account).
@@ -65,8 +64,8 @@ class _PlanCardState extends ConsumerState<PlanCard> {
   }
 
   Future<void> _choose() async {
-    final courses = [..._courses()]..sort((a, b) => a.shortLabel.toLowerCase().compareTo(b.shortLabel.toLowerCase()));
-    final picked = await showEtherDialog<Course>(context, (_) => _CoursePick(courses), maxWidth: 460);
+    final courses = _courses();
+    final picked = await pickCourse(context, courses);
     if (picked != null && mounted) setState(() => _chosen = picked.id);
   }
 
@@ -251,49 +250,6 @@ class _PlanCardState extends ConsumerState<PlanCard> {
             ),
         ],
       ),
-    );
-  }
-}
-
-class _CoursePick extends StatelessWidget {
-  const _CoursePick(this.courses);
-
-  final List<Course> courses;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.colors;
-    final t = context.text;
-    return EDialog(
-      title: 'Which course?',
-      body: courses.isEmpty
-          ? Padding(padding: const EdgeInsets.all(16), child: Text('No courses yet.', style: t.meta))
-          : ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 360),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (final course in courses)
-                      ETap(
-                        onTap: () => Navigator.of(context).pop(course),
-                        builder: (context, s) => Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-                          decoration: BoxDecoration(color: s.hovered ? c.hover : const Color(0x00000000), borderRadius: BorderRadius.circular(8)),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(course.shortLabel, style: t.label, maxLines: 1, overflow: TextOverflow.ellipsis),
-                              if (course.name != course.shortLabel) Text(course.name, style: t.meta, maxLines: 1, overflow: TextOverflow.ellipsis),
-                            ],
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-      actions: [EButton(label: 'Cancel', kind: EButtonKind.ghost, onTap: () => Navigator.of(context).pop())],
     );
   }
 }
