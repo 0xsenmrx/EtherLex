@@ -63,4 +63,24 @@ void main() {
     f.writeAsStringSync('{not json');
     expect(await store.read(), const AiSettings());
   });
+
+  test('each account has its own settings; the old shared file moves to the first one', () async {
+    final old = File('${dir.path}/ai.json')..writeAsStringSync('{"provider":"deepseek"}');
+    final a = AiSettingsStore.forScope('school.edu_u1', root: dir.path);
+    expect((await a.read()).provider, AiProvider.deepseek);
+    expect(old.existsSync(), isFalse);
+    final b = AiSettingsStore.forScope('school.edu_u2', root: dir.path);
+    expect(await b.read(), const AiSettings());
+    await b.write(const AiSettings().copyWith(provider: AiProvider.openai));
+    expect((await a.read()).provider, AiProvider.deepseek);
+    expect((await b.read()).provider, AiProvider.openai);
+  });
+
+  test('without a scope the shared file is used; sample never adopts it', () async {
+    final old = File('${dir.path}/ai.json')..writeAsStringSync('{"provider":"deepseek"}');
+    expect((await AiSettingsStore.forScope(null, root: dir.path).read()).provider, AiProvider.deepseek);
+    final sample = AiSettingsStore.forScope('sample', root: dir.path, adoptLegacy: false);
+    expect(await sample.read(), const AiSettings());
+    expect(old.existsSync(), isTrue);
+  });
 }

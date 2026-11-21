@@ -12,8 +12,7 @@ import 'ai_providers.dart';
 /// The saved conversations of the signed-in account (sample mode has its own).
 final chatStoreProvider = Provider<ChatStore>((ref) {
   final session = ref.watch(authProvider.select((a) => a.value));
-  final host = session == null || session.isSample ? '' : Uri.tryParse(session.baseUrl)?.host ?? '';
-  return ChatStore.forScope(host.isEmpty ? 'sample' : host);
+  return ChatStore.forScope(session == null || session.isSample ? 'sample' : session.scope);
 });
 
 class ChatState {

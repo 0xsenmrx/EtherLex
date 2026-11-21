@@ -9,21 +9,39 @@ import '../data/sample_chat_backend.dart';
 import '../domain/ai_settings.dart';
 import '../domain/chat_backend.dart';
 
-final aiSettingsStoreProvider = Provider<AiSettingsStore>((ref) => AiSettingsStore());
+/// Whose AI settings and keys these are: the signed-in account, so two people
+/// on one computer never share a key. Null while the account's id is not known
+/// (the old shared names are used then); 'sample' for sample mode and signed out.
+final aiScopeProvider = Provider<({String? scope, bool adoptLegacy})>((ref) {
+  final session = ref.watch(authProvider.select((a) => a.value));
+  if (session == null || session.isSample) return (scope: 'sample', adoptLegacy: false);
+  return (scope: session.userId == null ? null : session.scope, adoptLegacy: true);
+});
 
-final aiKeyStoreProvider = Provider<AiKeyStore>((ref) => SecureAiKeyStore());
+final aiSettingsStoreProvider = Provider<AiSettingsStore>((ref) {
+  final s = ref.watch(aiScopeProvider);
+  return AiSettingsStore.forScope(s.scope, adoptLegacy: s.adoptLegacy);
+});
+
+final aiKeyStoreProvider = Provider<AiKeyStore>((ref) {
+  final s = ref.watch(aiScopeProvider);
+  return SecureAiKeyStore(scope: s.scope, adoptLegacy: s.adoptLegacy);
+});
 
 /// Which service and model the assistant uses (the keys are separate).
 class AiSettingsNotifier extends Notifier<AiSettings> {
   @override
   AiSettings build() {
-    _load();
+    // A new account gives a new store: start over and load that account's.
+    _load(ref.watch(aiSettingsStoreProvider));
     return const AiSettings();
   }
 
-  Future<void> _load() async {
-    final saved = await ref.read(aiSettingsStoreProvider).read();
-    if (ref.mounted && state == const AiSettings()) state = saved;
+  Future<void> _load(AiSettingsStore store) async {
+    final saved = await store.read();
+    if (ref.mounted && identical(store, ref.read(aiSettingsStoreProvider)) && state == const AiSettings()) {
+      state = saved;
+    }
   }
 
   void setProvider(AiProvider p) => _set(state.copyWith(provider: p));
@@ -45,19 +63,18 @@ final aiSettingsProvider = NotifierProvider<AiSettingsNotifier, AiSettings>(AiSe
 class AiKeysNotifier extends Notifier<Set<AiProvider>> {
   @override
   Set<AiProvider> build() {
-    _load();
+    _load(ref.watch(aiKeyStoreProvider));
     return const {};
   }
 
-  Future<void> _load() async {
-    final store = ref.read(aiKeyStoreProvider);
+  Future<void> _load(AiKeyStore store) async {
     final found = <AiProvider>{};
     for (final p in AiProvider.values) {
       try {
         if (await store.read(p) != null) found.add(p);
       } catch (_) {}
     }
-    if (ref.mounted) state = {...state, ...found};
+    if (ref.mounted && identical(store, ref.read(aiKeyStoreProvider))) state = {...state, ...found};
   }
 
   Future<void> save(AiProvider p, String key) async {

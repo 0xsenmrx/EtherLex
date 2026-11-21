@@ -20,7 +20,14 @@ class FakeKeyStore implements AiKeyStore {
   Future<void> clear(AiProvider provider) async => keys.remove(provider);
 }
 
-Future<void> settle() => Future<void>.delayed(const Duration(milliseconds: 150));
+/// Waits until [done] is true. A fixed delay is too short on a slow CI runner.
+Future<void> until(bool Function() done) async {
+  final end = DateTime.now().add(const Duration(seconds: 10));
+  while (!done()) {
+    if (DateTime.now().isAfter(end)) fail('timed out waiting');
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+  }
+}
 
 void main() {
   late Directory dir;
@@ -48,11 +55,12 @@ void main() {
       ..setProvider(AiProvider.openai)
       ..setModel(AiProvider.openai, 'gpt-x')
       ..setOpenAiBaseUrl(' http://localhost:11434/v1 ');
-    await settle();
+    final file = File('${dir.path}/ai.json');
+    await until(() => file.existsSync() && file.readAsStringSync().contains('localhost'));
 
     final second = container();
     second.listen(aiSettingsProvider, (_, _) {});
-    await settle();
+    await until(() => second.read(aiSettingsProvider).provider == AiProvider.openai);
     final s = second.read(aiSettingsProvider);
     expect(s.provider, AiProvider.openai);
     expect(s.model, 'gpt-x');
@@ -63,7 +71,7 @@ void main() {
     keys.keys[AiProvider.anthropic] = 'sk-old';
     final c = container();
     c.listen(aiKeysProvider, (_, _) {});
-    await settle();
+    await until(() => c.read(aiKeysProvider).contains(AiProvider.anthropic));
     expect(c.read(aiKeysProvider), {AiProvider.anthropic});
 
     await c.read(aiKeysProvider.notifier).save(AiProvider.openai, '  sk-new ');

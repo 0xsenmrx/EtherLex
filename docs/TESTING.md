@@ -186,14 +186,16 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 ## 10. Per-account settings
 
 1. In account A set: disable one course, hide one folder, add a grade plan, switch the bell off.
-2. Sign out, sign in to account B (or a different site) or sample mode.
-- [ ] **Expect** none of A's settings appear (course list, hidden folders, grade plans, bell state all fresh).
+2. Sign out, sign in to account B (a different user, ideally on the **same** Canvas site) or sample mode.
+- [x] **Expect** none of A's settings appear (course list, hidden folders, grade plans, bell state all fresh).
 3. Make a different change in B, sign out, sign back into A.
-- [ ] **Expect** A's settings are back and B's changes are not in A.
+- [x] **Expect** A's settings are back and B's changes are not in A.
 4. Open `%APPDATA%\EtherLex\settings\`.
-- [ ] **Expect** one `<host>.json` per account; the old `settings.json` is renamed `settings.json.migrated`.
-5. First launch after the update (if you have an older install).
-- [ ] **Expect** your existing account keeps its old settings.
+- [x] **Expect** one `<host>_u<user id>.json` per account (a different file for each person, even on the same site). (`settings.json.migrated` sits one folder up, in `%APPDATA%\EtherLex\`, and only exists if you ever had the very old single `settings.json`.)
+5. With A and B on the same site: sign in as A, wait for the sync, sign out, sign in as B right away (before it finishes).
+- [x] **Expect** no course, assignment, grade, file or chat of A is ever visible while signed in as B, not even for a moment. Signing out and in again never deletes anything.
+6. Save an AI key as A. Sign out, sign in as B, open Settings and the Assistant.
+- [x] **Expect** B has no key ("Add an API key to start"); A's key and provider are back when you sign in as A again.
 
 ## 11. Robustness [DONE]
 
