@@ -186,14 +186,16 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 ## 10. Per-account settings
 
 1. In account A set: disable one course, hide one folder, add a grade plan, switch the bell off.
-2. Sign out, sign in to account B (or a different site) or sample mode.
+2. Sign out, sign in to account B (a different user, ideally on the **same** Canvas site) or sample mode.
 - [ ] **Expect** none of A's settings appear (course list, hidden folders, grade plans, bell state all fresh).
 3. Make a different change in B, sign out, sign back into A.
 - [ ] **Expect** A's settings are back and B's changes are not in A.
 4. Open `%APPDATA%\EtherLex\settings\`.
-- [ ] **Expect** one `<host>.json` per account; the old `settings.json` is renamed `settings.json.migrated`.
+- [ ] **Expect** one `<host>_u<user id>.json` per account (a different file for each person, even on the same site); the old `settings.json` is renamed `settings.json.migrated`.
 5. First launch after the update (if you have an older install).
-- [ ] **Expect** your existing account keeps its old settings.
+- [ ] **Expect** your existing account keeps its old settings, chats, offline files and cached courses (they are moved from the `<host>` names to `<host>_u<id>` once). A second account on the same site starts empty.
+6. With A and B on the same site: sign in as A, wait for the sync, sign out, sign in as B right away (before it finishes).
+- [ ] **Expect** no course, assignment, grade, file or chat of A is ever visible while signed in as B, not even for a moment. Signing out and in again never deletes anything.
 
 ## 11. Robustness [DONE]
 
