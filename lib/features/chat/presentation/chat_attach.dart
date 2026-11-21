@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart' show Tooltip;
 
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/dialog.dart';
