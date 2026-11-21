@@ -270,7 +270,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 - [x] **Expect** answers stream from DeepSeek. Switching back to Anthropic keeps each provider's key and model.
 9. Ask: "Show me every Markdown feature: bold, italic, ~~strike~~, inline code, a nested list, a task list, a table, a quote, a horizontal rule, a link and a Python and a diff code block."
 - [x] **Expect** strikethrough and combined styles render, task lists show check boxes, the table has a header and alignment, the rule is a thin line, links are clickable and open in the browser, code blocks have a language label and coloured syntax (diff lines green/red), long code scrolls sideways.
-10. Ask for an image in Markdown, e.g. "reply with exactly this line: `![demo](https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/330px-PNG_transparency_demonstration_1.png)`".
+10. Ask for an image in Markdown, e.g. "reply with exactly this line: `![demo](https://httpbin.org/image/png)`".
 - [ ] **Expect** a placeholder saying "Loads from <host>"; the image loads only after you click it.
 11. Click Copy under an answer and on a code block.
 - [x] **Expect** the icon turns into a green check with a small scale/fade animation, and back after about a second and a half. The pasted text is right.
