@@ -14,6 +14,8 @@ class CompactField extends StatefulWidget {
     this.width = 76,
     this.hint,
     this.suffix,
+    this.numeric = true,
+    this.autofocus = false,
   });
 
   final String initial;
@@ -21,6 +23,10 @@ class CompactField extends StatefulWidget {
   final double width;
   final String? hint;
   final String? suffix;
+
+  /// Numbers only (the default); false lets any text in, for a search box.
+  final bool numeric;
+  final bool autofocus;
 
   @override
   State<CompactField> createState() => _CompactFieldState();
@@ -64,9 +70,10 @@ class _CompactFieldState extends State<CompactField> {
         controller: _controller,
         focusNode: _focus,
         onChanged: widget.onChanged,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
-        style: t.number.copyWith(color: c.textPrimary),
+        autofocus: widget.autofocus,
+        keyboardType: widget.numeric ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
+        inputFormatters: widget.numeric ? [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))] : null,
+        style: (widget.numeric ? t.number : t.body).copyWith(color: c.textPrimary),
         cursorColor: c.accent,
         decoration: InputDecoration(
           isDense: true,
