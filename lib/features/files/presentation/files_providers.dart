@@ -13,6 +13,7 @@ final filesRepositoryProvider = Provider<FilesRepository>((ref) {
   if (session == null || session.isSample) return MockFilesRepository();
   return CanvasFilesRepository(
     ref.read(canvasClientFactoryProvider)(session.baseUrl, session.token),
+    scope: session.scope,
   );
 });
 

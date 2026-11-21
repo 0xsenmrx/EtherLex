@@ -85,4 +85,12 @@ void main() {
     final c = _container(store, 500);
     expect((await c.read(authProvider.future))!.userId, 5);
   });
+
+  test('two accounts on one Canvas site get different data names', () {
+    const a = AuthSession(baseUrl: 'https://canvas.school.edu', token: 't', userName: 'A', userId: 1);
+    const b = AuthSession(baseUrl: 'https://canvas.school.edu', token: 't', userName: 'B', userId: 2);
+    expect(a.scope, isNot(b.scope));
+    expect(a.scope, startsWith('canvas.school.edu'));
+    expect(const AuthSession.sample().scope, 'sample');
+  });
 }

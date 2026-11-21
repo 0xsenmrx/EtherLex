@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/canvas_client.dart';
 import '../../../core/network/canvas_url.dart';
+import '../../../core/storage/account_scope.dart';
 import '../data/credentials_store.dart';
 
 class AuthSession {
@@ -28,6 +29,16 @@ class AuthSession {
   /// whose id could not be fetched yet.
   final int? userId;
   final bool isSample;
+
+  /// What this account's data is called on disk (see [accountScope]).
+  String get scope => isSample ? 'sample' : accountScope(baseUrl, userId);
+
+  /// Moves data kept under the old host-only name to this account. A no-op
+  /// without an id; safe to call again.
+  void adoptLegacyData() {
+    if (isSample || userId == null) return;
+    adoptLegacyAccountData(host: Uri.tryParse(baseUrl)?.host ?? '', scope: scope);
+  }
 }
 
 final credentialsStoreProvider =
@@ -57,7 +68,9 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
               );
         } catch (_) {}
       }
-      return AuthSession(baseUrl: c.baseUrl, token: c.token, userName: c.userName, userId: id);
+      final session = AuthSession(baseUrl: c.baseUrl, token: c.token, userName: c.userName, userId: id);
+      session.adoptLegacyData();
+      return session;
     } catch (_) {
       return null;
     }
@@ -71,7 +84,9 @@ class AuthNotifier extends AsyncNotifier<AuthSession?> {
     await ref.read(credentialsStoreProvider).save(
           Credentials(baseUrl: baseUrl, token: token, userName: user.name, userId: user.id),
         );
-    state = AsyncData(AuthSession(baseUrl: baseUrl, token: token, userName: user.name, userId: user.id));
+    final session = AuthSession(baseUrl: baseUrl, token: token, userName: user.name, userId: user.id);
+    session.adoptLegacyData();
+    state = AsyncData(session);
   }
 
   void useSample() => state = const AsyncData(AuthSession.sample());

@@ -7,7 +7,7 @@ import 'auth_provider.dart';
 final appDatabaseProvider = Provider<AppDatabase?>((ref) {
   final session = ref.watch(authProvider.select((a) => a.value));
   if (session == null || session.isSample) return null;
-  final db = AppDatabase.forAccount(session.baseUrl);
+  final db = AppDatabase.forAccount(session.scope);
   ref.onDispose(db.close);
   return db;
 });

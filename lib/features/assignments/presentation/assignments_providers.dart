@@ -96,7 +96,7 @@ final settingsStoreProvider = Provider<SettingsStore>((ref) {
       ? 'signed_out'
       : s.isSample
           ? 'sample'
-          : Uri.parse(s.baseUrl).host;
+          : s.scope;
   return FileSettingsStore.forScope(scope);
 });
 

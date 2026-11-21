@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 
+import '../storage/account_scope.dart';
 import '../storage/app_dir.dart';
 
 part 'app_database.g.dart';
@@ -83,11 +84,11 @@ class AppDatabase extends _$AppDatabase {
         },
       );
 
-  /// One database file per Canvas site, so accounts never mix.
-  static AppDatabase forAccount(String baseUrl) {
-    final host = Uri.parse(baseUrl).host.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
+  /// One database file per account ([scope] is host plus user id), so
+  /// accounts never mix, not even on the same Canvas site.
+  static AppDatabase forAccount(String scope) {
     final dir = Directory(appDataPath())..createSync(recursive: true);
-    final file = File('${dir.path}${Platform.pathSeparator}cache_$host.sqlite');
+    final file = File('${dir.path}${Platform.pathSeparator}cache_${databaseStem(scope)}.sqlite');
     return AppDatabase(NativeDatabase.createInBackground(file));
   }
 }

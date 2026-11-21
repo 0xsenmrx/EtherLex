@@ -9,7 +9,8 @@ import 'file_cache.dart';
 import 'files_mapper.dart';
 
 class CanvasFilesRepository implements FilesRepository {
-  CanvasFilesRepository(this._client) : _cache = FileCache(_client.host);
+  /// [scope] names the account's folder in the offline cache (default: the host).
+  CanvasFilesRepository(this._client, {String? scope}) : _cache = FileCache(scope ?? _client.host);
   final CanvasClient _client;
   final FileCache _cache;
 
