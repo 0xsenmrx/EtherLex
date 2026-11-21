@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show HttpException, SocketException;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
@@ -8,7 +9,6 @@ import 'package:material_ui/material_ui.dart' show SelectableText;
 import '../../../core/utils/open_url.dart';
 import '../../../design_system/ether/icons.dart';
 import '../../../design_system/ether/tap.dart';
-import '../../../design_system/theme/ether_colors.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../../viewer/presentation/markdown_view.dart';
 import '../domain/chat_blocks.dart';
@@ -432,7 +432,10 @@ class _ImageBlockState extends State<_ImageBlock> {
             widget.url,
             fit: BoxFit.contain,
             semanticLabel: widget.alt,
-            errorBuilder: (context, error, stack) => Text('Could not load the image from $host.', style: t.meta),
+            errorBuilder: (context, error, stack) => Text(
+              'Could not load the image from $host${_why(error)}.',
+              style: t.meta,
+            ),
             loadingBuilder: (context, child, progress) => progress == null
                 ? child
                 : SizedBox(height: 120, child: Center(child: Text('Loading image…', style: t.meta))),
@@ -440,5 +443,12 @@ class _ImageBlockState extends State<_ImageBlock> {
         ),
       ),
     );
+  }
+
+  /// A short reason for the error line: the HTTP status when there is one.
+  static String _why(Object error) {
+    if (error is NetworkImageLoadException) return ' (HTTP ${error.statusCode})';
+    if (error is HttpException || error is SocketException) return ' (network error)';
+    return ' (not a readable image)';
   }
 }
