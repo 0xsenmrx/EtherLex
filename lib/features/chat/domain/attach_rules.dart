@@ -9,11 +9,13 @@ const int kMaxImageBytes = 5 * 1024 * 1024;
 const int kMaxDocumentBytes = 25 * 1024 * 1024;
 
 /// Why a file cannot be attached, judged from its name and size alone (so
-/// nothing is downloaded first), or null when it can.
-String? attachProblemFor(String name, int size) {
+/// nothing is downloaded first), or null when it can. [readsImages] is false
+/// for a service that cannot take pictures.
+String? attachProblemFor(String name, int size, {bool readsImages = true}) {
   final kind = previewKindFor(name);
   if (kind == PreviewKind.none) return 'Cannot be read yet';
   if (kind == PreviewKind.image) {
+    if (!readsImages) return 'This AI service cannot read pictures yet';
     if (imageMimeFor(name) == null) return 'Only PNG, JPEG, GIF and WebP pictures';
     if (size > kMaxImageBytes) return 'Too big: ${formatBytes(size)}, up to ${formatBytes(kMaxImageBytes)}';
     return null;

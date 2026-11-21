@@ -158,7 +158,7 @@ class _AttachDialog extends StatelessWidget {
                 ],
               );
               if (picked == null) return null;
-              final problem = attachProblemFor(picked.name, await picked.length());
+              final problem = attachProblemFor(picked.name, await picked.length(), readsImages: ref.read(aiSettingsProvider).provider.readsImages);
               if (problem != null) throw AttachException('${picked.name}: $problem.');
               return contextForPath(picked.path, picked.name);
             },
@@ -278,7 +278,7 @@ class _FilesDialogState extends State<_FilesDialog> {
   }
 
   Widget _fileRow(BuildContext context, FileEntry f, {String? where}) {
-    final problem = attachProblemFor(f.name, f.size);
+    final problem = attachProblemFor(f.name, f.size, readsImages: widget.ref.read(aiSettingsProvider).provider.readsImages);
     return _row(
       context,
       icon: previewKindFor(f.name) == PreviewKind.image ? EIcons.fileImage : EIcons.fileText,
@@ -340,7 +340,7 @@ class _FilesDialogState extends State<_FilesDialog> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             mainAxisSize: MainAxisSize.min,
             children: [
-              CompactField(width: double.infinity, initial: '', hint: 'Search this course by name', onChanged: (v) => setState(() => _query = v)),
+              CompactField(width: double.infinity, initial: '', hint: 'Search this course by name', numeric: false, autofocus: true, onChanged: (v) => setState(() => _query = v)),
               const SizedBox(height: 8),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxHeight: 360),

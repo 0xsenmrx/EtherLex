@@ -13,6 +13,8 @@ void main() {
     expect(attachProblemFor('data.xlsx', 10), 'Cannot be read yet');
     expect(attachProblemFor('video.mp4', 10), 'Cannot be read yet');
     expect(attachProblemFor('scan.bmp', 10), contains('PNG, JPEG'));
+    expect(attachProblemFor('plot.png', 10, readsImages: false), contains('cannot read pictures'));
+    expect(attachProblemFor('notes.md', 10, readsImages: false), isNull);
     expect(attachProblemFor('big.png', kMaxImageBytes + 1), startsWith('Too big: '));
     expect(attachProblemFor('big.pdf', kMaxDocumentBytes + 1), startsWith('Too big: '));
   });
