@@ -8,7 +8,14 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   late Directory dir;
   setUp(() => dir = Directory.systemTemp.createTempSync('etherlex_cp_'));
-  tearDown(() => dir.deleteSync(recursive: true));
+  tearDown(() {
+    // Windows can still hold a just-read file for a moment; a leftover temp folder is harmless.
+    try {
+      dir.deleteSync(recursive: true);
+    } on FileSystemException {
+      // ignore
+    }
+  });
 
   test('a text file becomes a file attachment', () async {
     final f = File('${dir.path}/syllabus.md')..writeAsStringSync('# Grading\n40% exams');

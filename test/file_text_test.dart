@@ -7,7 +7,14 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   late Directory dir;
   setUp(() => dir = Directory.systemTemp.createTempSync('etherlex_ft_'));
-  tearDown(() => dir.deleteSync(recursive: true));
+  tearDown(() {
+    // Windows can still hold a just-read file for a moment; a leftover temp folder is harmless.
+    try {
+      dir.deleteSync(recursive: true);
+    } on FileSystemException {
+      // ignore
+    }
+  });
 
   test('document paragraphs become plain text with headings and bullets', () {
     final text = blocksToText(const [
