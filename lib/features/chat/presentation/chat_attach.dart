@@ -17,11 +17,14 @@ import '../../assignments/presentation/assignments_providers.dart';
 import '../../auth/domain/auth_provider.dart';
 import '../../courses/domain/course.dart';
 import '../../files/domain/files_models.dart';
+import '../../files/domain/folder_view.dart';
+import '../../../design_system/components/compact_field.dart';
 import '../../files/presentation/files_providers.dart';
 import '../../grades/presentation/grades_providers.dart';
 import '../../viewer/data/file_text.dart';
 import '../../viewer/domain/preview_kind.dart';
 import '../../../core/utils/format.dart';
+import '../domain/attach_rules.dart';
 import '../domain/context_builders.dart';
 import '../domain/context_item.dart';
 import 'ai_consent.dart';
@@ -155,7 +158,8 @@ class _AttachDialog extends StatelessWidget {
                 ],
               );
               if (picked == null) return null;
-              if (!_attachable(picked.name)) throw AttachException('${picked.name} is not a kind of file the assistant can read.');
+              final problem = attachProblemFor(picked.name, await picked.length());
+              if (problem != null) throw AttachException('${picked.name}: $problem.');
               return contextForPath(picked.path, picked.name);
             },
           ),
@@ -194,22 +198,13 @@ class _AttachDialog extends StatelessWidget {
   }
 }
 
-/// Biggest picture sent, as the services accept about this much.
-const int kMaxImageBytes = 5 * 1024 * 1024;
-
-bool _attachable(String name) {
-  final k = previewKindFor(name);
-  if (k == PreviewKind.image) return imageMimeFor(name) != null;
-  return k != PreviewKind.none;
-}
-
 /// Reads [file] (downloading it if needed) into something to attach.
 Future<ContextItem> contextForFile(WidgetRef ref, FileEntry file) async {
   final String path;
   try {
     path = await ref.read(filesRepositoryProvider).localPath(file);
   } catch (_) {
-    throw const AttachException('Could not download that file from Canvas. Check your connection and try again.');
+    throw const AttachException('Could not download that file from Canvas. Check your connection and try again.', retryable: true);
   }
   return contextForPath(path, file.name, fileId: file.id);
 }
@@ -226,25 +221,82 @@ Future<ContextItem> contextForPath(String path, String name, {int? fileId}) asyn
   }
   final text = await readFileText(path, name);
   if (text == null) {
-    throw AttachException('No readable text in $name. A scanned PDF is only pictures; attach a text version instead.');
+    throw AttachException('Could not find any text in $name. If it is a scan or its text is inside pictures, attach a text version instead.');
   }
   return FileContext(name: name, content: text, fileId: fileId);
 }
 
-class _FilesDialog extends StatelessWidget {
+class _FilesDialog extends StatefulWidget {
   const _FilesDialog(this.ref, this.course);
 
   final WidgetRef ref;
   final Course course;
 
   @override
-  Widget build(BuildContext context) {
+  State<_FilesDialog> createState() => _FilesDialogState();
+}
+
+class _FilesDialogState extends State<_FilesDialog> {
+  late final Future<CourseFiles> _future = widget.ref.read(courseFilesProvider(widget.course.id).future);
+  List<int> _path = const [];
+  String _query = '';
+
+  Widget _row(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    String? trailing,
+    bool disabled = false,
+    VoidCallback? onTap,
+  }) {
     final c = context.colors;
     final t = context.text;
+    return ETap(
+      onTap: disabled ? null : onTap,
+      builder: (context, s) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(color: s.hovered && !disabled ? c.hover : const Color(0x00000000), borderRadius: BorderRadius.circular(8)),
+        child: Row(
+          children: [
+            Icon(icon, size: 16, color: disabled ? c.textTertiary : c.textSecondary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: disabled ? t.label.copyWith(color: c.textTertiary) : t.label, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  if (subtitle != null) Text(subtitle, style: t.meta, maxLines: 1, overflow: TextOverflow.ellipsis),
+                ],
+              ),
+            ),
+            if (trailing != null) ...[const SizedBox(width: 8), Text(trailing, style: t.meta)],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _fileRow(BuildContext context, FileEntry f, {String? where}) {
+    final problem = attachProblemFor(f.name, f.size);
+    return _row(
+      context,
+      icon: previewKindFor(f.name) == PreviewKind.image ? EIcons.fileImage : EIcons.fileText,
+      title: f.name,
+      subtitle: problem ?? where,
+      trailing: formatBytes(f.size),
+      disabled: problem != null,
+      onTap: () => Navigator.of(context).pop<ContextBuilder>(() => contextForFile(widget.ref, f)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.text;
     return EDialog(
-      title: course.shortLabel,
+      title: widget.course.shortLabel,
       body: FutureBuilder<CourseFiles>(
-        future: ref.read(courseFilesProvider(course.id).future),
+        future: _future,
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) {
             return Padding(padding: const EdgeInsets.all(16), child: Text('Loading files…', style: t.meta));
@@ -252,43 +304,49 @@ class _FilesDialog extends StatelessWidget {
           if (snap.hasError) {
             return Padding(padding: const EdgeInsets.all(16), child: Text('Could not load the files of this course.', style: t.meta));
           }
-          final hidden = ref.read(hiddenFoldersProvider);
-          final files = [
-            for (final f in filesUnder(snap.data!, null, skip: hidden))
-              if (_attachable(f.name)) f,
-          ]..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-          if (files.isEmpty) {
-            return Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text('No PDF, Word, PowerPoint, text or picture files in this course.', style: t.meta),
-            );
+          final data = snap.data!;
+          final hidden = widget.ref.read(hiddenFoldersProvider);
+          final names = {for (final f in data.folders) f.id: f.name};
+          final searching = _query.trim().isNotEmpty;
+          final view = viewFolder(data, _path.isEmpty ? null : _path.last);
+          final List<Widget> rows;
+          if (searching) {
+            final found = [
+              for (final f in filesUnder(data, null, skip: hidden))
+                if (nameMatches(f.name, _query)) f,
+            ]..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+            rows = [
+              for (final f in found.take(60)) _fileRow(context, f, where: names[f.folderId]),
+              if (found.isEmpty) Padding(padding: const EdgeInsets.all(16), child: Text('No file with that name.', style: t.meta)),
+              if (found.length > 60) Padding(padding: const EdgeInsets.all(10), child: Text('${found.length - 60} more: type more of the name.', style: t.meta)),
+            ];
+          } else {
+            rows = [
+              if (_path.isNotEmpty)
+                _row(
+                  context,
+                  icon: EIcons.chevronLeft,
+                  title: 'Back',
+                  subtitle: view.breadcrumb.map((f) => f.name).join(' / '),
+                  onTap: () => setState(() => _path = _path.sublist(0, _path.length - 1)),
+                ),
+              for (final f in view.folders)
+                if (!hidden.contains(f.id)) _row(context, icon: EIcons.folderClosed, title: f.name, onTap: () => setState(() => _path = [..._path, f.id])),
+              for (final f in view.files) _fileRow(context, f),
+              if (view.folders.isEmpty && view.files.isEmpty) Padding(padding: const EdgeInsets.all(16), child: Text('Nothing in this folder.', style: t.meta)),
+            ];
           }
-          return ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 360),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (final f in files)
-                    ETap(
-                      onTap: () => Navigator.of(context).pop<ContextBuilder>(() => contextForFile(ref, f)),
-                      builder: (context, s) => Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-                        decoration: BoxDecoration(color: s.hovered ? c.hover : const Color(0x00000000), borderRadius: BorderRadius.circular(8)),
-                        child: Row(
-                          children: [
-                            Icon(previewKindFor(f.name) == PreviewKind.image ? EIcons.fileImage : EIcons.fileText, size: 16, color: c.textSecondary),
-                            const SizedBox(width: 12),
-                            Expanded(child: Text(f.name, style: t.label, maxLines: 1, overflow: TextOverflow.ellipsis)),
-                            const SizedBox(width: 8),
-                            Text(formatBytes(f.size), style: t.meta),
-                          ],
-                        ),
-                      ),
-                    ),
-                ],
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CompactField(width: double.infinity, initial: '', hint: 'Search this course by name', onChanged: (v) => setState(() => _query = v)),
+              const SizedBox(height: 8),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 360),
+                child: SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: rows)),
               ),
-            ),
+            ],
           );
         },
       ),

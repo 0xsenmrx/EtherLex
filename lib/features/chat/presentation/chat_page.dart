@@ -125,7 +125,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       if (!mounted) return;
       setState(() {
         _loadingAttach = false;
-        _failedBuild = build;
+        _failedBuild = e is AttachException && !e.retryable ? null : build;
         _attachError = ChatException(
           ChatErrorKind.unexpected,
           e is CanvasException ? e.message : e is AttachException ? e.message : 'Could not load that from Canvas. Check your connection and try again.',

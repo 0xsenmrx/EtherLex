@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:etherlex/features/chat/domain/attach_rules.dart';
 import 'package:etherlex/features/chat/domain/context_item.dart';
 import 'package:etherlex/features/chat/presentation/chat_attach.dart';
 import 'package:flutter_test/flutter_test.dart';

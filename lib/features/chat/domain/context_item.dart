@@ -8,9 +8,12 @@ const int kMaxContextChars = 40000;
 
 /// Something that cannot be attached, with words the student can read.
 class AttachException implements Exception {
-  const AttachException(this.message);
+  const AttachException(this.message, {this.retryable = false});
 
   final String message;
+
+  /// Trying again could help (a lost connection), unlike a file that has no text.
+  final bool retryable;
 
   @override
   String toString() => 'AttachException: $message';
