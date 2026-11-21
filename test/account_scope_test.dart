@@ -17,7 +17,14 @@ void main() {
       dir = Directory.systemTemp.createTempSync('etherlex_scope_');
       sep = Platform.pathSeparator;
     });
-    tearDown(() => dir.deleteSync(recursive: true));
+    tearDown(() {
+      // Windows can still hold a just-written file for a moment; a leftover temp folder is harmless.
+      try {
+        dir.deleteSync(recursive: true);
+      } on FileSystemException {
+        // ignore
+      }
+    });
 
     File at(String rel) => File('${dir.path}$sep${rel.replaceAll('/', sep)}');
 
