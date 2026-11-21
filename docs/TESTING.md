@@ -284,3 +284,9 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 - [x] **Expect** an error banner about the connection with Retry. Retry repeats the fetch (never re-asks your last question); dismiss with the x.
 15. Settings, AI assistant: click "Take permission back", then attach something again.
 - [x] **Expect** the permission dialog appears again. Sign in as another account: it also asks again.
+16. Attach a file: paperclip, then under **A file or picture from a course** pick a course with a syllabus (PDF or Word), choose it, ask "Summarise this syllabus and list the grading weights".
+- [ ] **Expect** a chip with the file name, an answer that uses the file's real content, and the same for a PowerPoint and a Markdown/text file. A file that is only a scan (pictures of pages) gives "No readable text in ..." instead of an empty answer.
+17. Attach a picture with Anthropic or an OpenAI service that reads images: paperclip, **A file or picture from this computer**, choose a PNG or JPEG (for example a screenshot of a graph), ask "What does this show?".
+- [ ] **Expect** the chip with the picture's name and an answer that describes the picture. A picture over 5 MB is refused with a message. Ask a second question in the same chat: the picture is still known while the app stays open (after a restart only the chip label remains).
+18. Settings, AI assistant: choose DeepSeek, go back and attach a picture.
+- [ ] **Expect** "DeepSeek cannot read pictures yet..." and no chip. Attach a picture first, then switch to DeepSeek in Settings and press send: the same message appears and nothing is sent. Text files still work with DeepSeek.

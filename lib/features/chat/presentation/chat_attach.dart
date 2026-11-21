@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -139,6 +140,25 @@ class _AttachDialog extends StatelessWidget {
               ref.read(coursesByIdProvider),
             ),
           ),
+          const EMenuDivider(),
+          _row(
+            context,
+            icon: EIcons.fileImage,
+            title: 'A file or picture from this computer',
+            subtitle: 'PDF, Word, PowerPoint, text, PNG, JPEG, GIF, WebP',
+            build: () async {
+              final picked = await openFile(
+                acceptedTypeGroups: [
+                  const XTypeGroup(label: 'Documents and pictures', extensions: [
+                    'pdf', 'docx', 'pptx', 'md', 'markdown', 'txt', 'csv', 'tex', 'png', 'jpg', 'jpeg', 'gif', 'webp',
+                  ]),
+                ],
+              );
+              if (picked == null) return null;
+              if (!_attachable(picked.name)) throw AttachException('${picked.name} is not a kind of file the assistant can read.');
+              return contextForPath(picked.path, picked.name);
+            },
+          ),
           if (courses.isNotEmpty) ...[
             const EMenuDivider(),
             const EMenuCaption('A file or picture from a course'),
@@ -191,19 +211,24 @@ Future<ContextItem> contextForFile(WidgetRef ref, FileEntry file) async {
   } catch (_) {
     throw const AttachException('Could not download that file from Canvas. Check your connection and try again.');
   }
-  final mime = imageMimeFor(file.name);
+  return contextForPath(path, file.name, fileId: file.id);
+}
+
+/// Reads the file at [path] (named [name]) into something to attach.
+Future<ContextItem> contextForPath(String path, String name, {int? fileId}) async {
+  final mime = imageMimeFor(name);
   if (mime != null) {
     final bytes = await File(path).readAsBytes();
     if (bytes.length > kMaxImageBytes) {
-      throw AttachException('${file.name} is ${formatBytes(bytes.length)}; pictures over ${formatBytes(kMaxImageBytes)} are not sent.');
+      throw AttachException('$name is ${formatBytes(bytes.length)}; pictures over ${formatBytes(kMaxImageBytes)} are not sent.');
     }
-    return ImageContext(name: file.name, mimeType: mime, bytes: bytes);
+    return ImageContext(name: name, mimeType: mime, bytes: bytes);
   }
-  final text = await readFileText(path, file.name);
+  final text = await readFileText(path, name);
   if (text == null) {
-    throw AttachException('No readable text in ${file.name}. A scanned PDF is only pictures; attach a text version instead.');
+    throw AttachException('No readable text in $name. A scanned PDF is only pictures; attach a text version instead.');
   }
-  return FileContext(name: file.name, content: text, fileId: file.id);
+  return FileContext(name: name, content: text, fileId: fileId);
 }
 
 class _FilesDialog extends StatelessWidget {
