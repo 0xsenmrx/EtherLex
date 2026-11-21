@@ -9,7 +9,16 @@ import 'package:flutter_test/flutter_test.dart';
 
 Future<void> until(bool Function() done) async {
   final end = DateTime.now().add(const Duration(seconds: 10));
-  while (!done()) {
+  // Reading a file the app is just renaming over fails on Windows: try again.
+  bool ready() {
+    try {
+      return done();
+    } catch (_) {
+      return false;
+    }
+  }
+
+  while (!ready()) {
     if (DateTime.now().isAfter(end)) fail('timed out waiting');
     await Future<void>.delayed(const Duration(milliseconds: 5));
   }
