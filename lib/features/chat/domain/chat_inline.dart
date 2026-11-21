@@ -377,3 +377,14 @@ String _trimUrl(String url) {
   }
   return u;
 }
+
+/// An address that is safe to open: https only (http is upgraded to https).
+/// Anything else, such as mailto:, file: or javascript:, is not a link.
+String? safeWebUrl(String? url) {
+  if (url == null) return null;
+  final u = Uri.tryParse(url.trim());
+  if (u == null || !u.hasAuthority || u.host.isEmpty) return null;
+  if (u.scheme == 'https') return u.toString();
+  if (u.scheme == 'http') return u.replace(scheme: 'https').toString();
+  return null;
+}

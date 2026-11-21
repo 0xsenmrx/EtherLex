@@ -69,4 +69,16 @@ void main() {
   test('a line break inside text survives', () {
     expect(runs('a\nb'), ['a\nb']);
   });
+
+  test('only web addresses are safe to open', () {
+    expect(safeWebUrl('https://a.b/c?d=1'), 'https://a.b/c?d=1');
+    expect(safeWebUrl('http://a.b'), 'https://a.b');
+    expect(safeWebUrl(' https://a.b '), 'https://a.b');
+    expect(safeWebUrl('javascript:alert(1)'), isNull);
+    expect(safeWebUrl('file:///C:/secret.txt'), isNull);
+    expect(safeWebUrl('mailto:a@b.c'), isNull);
+    expect(safeWebUrl('/relative/path'), isNull);
+    expect(safeWebUrl('https://'), isNull);
+    expect(safeWebUrl(null), isNull);
+  });
 }
