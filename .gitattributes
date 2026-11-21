@@ -1,0 +1,22 @@
+# One rule for line endings, so Windows checkouts stop showing every file as
+# changed. Git stores text files with LF and gives each machine its own ending.
+* text=auto
+
+# Scripts that must keep their ending wherever they are checked out.
+*.sh text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Never touched.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.zip binary
