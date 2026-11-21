@@ -72,4 +72,15 @@ void main() {
     expect(await store.readNotificationsEnabled(), isFalse);
     expect(File('${dir.path}/settings.json.tmp').existsSync(), isFalse);
   });
+
+  test('AI consent round-trips and does not touch other settings', () async {
+    final store = FileSettingsStore(file: File('${dir.path}/settings.json'));
+    expect(await store.readAiConsent(), isEmpty);
+    await store.writeDisabledCourses({1});
+    await store.writeAiConsent({'deepseek', 'anthropic'});
+    expect(await store.readAiConsent(), {'anthropic', 'deepseek'});
+    expect(await store.readDisabledCourses(), {1});
+    await store.writeAiConsent({});
+    expect(await store.readAiConsent(), isEmpty);
+  });
 }
