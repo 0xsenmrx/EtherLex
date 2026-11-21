@@ -380,10 +380,13 @@ class _FilesDialogState extends State<_FilesDialog> {
 
 /// What will be sent with the next message, each with an x to take it off.
 class AttachChips extends StatelessWidget {
-  const AttachChips({super.key, required this.items, required this.onRemove});
+  const AttachChips({super.key, required this.items, required this.onRemove, this.onSendWhole});
 
   final List<ContextItem> items;
   final void Function(ContextItem item) onRemove;
+
+  /// Switches a long file from its first part to the whole file.
+  final void Function(FileContext item)? onSendWhole;
 
   static IconData _icon(ContextKind k) => switch (k) {
         ContextKind.assignments => EIcons.assignments,
@@ -418,6 +421,17 @@ class AttachChips extends StatelessWidget {
                   constraints: const BoxConstraints(maxWidth: 260),
                   child: Text(i.label, style: t.meta, maxLines: 1, overflow: TextOverflow.ellipsis),
                 ),
+                if (i case final FileContext f when f.isLong && onSendWhole != null) ...[
+                  const SizedBox(width: 8),
+                  Tooltip(
+                    message: 'Sends all ${f.content.length ~/ 1000}k characters (about ${f.content.length ~/ 4000}k tokens), '
+                        'and again with every follow-up question in this chat.',
+                    child: ETap(
+                      onTap: () => onSendWhole!(f),
+                      builder: (context, s) => Text('Send whole file', style: t.meta.copyWith(color: c.accent, decoration: s.hovered ? TextDecoration.underline : null)),
+                    ),
+                  ),
+                ],
                 const SizedBox(width: 2),
                 EIconButton(
                   icon: EIcons.close,

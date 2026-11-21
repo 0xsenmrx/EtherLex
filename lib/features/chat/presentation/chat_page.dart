@@ -239,7 +239,14 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   if (_attached.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
-                      child: AttachChips(items: _attached, onRemove: (i) => setState(() => _attached.remove(i))),
+                      child: AttachChips(
+                        items: _attached,
+                        onRemove: (i) => setState(() => _attached.remove(i)),
+                        onSendWhole: (f) => setState(() {
+                          final at = _attached.indexOf(f);
+                          if (at >= 0) _attached[at] = f.asWhole();
+                        }),
+                      ),
                     ),
                   _InputBar(
                     controller: _input,
