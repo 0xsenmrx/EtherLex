@@ -11,11 +11,13 @@ import '../../../core/utils/open_url.dart';
 import '../../../design_system/ether/icons.dart';
 import '../../../design_system/ether/tap.dart';
 import '../../../design_system/theme/ether_theme.dart';
+import '../../grades/domain/plan_proposal.dart';
 import '../../viewer/presentation/markdown_view.dart';
 import '../domain/chat_blocks.dart';
 import '../domain/chat_inline.dart';
 import '../domain/code_highlight.dart';
 import 'copy_button.dart';
+import 'plan_card.dart';
 
 /// An assistant answer, drawn as GitHub-style Markdown: headings, nested and
 /// task lists, tables, quotes, rules, links, highlighted code with a copy
@@ -84,12 +86,19 @@ class _Render {
   Widget block(ChatBlock b, TextStyle base, int depth) => switch (b) {
         ParagraphBlock p => paragraph(p.text, base),
         HeadingBlock h => heading(h, base),
-        CodeBlock k => _CodeBlockView(language: k.language, code: k.code),
+        CodeBlock k => _codeBlock(k),
         QuoteBlock q => quote(q, base, depth),
         ListBlock l => list(l, base, depth),
         RuleBlock() => Container(height: 1, margin: const EdgeInsets.symmetric(vertical: 6), color: c.line),
         TableBlock t => table(t, base),
       };
+
+  /// A grade plan the assistant proposes becomes a card; anything else (or a
+  /// plan that does not pass the checks) stays a code block.
+  Widget _codeBlock(CodeBlock k) {
+    final proposal = k.language == kPlanFence ? parseProposal(k.code) : null;
+    return proposal == null ? _CodeBlockView(language: k.language, code: k.code) : PlanCard(proposal: proposal, source: k.code);
+  }
 
   Widget paragraph(String text, TextStyle base) {
     final runs = parseInline(text);
