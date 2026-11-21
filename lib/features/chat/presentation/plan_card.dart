@@ -78,7 +78,7 @@ class _PlanCardState extends ConsumerState<PlanCard> {
       if (!mounted) return;
       final plans = ref.read(gradePlansProvider.notifier);
       final before = ref.read(gradePlansProvider)[courseId] ?? GradePlan.empty;
-      final result = applyProposal(before, widget.proposal, work.groups);
+      final result = applyProposal(before, widget.proposal, work.groups, knownAssignments: {for (final i in work.items) i.id});
       plans.update(courseId, result.plan);
       ref.read(appliedProposalsProvider.notifier).mark(widget.source, AppliedProposal(courseId: courseId, before: before));
     } catch (_) {
@@ -113,7 +113,12 @@ class _PlanCardState extends ConsumerState<PlanCard> {
     final work = courseId == null ? null : ref.watch(courseWorkProvider(courseId)).value;
     final plan = courseId == null ? GradePlan.empty : (ref.watch(gradePlansProvider)[courseId] ?? GradePlan.empty);
     // Before applying, show what it would do; after, what it did (no longer a guess).
-    final rows = work == null ? null : applyProposal(applied?.before ?? plan, p, work.groups).rows;
+    final result = work == null
+        ? null
+        : applyProposal(applied?.before ?? plan, p, work.groups, knownAssignments: {for (final i in work.items) i.id});
+    final rows = result?.rows;
+    final moves = result?.moves ?? const <MoveRow>[];
+    final titles = {for (final i in work?.items ?? const <GradedItem>[]) i.id: i.title};
     final total = p.weightTotal;
 
     Widget line(Widget left, Widget right) => Padding(
@@ -162,6 +167,35 @@ class _PlanCardState extends ConsumerState<PlanCard> {
                   style: t.number,
                 ),
               ),
+          if (moves.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text('Moves between categories', style: t.label),
+            const SizedBox(height: 4),
+            for (final m in moves.take(12))
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${titles[m.assignment] ?? 'Assignment #${m.assignment}'}  →  ${m.category}',
+                        style: m.status == MoveStatus.ok ? t.body : t.meta,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (m.status != MoveStatus.ok) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        m.status == MoveStatus.unknownAssignment ? 'not in this course, skipped' : 'no such category, skipped',
+                        style: t.metaMuted,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            if (moves.length > 12) Text('and ${moves.length - 12} more', style: t.metaMuted),
+          ],
           if (p.curve.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
