@@ -7,9 +7,12 @@ import '../../../design_system/ether/icons.dart';
 import '../../../design_system/ether/menu.dart';
 import '../../../design_system/ether/tap.dart';
 import '../../../design_system/theme/ether_theme.dart';
+import '../../activity/domain/activity_item.dart';
 import '../../activity/presentation/activity_providers.dart';
+import '../../assignments/domain/assignment.dart';
 import '../../assignments/presentation/assignments_providers.dart';
 import '../../auth/domain/auth_provider.dart';
+import '../../courses/domain/course.dart';
 import '../../grades/presentation/grades_providers.dart';
 import '../domain/context_builders.dart';
 import '../domain/context_item.dart';
@@ -76,8 +79,13 @@ class _AttachDialog extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final courses = [...?ref.watch(coursesProvider).value]
-      ..sort((a, b) => a.shortLabel.toLowerCase().compareTo(b.shortLabel.toLowerCase()));
+    // Courses the student hid (for example one they teach) stay out, as everywhere else in the app.
+    final disabled = ref.watch(disabledCoursesProvider);
+    List<Course> visibleCourses() => [
+          for (final c in ref.read(coursesProvider).value ?? const <Course>[])
+            if (!disabled.contains(c.id)) c,
+        ];
+    final courses = [...visibleCourses()]..sort((a, b) => a.shortLabel.toLowerCase().compareTo(b.shortLabel.toLowerCase()));
     return EDialog(
       title: 'Attach from Canvas',
       body: Column(
@@ -89,7 +97,10 @@ class _AttachDialog extends ConsumerWidget {
             title: 'Open assignments',
             subtitle: 'Everything not done yet, with due dates',
             build: () async => openAssignmentsContext(
-              ref.read(assignmentsProvider).value ?? const [],
+              [
+                for (final a in ref.read(assignmentsProvider).value ?? const <Assignment>[])
+                  if (!disabled.contains(a.courseId)) a,
+              ],
               ref.read(coursesByIdProvider),
             ),
           ),
@@ -98,10 +109,11 @@ class _AttachDialog extends ConsumerWidget {
             icon: EIcons.grades,
             title: 'Grades overview',
             subtitle: 'Your current grade in each course',
-            build: () async => gradesOverviewContext(
-              ref.read(coursesProvider).value ?? const [],
-              ref.read(courseGradesProvider),
-            ),
+            build: () async {
+              // Grades are only fetched when the Grades page is opened; fetch them now if they were not.
+              if (ref.read(courseGradesProvider).isEmpty) await ref.read(gradesSyncProvider.notifier).refresh();
+              return gradesOverviewContext(visibleCourses(), ref.read(courseGradesProvider));
+            },
           ),
           _row(
             context,
@@ -109,7 +121,10 @@ class _AttachDialog extends ConsumerWidget {
             title: 'Recent announcements',
             subtitle: 'The latest ten',
             build: () async => recentAnnouncementsContext(
-              ref.read(activityProvider).value ?? const [],
+              [
+                for (final a in ref.read(activityProvider).value ?? const <ActivityItem>[])
+                  if (a.courseId == null || !disabled.contains(a.courseId)) a,
+              ],
               ref.read(coursesByIdProvider),
             ),
           ),

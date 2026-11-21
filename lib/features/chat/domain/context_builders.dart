@@ -24,15 +24,18 @@ AssignmentsContext openAssignmentsContext(List<Assignment> all, Map<int, Course>
   );
 }
 
-/// One line per course that has a grade, as Canvas reports it.
+/// One line per course, as Canvas reports it. A course Canvas gives no grade
+/// for (nothing graded yet, hidden by the teacher, or one the student teaches)
+/// is listed as such, so the model never has to guess why it is missing.
 GradesContext gradesOverviewContext(List<Course> courses, Map<int, CourseGrade> grades) {
-  final lines = <GradeLine>[];
-  for (final c in courses) {
-    final g = grades[c.id];
-    if (g == null || (g.currentScore == null && g.currentGrade == null)) continue;
-    lines.add(GradeLine(course: c.shortLabel, score: g.currentScore, grade: g.currentGrade));
-  }
-  lines.sort((a, b) => a.course.compareTo(b.course));
+  final lines = <GradeLine>[
+    for (final c in courses)
+      GradeLine(
+        course: c.shortLabel,
+        score: grades[c.id]?.currentScore,
+        grade: grades[c.id]?.currentGrade,
+      ),
+  ]..sort((a, b) => a.course.compareTo(b.course));
   return GradesContext(title: 'Grades overview', lines: lines);
 }
 

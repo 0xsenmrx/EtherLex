@@ -23,13 +23,14 @@ void main() {
     expect(c.lines.last.course, 'Mathematics for Engineers');
   });
 
-  test('the grades overview lists only courses with a grade', () {
+  test('the grades overview lists every course and says when Canvas gave no grade', () {
     final g = gradesOverviewContext(
       courses.values.toList(),
       const {1: CourseGrade(courseId: 1, currentScore: 91.5, currentGrade: 'A-'), 2: CourseGrade(courseId: 2)},
     );
-    expect(g.lines.length, 1);
-    expect(g.text, 'PHYS101: 91.5%, A-');
+    expect(g.lines.length, 2);
+    expect(g.text, 'Mathematics for Engineers: no grade yet\nPHYS101: 91.5%, A-');
+    expect(gradesOverviewContext(courses.values.toList(), const {}).text, contains('PHYS101: no grade yet'));
   });
 
   test('a course report spells out each graded item', () {
