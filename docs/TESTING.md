@@ -306,3 +306,11 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 - [ ] **Expect** it says it needs that assignment attached instead of guessing, or its card marks unknown ones "not found, skipped". Asking it to submit something: it says it cannot.
 26. Attach the syllabus **and** **Grades of one course** for the same course, then ask for the plan again, and for assignments to be moved to match the syllabus's categories (e.g. fold "Lab Report" into "Lab").
 - [ ] **Expect** the plan card has a "Moves between categories" list with titles; Apply moves them (check in the planner); unknown ones are marked skipped; Undo restores the plan.
+27. Ask: "Switch to the dark theme and the clean font, and turn notifications off."
+- [ ] **Expect** a "Proposed changes" card with Theme, Font and Notifications lines (a line that is already so says "already so"). Nothing changes until Apply; after Apply the app looks different; Undo puts the theme, font and notifications back.
+28. Ask: "Hide <one of your courses>", then "show it again". Also try a vague name that fits two courses (e.g. "hide physics" when you have two).
+- [ ] **Expect** Apply asks "Hide 1 course?" first; the course leaves the lists; Undo or "show it again" brings it back. A vague name is shown as "no single course matches, skipped" and nothing is hidden: it never guesses.
+29. Ask: "Take me to my grades."
+- [ ] **Expect** a card with "Open Grades"; Apply goes to the Grades page.
+30. Attach a syllabus that has no grade curve and ask for a grade plan, then ask "also guess how the class is usually distributed".
+- [ ] **Expect** the plan card shows the curve in a warm colour as "(a guess, not from your documents)" with the line "Guesses are estimates, not facts", and the assistant's text says it is a guess. Weights and categories are still only what the syllabus says.
