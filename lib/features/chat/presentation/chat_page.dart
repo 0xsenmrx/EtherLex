@@ -382,7 +382,7 @@ class _Bubble extends StatelessWidget {
                   if (thinking)
                     Text('Thinking…', style: t.meta)
                   else
-                    ChatMarkdown(message.text),
+                    ChatMarkdown(message.text, scope: message.id),
                   if (!thinking && message.text.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Row(

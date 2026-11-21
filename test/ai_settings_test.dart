@@ -8,7 +8,14 @@ void main() {
   late Directory dir;
 
   setUp(() => dir = Directory.systemTemp.createTempSync('etherlex_ai_'));
-  tearDown(() => dir.deleteSync(recursive: true));
+  tearDown(() {
+    // Windows can still hold a just-written file for a moment; a leftover temp folder is harmless.
+    try {
+      dir.deleteSync(recursive: true);
+    } on FileSystemException {
+      // ignore
+    }
+  });
 
   test('defaults: Claude, its default model, the OpenAI address', () {
     const s = AiSettings();

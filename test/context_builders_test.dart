@@ -47,11 +47,27 @@ void main() {
     );
     expect(g.label, 'Grades: PHYS101');
     expect(g.text, contains('PHYS101: 88%, B+'));
-    expect(g.text, contains('- Midterm: 42/50 (84%)'));
-    expect(g.text, contains('- HW1: missing'));
-    expect(g.text, contains('- HW2: excused'));
-    expect(g.text, contains('- Lab: submitted, not graded yet'));
-    expect(g.text, contains('- Final: not submitted, worth 100'));
+    expect(g.text, contains('- Midterm [#1]: 42/50 (84%)'));
+    expect(g.text, contains('- HW1 [#2]: missing'));
+    expect(g.text, contains('- HW2 [#3]: excused'));
+    expect(g.text, contains('- Lab [#4]: submitted, not graded yet'));
+    expect(g.text, contains('- Final [#5]: not submitted, worth 100'));
+  });
+
+  test('a course report names the items\' categories so a change can be proposed', () {
+    final g = courseGradesContext(
+      courses[1]!,
+      null,
+      const [GradedItem(id: 7, title: 'Lab 1', state: GradeState.graded, points: 10, score: 9, groupId: 20)],
+      groups: const [AssignmentGroup(id: 20, name: 'Lab Report', weight: 0), AssignmentGroup(id: 21, name: 'Exams', weight: 40)],
+    );
+    expect(g.text, contains('Categories in Canvas: Lab Report (0%), Exams (40%)'));
+    expect(g.text, contains('- Lab 1 [#7, in Lab Report]: 9/10'));
+  });
+
+  test('open assignments carry their number and whether they are starred', () {
+    final c = openAssignmentsContext([const Assignment(id: 12, courseId: 1, title: 'Lab 2', dueAt: null, points: 5, starred: true)], courses);
+    expect(c.text, contains('PHYS101: Lab 2 [#12]; no due date; 5 points; not done; starred'));
   });
 
   test('announcements: only announcements, newest first, limited', () {

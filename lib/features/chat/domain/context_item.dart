@@ -23,7 +23,7 @@ class AttachException implements Exception {
   String toString() => 'AttachException: $message';
 }
 
-enum ContextKind { assignments, grades, announcements, file, image }
+enum ContextKind { assignments, grades, announcements, file, image, courses }
 
 /// Something the user chose to send along with a message. Items are plain
 /// values (no Canvas types), so they are easy to test and to show as chips.
@@ -52,8 +52,20 @@ String _date(DateTime d) {
 String _num(double v) => v == v.roundToDouble() ? '${v.toInt()}' : v.toStringAsFixed(1);
 
 class AssignmentLine {
-  const AssignmentLine({required this.course, required this.title, this.dueAt, this.points, this.done = false});
+  const AssignmentLine({
+    required this.course,
+    required this.title,
+    this.id,
+    this.dueAt,
+    this.points,
+    this.done = false,
+    this.starred = false,
+  });
 
+  /// Canvas's number for it, so the assistant can name exactly this assignment
+  /// when it proposes a change.
+  final int? id;
+  final bool starred;
   final String course;
   final String title;
   final DateTime? dueAt;
@@ -82,15 +94,15 @@ class AssignmentsContext extends ContextItem {
       ? 'No assignments.'
       : [
           for (final a in lines)
-            '- ${a.course}: ${a.title}; '
+            '- ${a.course}: ${a.title}${a.id == null ? '' : ' [#${a.id}]'}; '
                 '${a.dueAt == null ? 'no due date' : 'due ${_date(a.dueAt!)}'}; '
                 '${a.points == null ? 'no points' : '${_num(a.points!)} points'}; '
-                '${a.done ? 'done' : 'not done'}',
+                '${a.done ? 'done' : 'not done'}${a.starred ? '; starred' : ''}',
         ].join('\n');
 }
 
 class GradeLine {
-  const GradeLine({required this.course, this.score, this.grade, this.items = const []});
+  const GradeLine({required this.course, this.score, this.grade, this.items = const [], this.categories = ''});
 
   final String course;
 
@@ -100,6 +112,9 @@ class GradeLine {
 
   /// One ready-made line per graded item, e.g. "Midterm: 42/50".
   final List<String> items;
+
+  /// The course's categories in Canvas, e.g. "Homework (20%), Lab Report (0%)".
+  final String categories;
 }
 
 class GradesContext extends ContextItem {
@@ -127,6 +142,7 @@ class GradesContext extends ContextItem {
         if (g.grade != null && g.grade!.isNotEmpty) g.grade!,
       ];
       out.writeln('${g.course}: ${parts.isEmpty ? 'no grade yet' : parts.join(', ')}');
+      if (g.categories.isNotEmpty) out.writeln('  Categories in Canvas: ${g.categories}');
       for (final i in g.items) {
         out.writeln('  - $i');
       }
@@ -247,4 +263,38 @@ String contextPromptFor(List<ContextItem> items) {
       ..writeln('</attachment>');
   }
   return out.toString().trimRight();
+}
+
+class CourseLine {
+  const CourseLine({required this.name, this.code = '', this.hidden = false});
+
+  final String name;
+  final String code;
+
+  /// Hidden in EtherLex (it leaves every list and count).
+  final bool hidden;
+}
+
+/// The student's courses by name, so the assistant can use them exactly when it
+/// proposes showing or hiding one.
+class CoursesContext extends ContextItem {
+  const CoursesContext({required this.lines});
+
+  final List<CourseLine> lines;
+
+  @override
+  ContextKind get kind => ContextKind.courses;
+
+  @override
+  String get key => 'courses';
+
+  @override
+  String get label => 'Course list (${lines.length})';
+
+  @override
+  String get text => lines.isEmpty
+      ? 'No courses.'
+      : [
+          for (final c in lines) '- ${c.name}${c.code.isEmpty ? '' : ' (${c.code})'}; ${c.hidden ? 'hidden in EtherLex' : 'shown'}',
+        ].join('\n');
 }

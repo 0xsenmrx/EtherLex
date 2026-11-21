@@ -10,7 +10,14 @@ FileEntry file(int id, int folder, {int size = 5, DateTime? updated, String name
 void main() {
   late Directory dir;
   setUp(() => dir = Directory.systemTemp.createTempSync('etherlex_cache'));
-  tearDown(() => dir.deleteSync(recursive: true));
+  tearDown(() {
+    // Windows can still hold a just-written file for a moment; a leftover temp folder is harmless.
+    try {
+      dir.deleteSync(recursive: true);
+    } on FileSystemException {
+      // ignore
+    }
+  });
 
   Future<void> write(String path, [int n = 5]) async => File(path).writeAsBytesSync(List.filled(n, 1));
 

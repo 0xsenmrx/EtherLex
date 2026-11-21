@@ -30,6 +30,16 @@ void main() {
     expect(a.text, '[2026-11-20 09:05] PHYS101: Room change\nNow in B2.');
   });
 
+  test('the course list names each course, with its code and whether it is hidden', () {
+    const c = CoursesContext(lines: [
+      CourseLine(name: 'Discrete Mathematics', code: 'MATH2160J'),
+      CourseLine(name: 'Linear Algebra', hidden: true),
+    ]);
+    expect(c.text, '- Discrete Mathematics (MATH2160J); shown\n- Linear Algebra; hidden in EtherLex');
+    expect(c.label, 'Course list (2)');
+    expect(const CoursesContext(lines: []).text, 'No courses.');
+  });
+
   test('the same thing attached twice has the same key', () {
     expect(const FileContext(name: 'a.pdf', content: 'x', fileId: 4).key, const FileContext(name: 'b.pdf', content: 'y', fileId: 4).key);
     expect(const FileContext(name: 'a.pdf', content: 'x').key, isNot(const FileContext(name: 'b.pdf', content: 'x').key));

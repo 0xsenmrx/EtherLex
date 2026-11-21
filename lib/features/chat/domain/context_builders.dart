@@ -19,7 +19,14 @@ AssignmentsContext openAssignmentsContext(List<Assignment> all, Map<int, Course>
     title: 'Open assignments',
     lines: [
       for (final a in open)
-        AssignmentLine(course: _courseName(courses, a.courseId), title: a.title, dueAt: a.dueAt, points: a.points),
+        AssignmentLine(
+          id: a.id,
+          course: _courseName(courses, a.courseId),
+          title: a.title,
+          dueAt: a.dueAt,
+          points: a.points,
+          starred: a.starred,
+        ),
     ],
   );
 }
@@ -39,30 +46,42 @@ GradesContext gradesOverviewContext(List<Course> courses, Map<int, CourseGrade> 
   return GradesContext(title: 'Grades overview', lines: lines);
 }
 
-String _itemLine(GradedItem i) {
+String _itemLine(GradedItem i, Map<int, String> groupNames) {
   final points = i.points == null ? '' : '/${formatPoints(i.points!)}';
+  final group = groupNames[i.groupId];
+  // The number lets the assistant name exactly this item when it proposes a change.
+  final title = '${i.title} [#${i.id}${group == null ? '' : ', in $group'}]';
   return switch (i.state) {
-    GradeState.graded => '${i.title}: ${i.score == null ? 'graded' : '${formatPoints(i.score!)}$points'}'
+    GradeState.graded => '$title: ${i.score == null ? 'graded' : '${formatPoints(i.score!)}$points'}'
         '${i.grade == null || i.grade!.isEmpty ? '' : ' (${i.grade})'}',
-    GradeState.excused => '${i.title}: excused',
-    GradeState.missing => '${i.title}: missing',
-    GradeState.submitted => '${i.title}: submitted, not graded yet',
-    GradeState.open => '${i.title}: not submitted${i.points == null ? '' : ', worth ${formatPoints(i.points!)}'}',
+    GradeState.excused => '$title: excused',
+    GradeState.missing => '$title: missing',
+    GradeState.submitted => '$title: submitted, not graded yet',
+    GradeState.open => '$title: not submitted${i.points == null ? '' : ', worth ${formatPoints(i.points!)}'}',
   };
 }
 
 /// One course's grade with every graded item.
-GradesContext courseGradesContext(Course course, CourseGrade? grade, List<GradedItem> items) => GradesContext(
+GradesContext courseGradesContext(
+  Course course,
+  CourseGrade? grade,
+  List<GradedItem> items, {
+  List<AssignmentGroup> groups = const [],
+}) {
+  final names = {for (final g in groups) g.id: g.name};
+  return GradesContext(
       title: 'Grades: ${course.shortLabel}',
       lines: [
         GradeLine(
           course: course.shortLabel,
           score: grade?.currentScore,
           grade: grade?.currentGrade,
-          items: [for (final i in items) _itemLine(i)],
+          items: [for (final i in items) _itemLine(i, names)],
+          categories: [for (final g in groups) '${g.name} (${formatPercent(g.weight)})'].join(', '),
         ),
       ],
     );
+}
 
 /// The newest announcements, newest first.
 AnnouncementsContext recentAnnouncementsContext(List<ActivityItem> all, Map<int, Course> courses, {int limit = 10}) {

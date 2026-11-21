@@ -11,19 +11,29 @@ import '../../../core/utils/open_url.dart';
 import '../../../design_system/ether/icons.dart';
 import '../../../design_system/ether/tap.dart';
 import '../../../design_system/theme/ether_theme.dart';
+import '../../grades/domain/plan_proposal.dart';
 import '../../viewer/presentation/markdown_view.dart';
 import '../domain/chat_blocks.dart';
 import '../domain/chat_inline.dart';
 import '../domain/code_highlight.dart';
+import '../domain/proposed_actions.dart';
+import '../domain/proposed_courses.dart';
+import 'actions_card.dart';
 import 'copy_button.dart';
+import 'courses_card.dart';
+import 'plan_card.dart';
 
 /// An assistant answer, drawn as GitHub-style Markdown: headings, nested and
 /// task lists, tables, quotes, rules, links, highlighted code with a copy
 /// button, and images that load only when you ask.
 class ChatMarkdown extends StatefulWidget {
-  const ChatMarkdown(this.source, {super.key});
+  const ChatMarkdown(this.source, {super.key, this.scope = ''});
 
   final String source;
+
+  /// Tells one message from another (its id), so a card in one is not taken
+  /// for the same card in another that happens to have the same text.
+  final String scope;
 
   @override
   State<ChatMarkdown> createState() => _ChatMarkdownState();
@@ -54,14 +64,16 @@ class _ChatMarkdownState extends State<ChatMarkdown> {
       _blocks = parseBlocks(widget.source);
     }
     _disposeTaps();
-    return _Render(context, _taps).blocks(_blocks, readerStyle(context), depth: 0, gap: 10);
+    return _Render(context, _taps, widget.scope).blocks(_blocks, readerStyle(context), depth: 0, gap: 10);
   }
 }
 
 /// Builds the widgets of one pass. Link recognizers go into [taps], which the
 /// widget disposes before the next pass.
 class _Render {
-  _Render(this.context, this.taps) : c = context.colors;
+  _Render(this.context, this.taps, [this.scope = '']) : c = context.colors;
+
+  final String scope;
 
   final BuildContext context;
   final List<TapGestureRecognizer> taps;
@@ -84,12 +96,28 @@ class _Render {
   Widget block(ChatBlock b, TextStyle base, int depth) => switch (b) {
         ParagraphBlock p => paragraph(p.text, base),
         HeadingBlock h => heading(h, base),
-        CodeBlock k => _CodeBlockView(language: k.language, code: k.code),
+        CodeBlock k => _codeBlock(k),
         QuoteBlock q => quote(q, base, depth),
         ListBlock l => list(l, base, depth),
         RuleBlock() => Container(height: 1, margin: const EdgeInsets.symmetric(vertical: 6), color: c.line),
         TableBlock t => table(t, base),
       };
+
+  /// A grade plan or a set of changes the assistant proposes becomes a card;
+  /// anything else (or a proposal that does not pass the checks) stays a code block.
+  Widget _codeBlock(CodeBlock k) {
+    if (k.language == kPlanFence) {
+      final proposal = parseProposal(k.code);
+      if (proposal != null) return PlanCard(proposal: proposal, source: '$scope|${k.code}');
+    } else if (k.language == kActionsFence) {
+      final proposal = parseActions(k.code);
+      if (proposal != null) return ActionsCard(proposal: proposal, source: '$scope|${k.code}');
+    } else if (k.language == kCoursesFence) {
+      final filter = parseCourseList(k.code);
+      if (filter != null) return CoursesCard(filter: filter, source: '$scope|${k.code}');
+    }
+    return _CodeBlockView(language: k.language, code: k.code);
+  }
 
   Widget paragraph(String text, TextStyle base) {
     final runs = parseInline(text);
