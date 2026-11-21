@@ -267,10 +267,10 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 7. Settings, OpenAI-compatible: type a model name and the base URL of your service, Save.
 - [x] **Expect** answers stream from that service. Your key is not in `%APPDATA%/EtherLex` (it is in the Windows credential store).
 8. Settings, DeepSeek: paste a DeepSeek key, Save, ask something. (For the thinking model type `deepseek-reasoner` as the model.)
-- [ ] **Expect** answers stream from DeepSeek. Switching back to Anthropic keeps each provider's key and model.
+- [x] **Expect** answers stream from DeepSeek. Switching back to Anthropic keeps each provider's key and model.
 9. Ask: "Show me every Markdown feature: bold, italic, ~~strike~~, inline code, a nested list, a task list, a table, a quote, a horizontal rule, a link and a Python and a diff code block."
-- [ ] **Expect** strikethrough and combined styles render, task lists show check boxes, the table has a header and alignment, the rule is a thin line, links are clickable and open in the browser, code blocks have a language label and coloured syntax (diff lines green/red), long code scrolls sideways.
-10. Ask for an image in Markdown, e.g. "reply with `![cat](https://upload.wikimedia.org/wikipedia/commons/4/4d/Cat_November_2010-1a.jpg)`".
+- [x] **Expect** strikethrough and combined styles render, task lists show check boxes, the table has a header and alignment, the rule is a thin line, links are clickable and open in the browser, code blocks have a language label and coloured syntax (diff lines green/red), long code scrolls sideways.
+10. Ask for an image in Markdown, e.g. "reply with exactly this line: `![demo](https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/PNG_transparency_demonstration_1.png/280px-PNG_transparency_demonstration_1.png)`".
 - [ ] **Expect** a placeholder saying "Loads from <host>"; the image loads only after you click it.
 11. Click Copy under an answer and on a code block.
-- [ ] **Expect** the icon turns into a green check with a small scale/fade animation, and back after about a second and a half. The pasted text is right.
+- [x] **Expect** the icon turns into a green check with a small scale/fade animation, and back after about a second and a half. The pasted text is right.
