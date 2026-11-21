@@ -75,6 +75,25 @@ void main() {
       expect(matchCourse('ECE-3110J', courses)?.id, 3);
       expect(matchCourse('Electronic Circuits (Fall 2026)', courses)?.id, 3);
     });
+    test('a typo or two is forgiven, as long as only one course is near', () {
+      const more = [
+        Course(id: 4, name: 'Discrete Mathematics (Fall 2026)', code: 'MATH2160J'),
+        Course(id: 5, name: 'Linear Algebra', code: 'MATH2140J'),
+      ];
+      expect(matchCourse('Discrete Mathmatics', more)?.id, 4);
+      expect(matchCourse('Linear Algbra', more)?.id, 5);
+      expect(matchCourse('Linear Algebraa', more)?.id, 5);
+      expect(matchCourse('Algebra Linear', more), isNull);
+      expect(matchCourse('Discrete Chemistry', more), isNull);
+      expect(matchCourse('Math', more), isNull); // too short to guess from
+    });
+
+    test('edit distance counts single-letter edits', () {
+      expect(editDistance('kitten', 'sitting'), 3);
+      expect(editDistance('abc', 'abc'), 0);
+      expect(editDistance('', 'abc'), 3);
+    });
+
     test('null when nothing or several fit', () {
       expect(matchCourse('Chemistry', courses), isNull);
       expect(matchCourse('Physics', courses), isNull);

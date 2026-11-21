@@ -164,18 +164,46 @@ int? matchCategory(String name, Map<int, String> pool, [Set<int> skip = const {}
   return _only(free.entries.where((e) => e.value.length >= 4 && n.length >= 4 && (e.value.contains(n) || n.contains(e.value))))?.key;
 }
 
-/// The real course the proposal means, or null when none or several fit.
+/// How many single-letter edits turn [a] into [b].
+int editDistance(String a, String b) {
+  if (a == b) return 0;
+  var prev = List<int>.generate(b.length + 1, (i) => i);
+  for (var i = 1; i <= a.length; i++) {
+    final cur = List<int>.filled(b.length + 1, 0)..[0] = i;
+    for (var j = 1; j <= b.length; j++) {
+      final cost = a.codeUnitAt(i - 1) == b.codeUnitAt(j - 1) ? 0 : 1;
+      cur[j] = [prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost].reduce((x, y) => x < y ? x : y);
+    }
+    prev = cur;
+  }
+  return prev[b.length];
+}
+
+/// A typo or two away: for a name of 12+ letters two edits, from 6 one, else
+/// none. [target] may be longer than [n] ("... (Fall 2026)"): only its start is compared.
+bool _near(String target, String n) {
+  final tol = n.length >= 12 ? 2 : (n.length >= 6 ? 1 : 0);
+  if (tol == 0 || target.length < 6) return false;
+  final head = target.length > n.length ? target.substring(0, n.length) : target;
+  return editDistance(head, n) <= tol || editDistance(target, n) <= tol;
+}
+
+/// The real course the proposal means, or null when none or several fit. An
+/// exact name or code wins; then a name that contains or is contained by it;
+/// then one a typo away. Several candidates at any step means null: never a guess.
 Course? matchCourse(String? name, List<Course> courses) {
   if (name == null) return null;
   final n = normalizeName(name);
   if (n.isEmpty) return null;
   final exact = _only(courses.where((c) => normalizeName(c.name) == n || (c.code.isNotEmpty && normalizeName(c.code) == n)));
   if (exact != null) return exact;
-  return _only(courses.where((c) {
+  final contained = courses.where((c) {
     final a = normalizeName(c.name);
     final b = normalizeName(c.code);
     return (a.length >= 4 && (a.contains(n) || n.contains(a))) || (b.length >= 4 && (b.contains(n) || n.contains(b)));
-  }));
+  }).toList();
+  if (contained.isNotEmpty) return _only(contained);
+  return _only(courses.where((c) => _near(normalizeName(c.name), n) || _near(normalizeName(c.code), n)));
 }
 
 /// One line of what Apply will do.
