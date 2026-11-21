@@ -240,6 +240,22 @@ class _FilesDialogState extends State<_FilesDialog> {
   late final Future<CourseFiles> _future = widget.ref.read(courseFilesProvider(widget.course.id).future);
   List<int> _path = const [];
   String _query = '';
+  final FocusNode _search = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    // Typing starts in the search box at once (the dialog itself would otherwise hold the focus).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _search.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
 
   Widget _row(
     BuildContext context, {
@@ -295,7 +311,20 @@ class _FilesDialogState extends State<_FilesDialog> {
     final t = context.text;
     return EDialog(
       title: widget.course.shortLabel,
-      body: FutureBuilder<CourseFiles>(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CompactField(
+            width: double.infinity,
+            initial: '',
+            hint: 'Search this course by name',
+            numeric: false,
+            focusNode: _search,
+            onChanged: (v) => setState(() => _query = v),
+          ),
+          const SizedBox(height: 8),
+          FutureBuilder<CourseFiles>(
         future: _future,
         builder: (context, snap) {
           if (snap.connectionState != ConnectionState.done) {
@@ -336,19 +365,13 @@ class _FilesDialogState extends State<_FilesDialog> {
               if (view.folders.isEmpty && view.files.isEmpty) Padding(padding: const EdgeInsets.all(16), child: Text('Nothing in this folder.', style: t.meta)),
             ];
           }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CompactField(width: double.infinity, initial: '', hint: 'Search this course by name', numeric: false, autofocus: true, onChanged: (v) => setState(() => _query = v)),
-              const SizedBox(height: 8),
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 360),
-                child: SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: rows)),
-              ),
-            ],
+          return ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 360),
+            child: SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: rows)),
           );
         },
+          ),
+        ],
       ),
       actions: [EButton(label: 'Back', kind: EButtonKind.ghost, onTap: () => Navigator.of(context).pop())],
     );
