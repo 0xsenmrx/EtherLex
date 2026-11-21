@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_ui/material_ui.dart' show SelectableText;
 
+import '../../../app/app_info.dart';
 import '../../../core/utils/open_url.dart';
 import '../../../design_system/ether/icons.dart';
 import '../../../design_system/ether/tap.dart';
@@ -430,6 +431,8 @@ class _ImageBlockState extends State<_ImageBlock> {
           borderRadius: BorderRadius.circular(10),
           child: Image.network(
             widget.url,
+            // Some hosts (Wikimedia) refuse or throttle the default Dart client.
+            headers: const {'User-Agent': '$kAppName/$kAppVersion'},
             fit: BoxFit.contain,
             semanticLabel: widget.alt,
             errorBuilder: (context, error, stack) => Text(
