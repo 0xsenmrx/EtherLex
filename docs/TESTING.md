@@ -291,10 +291,18 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 18. Settings, AI assistant: choose DeepSeek, go back and attach a picture.
 - [x] **Expect** "DeepSeek cannot read pictures yet..." and no chip. Attach a picture first, then switch to DeepSeek in Settings and press send: the same message appears and nothing is sent. Text files still work with DeepSeek.
 19. Attach a syllabus of one course (course file or from your computer) and ask: "Set up my grade plan for this course from the syllabus."
-- [ ] **Expect** a short explanation and, under it, a card "Proposed grade plan" with the course, each category with its weight (and "n items" if the syllabus gives counts), a tag per category (Canvas category, Your category, New category, or "Not in the plan: set to 0%" for a Canvas category the syllabus does not mention) and, if the syllabus has one, the letter curve. If the weights do not add up to 100 a yellow note says so. Nothing in the Grades page has changed yet.
+- [x] **Expect** a short explanation and, under it, a card "Proposed grade plan" with the course, each category with its weight (and "n items" if the syllabus gives counts), a tag per category (Canvas category, Your category, New category, or "Not in the plan: set to 0%" for a Canvas category the syllabus does not mention) and, if the syllabus has one, the letter curve. If the weights do not add up to 100 a yellow note says so. Nothing in the Grades page has changed yet.
 20. Press **Apply to <course>**.
-- [ ] **Expect** the card changes to "Applied to <course>" with Undo and Open planner. Open planner: the weights, item counts and curve are there, and your own categories were created for what Canvas does not have. Pressing Undo (or Open planner and checking) shows the plan exactly as it was before.
+- [x] **Expect** the card changes to "Applied to <course>" with Undo and Open planner. Open planner: the weights, item counts and curve are there, and your own categories were created for what Canvas does not have. Pressing Undo (or Open planner and checking) shows the plan exactly as it was before.
 21. Ask for the same plan again and apply it twice.
-- [ ] **Expect** no duplicate categories are created. If the course cannot be told from the answer, the card shows "Choose course" and Apply stays off until you pick one.
+- [x] **Expect** no duplicate categories are created. If the course cannot be told from the answer, the card shows "Choose course" and Apply stays off until you pick one.
 22. Ask something that is not about the grade plan, e.g. "show me the JSON of a Python dict in a code block".
-- [ ] **Expect** a normal code block, no card.
+- [x] **Expect** a normal code block, no card.
+23. Attach **Open assignments**, then ask: "Star the two assignments due soonest."
+- [ ] **Expect** a "Proposed changes" card listing exactly those assignments (title and course) with "Star", and "Apply 2 changes". Nothing is starred yet. Press Apply: they are starred in the Assignments list; the card says "Applied 2 changes" with Undo; Undo un-stars them.
+24. Ask: "Mark <an assignment you really finished> as done."
+- [ ] **Expect** the card shows "Mark done" in a warm colour with "Marking done only changes EtherLex. Nothing is submitted to Canvas." Apply asks "Mark 1 assignment as done?" once more; after confirming it is done in the list, nothing was sent to Canvas, and Undo brings it back.
+25. Ask the assistant to star something that was not attached (e.g. "star my chemistry homework" with only physics attached).
+- [ ] **Expect** it says it needs that assignment attached instead of guessing, or its card marks unknown ones "not found, skipped". Asking it to submit something: it says it cannot.
+26. Attach the syllabus **and** **Grades of one course** for the same course, then ask for the plan again, and for assignments to be moved to match the syllabus's categories (e.g. fold "Lab Report" into "Lab").
+- [ ] **Expect** the plan card has a "Moves between categories" list with titles; Apply moves them (check in the planner); unknown ones are marked skipped; Undo restores the plan.
