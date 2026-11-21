@@ -9,8 +9,12 @@ import '../domain/ai_settings.dart';
 /// the answer belongs to the account, so another account on this computer is
 /// asked again.
 class AiConsentNotifier extends Notifier<Set<AiProvider>> {
+  /// The student answered before the saved answers were read: their answer wins.
+  bool _changed = false;
+
   @override
   Set<AiProvider> build() {
+    _changed = false;
     _load(ref.watch(settingsStoreProvider));
     return const {};
   }
@@ -18,7 +22,7 @@ class AiConsentNotifier extends Notifier<Set<AiProvider>> {
   Future<void> _load(SettingsStore store) async {
     try {
       final names = await store.readAiConsent();
-      if (ref.mounted && identical(store, ref.read(settingsStoreProvider))) {
+      if (ref.mounted && !_changed && identical(store, ref.read(settingsStoreProvider))) {
         state = {for (final p in AiProvider.values) if (names.contains(p.name)) p};
       }
     } catch (_) {}
@@ -29,11 +33,13 @@ class AiConsentNotifier extends Notifier<Set<AiProvider>> {
   }
 
   void grant(AiProvider p) {
+    _changed = true;
     state = {...state, p};
     _save();
   }
 
   void revoke(AiProvider p) {
+    _changed = true;
     state = {...state}..remove(p);
     _save();
   }

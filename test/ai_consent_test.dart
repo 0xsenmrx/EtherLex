@@ -69,4 +69,12 @@ void main() {
     await until(() => again.read(aiConsentProvider).isNotEmpty);
     expect(again.read(aiConsentProvider), {AiProvider.openai});
   });
+
+  test('an answer given before the saved ones are read is not lost', () async {
+    final a = container('a');
+    // Straight after start: the saved answers (none yet) are still being read.
+    a.read(aiConsentProvider.notifier).grant(AiProvider.deepseek);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    expect(a.read(aiConsentProvider), {AiProvider.deepseek});
+  });
 }
