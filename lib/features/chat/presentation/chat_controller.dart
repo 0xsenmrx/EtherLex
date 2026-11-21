@@ -155,6 +155,10 @@ class ChatController extends Notifier<ChatState> {
           createdAt: now,
           context: contextPromptFor(items),
           attached: [for (final i in items) i.label],
+          images: [
+            for (final i in items.whereType<ImageContext>())
+              ChatImage(name: i.name, mimeType: i.mimeType, bytes: i.bytes),
+          ],
         ),
       ],
     );
@@ -210,7 +214,7 @@ class ChatController extends Notifier<ChatState> {
         // The model sees each question together with what was attached to it.
         final forModel = [
           for (final m in history)
-            ChatMessage(id: m.id, role: m.role, text: m.promptText, createdAt: m.createdAt),
+            ChatMessage(id: m.id, role: m.role, text: m.promptText, createdAt: m.createdAt, images: m.images),
         ];
         _sub = backend.reply(messages: forModel, system: chatSystemPrompt(DateTime.now())).listen(
           (piece) => _append(conversationId, answer.id, piece),
