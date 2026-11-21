@@ -116,5 +116,39 @@ void main() {
       expect(old.weights, {10: 40});
       expect(old.quotas, isEmpty);
     });
+
+    test('moves put assignments in a category by name, and skip what cannot be placed', () {
+      final p = parseProposal(
+        '{"moves":[{"assignment":1,"category":"homework"},{"assignment":2,"category":"Nope"},{"assignment":99,"category":"Exams"}]}',
+      )!;
+      final r = applyProposal(GradePlan.empty, p, groups, knownAssignments: {1, 2});
+      expect(r.plan.moves, {1: 10});
+      expect([for (final m in r.moves) m.status], [MoveStatus.ok, MoveStatus.unknownCategory, MoveStatus.unknownAssignment]);
+    });
+
+    test('a move can target a category the same plan creates', () {
+      final p = parseProposal(
+        '{"categories":[{"name":"Lab","weight":15}],"moves":[{"assignment":5,"category":"Lab"}]}',
+      )!;
+      final r = applyProposal(GradePlan.empty, p, groups);
+      final lab = r.plan.customGroups.entries.single.key;
+      expect(r.plan.moves, {5: lab});
+    });
+  });
+
+  group('moves in a proposal', () {
+    test('are read and checked', () {
+      final p = parseProposal('{"moves":[{"assignment":3,"category":"Lab"}]}')!;
+      expect(p.moves.single.assignment, 3);
+      for (final bad in [
+        '{"moves":[{"assignment":"3","category":"Lab"}]}',
+        '{"moves":[{"assignment":0,"category":"Lab"}]}',
+        '{"moves":[{"assignment":3,"category":""}]}',
+        '{"moves":[{"assignment":3,"category":"A"},{"assignment":3,"category":"B"}]}',
+        '{"moves":"x"}',
+      ]) {
+        expect(parseProposal(bad), isNull, reason: bad);
+      }
+    });
   });
 }

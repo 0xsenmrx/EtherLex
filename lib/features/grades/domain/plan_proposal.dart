@@ -21,10 +21,18 @@ class ProposedCategory {
   final int? count;
 }
 
+/// Puts one assignment into a category, by the category's name.
+class ProposedMove {
+  const ProposedMove({required this.assignment, required this.category});
+
+  final int assignment;
+  final String category;
+}
+
 /// A grade plan the assistant read out of a syllabus. It changes nothing by
 /// itself: the student sees it as a card and presses Apply.
 class PlanProposal {
-  const PlanProposal({this.course, this.categories = const [], this.curve = const {}, this.note});
+  const PlanProposal({this.course, this.categories = const [], this.curve = const {}, this.moves = const [], this.note});
 
   /// The course as the assistant named it; matched to a real course later.
   final String? course;
@@ -32,6 +40,9 @@ class PlanProposal {
 
   /// Letter -> percent of the class that gets it.
   final Map<String, double> curve;
+
+  /// Assignments to put in a category, when Canvas groups them differently.
+  final List<ProposedMove> moves;
   final String? note;
 
   double get weightTotal => categories.fold(0, (a, c) => a + c.weight);
@@ -84,11 +95,26 @@ PlanProposal? parseProposal(String source) {
     if (curve.values.fold<double>(0, (a, b) => a + b) > 100.0001) return null;
   }
 
-  if (categories.isEmpty && curve.isEmpty) return null;
+  final moves = <ProposedMove>[];
+  final rawMoves = j['moves'];
+  if (rawMoves != null) {
+    if (rawMoves is! List || rawMoves.length > 200) return null;
+    final seen = <int>{};
+    for (final m in rawMoves) {
+      if (m is! Map) return null;
+      final id = m['assignment'];
+      final category = text(m['category'], 60);
+      if (id is! int || id <= 0 || category == null || !seen.add(id)) return null;
+      moves.add(ProposedMove(assignment: id, category: category));
+    }
+  }
+
+  if (categories.isEmpty && curve.isEmpty && moves.isEmpty) return null;
   return PlanProposal(
     course: text(j['course'], 120),
     categories: categories,
     curve: curve,
+    moves: moves,
     note: text(j['note'], 300),
   );
 }
@@ -101,6 +127,17 @@ String normalizeName(String s) {
 }
 
 T? _only<T>(Iterable<T> found) => found.length == 1 ? found.first : null;
+
+/// The category in [pool] (id -> name) that [name] means, skipping the ids in
+/// [skip]: an exact match, else the only one whose name contains it or is
+/// contained by it. Null when none or several fit.
+int? matchCategory(String name, Map<int, String> pool, [Set<int> skip = const {}]) {
+  final n = normalizeName(name);
+  final free = {for (final e in pool.entries) if (!skip.contains(e.key)) e.key: normalizeName(e.value)};
+  final exact = _only(free.entries.where((e) => e.value == n));
+  if (exact != null) return exact.key;
+  return _only(free.entries.where((e) => e.value.length >= 4 && n.length >= 4 && (e.value.contains(n) || n.contains(e.value))))?.key;
+}
 
 /// The real course the proposal means, or null when none or several fit.
 Course? matchCourse(String? name, List<Course> courses) {
@@ -143,24 +180,40 @@ enum PlanRowKind {
   dropped,
 }
 
+enum MoveStatus {
+  /// Will be moved.
+  ok,
+
+  /// No assignment with that id in this course.
+  unknownAssignment,
+
+  /// No category with that name (and the plan does not create it).
+  unknownCategory,
+}
+
+/// One assignment the plan puts in another category.
+class MoveRow {
+  const MoveRow({required this.assignment, required this.category, required this.status, this.groupId});
+
+  final int assignment;
+  final String category;
+  final MoveStatus status;
+  final int? groupId;
+}
+
 /// Matches the proposal's categories to [groups] (Canvas's) and to the
 /// student's own categories in [old], and gives the plan after applying.
-({GradePlan plan, List<PlanRow> rows}) applyProposal(
+({GradePlan plan, List<PlanRow> rows, List<MoveRow> moves}) applyProposal(
   GradePlan old,
   PlanProposal p,
-  List<AssignmentGroup> groups,
-) {
+  List<AssignmentGroup> groups, {
+  Set<int>? knownAssignments,
+}) {
   var plan = old;
   final rows = <PlanRow>[];
   final used = <int>{};
 
-  int? find(String name, Map<int, String> pool) {
-    final n = normalizeName(name);
-    final free = {for (final e in pool.entries) if (!used.contains(e.key)) e.key: normalizeName(e.value)};
-    final exact = _only(free.entries.where((e) => e.value == n));
-    if (exact != null) return exact.key;
-    return _only(free.entries.where((e) => e.value.length >= 4 && n.length >= 4 && (e.value.contains(n) || n.contains(e.value))))?.key;
-  }
+  int? find(String name, Map<int, String> pool) => matchCategory(name, pool, used);
 
   final canvas = {for (final g in groups) g.id: g.name};
   for (final c in p.categories) {
@@ -198,5 +251,21 @@ enum PlanRowKind {
   for (final e in p.curve.entries) {
     plan = plan.withQuota(e.key, e.value);
   }
-  return (plan: plan, rows: rows);
+
+  final pool = {...canvas, ...plan.customGroups};
+  final moves = <MoveRow>[];
+  for (final m in p.moves) {
+    if (knownAssignments != null && !knownAssignments.contains(m.assignment)) {
+      moves.add(MoveRow(assignment: m.assignment, category: m.category, status: MoveStatus.unknownAssignment));
+      continue;
+    }
+    final gid = matchCategory(m.category, pool);
+    if (gid == null) {
+      moves.add(MoveRow(assignment: m.assignment, category: m.category, status: MoveStatus.unknownCategory));
+      continue;
+    }
+    plan = plan.withMove(m.assignment, gid);
+    moves.add(MoveRow(assignment: m.assignment, category: m.category, status: MoveStatus.ok, groupId: gid));
+  }
+  return (plan: plan, rows: rows, moves: moves);
 }
