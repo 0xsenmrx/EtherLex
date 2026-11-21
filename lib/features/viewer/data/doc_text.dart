@@ -83,7 +83,26 @@ List<DocBlock> parsePptxSlideXml(String xml) {
 
 /// Reads one entry out of an Office zip with the `tar` that ships with
 /// Windows 10+, macOS and Linux, so no extra package is needed.
-Future<String?> _readZipEntry(String zipPath, String entry) async {
+Future<String?> _readZipEntry(String zipPath, String entry) =>
+    _withSafePath(zipPath, (p) => _readZipEntryAt(p, entry));
+
+/// The tar that ships with Windows can fail on paths with accented letters
+/// (like "Résumés.docx"), so such a file is read from an ASCII-named copy.
+Future<T> _withSafePath<T>(String path, Future<T> Function(String path) run) async {
+  if (path.codeUnits.every((c) => c < 128)) return run(path);
+  final dir = await Directory.systemTemp.createTemp('etherlex_zip_');
+  try {
+    final copy = '${dir.path}${Platform.pathSeparator}file.zip';
+    await File(path).copy(copy);
+    return await run(copy);
+  } finally {
+    try {
+      await dir.delete(recursive: true);
+    } catch (_) {}
+  }
+}
+
+Future<String?> _readZipEntryAt(String zipPath, String entry) async {
   try {
     final r = await Process.run(
       'tar',
@@ -100,19 +119,34 @@ Future<String?> _readZipEntry(String zipPath, String entry) async {
 }
 
 Future<List<DocBlock>?> readDocx(String path) async {
-  final xml = await _readZipEntry(path, 'word/document.xml');
+  var xml = await _readZipEntry(path, 'word/document.xml');
+  if (xml == null) {
+    // Some programs name the main part differently (word/document2.xml).
+    final other = await _zipEntries(path, RegExp(r'^word/document\d*\.xml$'));
+    if (other.isNotEmpty) xml = await _readZipEntry(path, other.first);
+  }
   return xml == null ? null : parseDocxXml(xml);
 }
+
+Future<List<String>> _zipEntries(String zipPath, RegExp match) => _withSafePath(zipPath, (p) async {
+      try {
+        final r = await Process.run('tar', ['-tf', p], stdoutEncoding: utf8);
+        if (r.exitCode != 0) return const <String>[];
+        return [
+          for (final line in (r.stdout as String).split(RegExp(r'\r?\n')))
+            if (match.hasMatch(line.trim())) line.trim(),
+        ];
+      } catch (_) {
+        return const <String>[];
+      }
+    });
 
 /// Slides in order, each a heading block ("Slide N") followed by its text.
 Future<List<DocBlock>?> readPptx(String path) async {
   try {
-    final list = await Process.run('tar', ['-tf', path], stdoutEncoding: utf8);
-    if (list.exitCode != 0) return null;
     final slides = <int, String>{};
-    for (final line in (list.stdout as String).split(RegExp(r'\r?\n'))) {
-      final m = RegExp(r'^ppt/slides/slide(\d+)\.xml$').firstMatch(line.trim());
-      if (m != null) slides[int.parse(m.group(1)!)] = line.trim();
+    for (final line in await _zipEntries(path, RegExp(r'^ppt/slides/slide\d+\.xml$'))) {
+      slides[int.parse(RegExp(r'(\d+)\.xml$').firstMatch(line)!.group(1)!)] = line;
     }
     final out = <DocBlock>[];
     for (final n in (slides.keys.toList()..sort())) {
