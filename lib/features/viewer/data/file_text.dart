@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:pdfrx/pdfrx.dart';
 
@@ -60,7 +61,7 @@ Future<String?> _readPdf(String path) async {
   try {
     final out = StringBuffer();
     for (final page in doc.pages) {
-      final PdfPageText? text = await page.loadText();
+      final text = await page.loadText();
       if (text != null) out.writeln(text.fullText);
       if (out.length >= kMaxReadBytes) break;
     }
