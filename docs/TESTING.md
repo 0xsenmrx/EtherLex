@@ -317,3 +317,9 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 - [x] **Expect** a card with "Open Grades"; Apply goes to the Grades page.
 30. Attach a syllabus that has no grade curve and ask for a grade plan, then ask "also guess how the class is usually distributed".
 - [x] **Expect** the plan card shows the curve in a warm colour as "(a guess, not from your documents)" with the line "Guesses are estimates, not facts", and the assistant's text says it is a guess. Weights and categories are still only what the syllabus says.
+31. Ask: "Hide the <a folder name> folder in <course>", then "show it again".
+- [ ] **Expect** a card with "Hide folder" and the course and folder; Apply hides it in the Files tab; Undo hiding (or asking to show it) brings it back. A folder name that fits two folders is skipped ("no single folder matches"), never guessed.
+32. Ask: "Save <a folder> of <course> for offline use", and "save the whole <course> offline".
+- [ ] **Expect** a card showing how many files and how much; Apply asks "Get N files (size)?" first, then the progress message (with Stop) appears and the files open without Canvas. Asking again shows "already saved".
+33. Ask: "Download the syllabus of <course>".
+- [ ] **Expect** a card with Download and the file name and size; Apply asks once, then the file lands in Downloads. A name that fits several files is skipped.

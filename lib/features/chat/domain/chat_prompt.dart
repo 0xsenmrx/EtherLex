@@ -1,6 +1,7 @@
 import '../../grades/domain/plan_proposal.dart';
 import 'context_item.dart';
 import 'proposed_courses.dart';
+import 'proposed_files.dart';
 import 'proposed_actions.dart';
 
 const List<String> _weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -43,6 +44,19 @@ const String _actionsInstructions =
     'do not matter much (a rough study estimate, a likely class distribution) you may give an estimate in '
     'plain text, but call it an estimate. Never say a change is made: the student sees a card under your answer and presses Apply.';
 
+/// How the assistant proposes something about files.
+const String _filesInstructions =
+    'When the student asks to hide or show a folder in Files, to save files for offline use, or to download a file, '
+    'reply with a few plain sentences and exactly one fenced code block whose language is $kFilesFence, containing only '
+    'JSON like this: {"files":[{"type":"hide_folder","course":"Physics II","folder":"Lectures/Week 1","value":true},'
+    '{"type":"offline","course":"Physics II","folder":"Lectures"},{"type":"offline","course":"Physics II"},'
+    '{"type":"download","course":"Physics II","file":"Syllabus.pdf"}],"note":"short remark"}. '
+    '"hide_folder" hides (value true, the default) or shows again (false) one folder; "offline" saves a folder, a whole course '
+    '(no folder) or one file (with "file") on this computer; "download" saves one file into Downloads. Write course, '
+    'folder and file names as the student did: the app finds the real ones and skips any that match nothing or '
+    'several things, so never invent a path. Never delete or upload files, and never claim they are saved: the student '
+    'presses Apply on the card. ';
+
 /// What the assistant is told before the conversation starts.
 ///
 /// [courses] is the student's course list (names, codes, which are hidden in
@@ -54,7 +68,7 @@ String chatSystemPrompt(DateTime now, {CoursesContext? courses}) {
       'with their Canvas courses. Help with courses, assignments and studying. '
       'Answer clearly and concisely, and use Markdown when it helps. '
       'If you are not sure of something, say so instead of guessing. '
-      '$_planInstructions $_actionsInstructions '
+      '$_planInstructions $_actionsInstructions $_filesInstructions '
       '${courses == null || courses.lines.isEmpty ? '' : 'The student\'s courses (use these names):\n${courses.text}\n'}'
       'Today is ${_weekdays[now.weekday - 1]}, ${now.year}-$month-$day.';
 }
