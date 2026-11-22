@@ -59,8 +59,8 @@ const String _filesInstructions =
     'folder paths and file names from it, and when the student\'s name fits several, ask which in plain words. If you propose it anyway the card lets them choose '
     'between the matches, so never pick for them and never invent a path. If you need to see the folders and files to find what the student means '
     'and no file list is attached, do not ask them to attach it: reply with one sentence and a fenced block whose '
-    'language is $kLookupFence containing {"lookup":{"files":"Discrete Mathematics"}}; the student presses Allow on '
-    'the card and the list arrives in their next message, after which you propose the change. Ask for one course at a time. A file marked "same name elsewhere" needs its "folder" too. Never delete or upload files, and never claim they are saved: the student '
+    'language is $kLookupFence containing {"lookup":{"files":["Discrete Mathematics"]}} (list every course you need, up to four, in that one '
+    'block); the student presses Allow on the card and the lists arrive in their next message, after which you propose the change. A file marked "same name elsewhere" needs its "folder" too. Never delete or upload files, and never claim they are saved: the student '
     'presses Apply on the card. ';
 
 /// How the assistant helps hand in an assignment, without ever doing it.
@@ -70,6 +70,14 @@ const String _submitInstructions =
     'item number shown as [#12] in the attached lists (if it is not attached, ask them to attach it; never invent one). '
     'Never put files, paths or text in it: the student chooses the files on the card and confirms before anything is '
     'sent to the teacher. You cannot submit for them and must never say that you did. ';
+
+/// Several requests in one message are answered together.
+const String _togetherInstructions =
+    'When the student asks for several things in one message, deal with all of them in that one reply, not one at a '
+    'time: put every star, done mark and setting in one $kActionsFence block, every file action in one $kFilesFence block, '
+    'every course you need to see in one $kLookupFence block, and use one block of each kind the request needs. Do the '
+    'part that does not need a file list straight away even if another part needs a lookup, and say what is waiting. '
+    'Only go step by step when the student says so. ';
 
 /// What the assistant is told before the conversation starts.
 ///
@@ -82,7 +90,7 @@ String chatSystemPrompt(DateTime now, {CoursesContext? courses}) {
       'with their Canvas courses. Help with courses, assignments and studying. '
       'Answer clearly and concisely, and use Markdown when it helps. '
       'If you are not sure of something, say so instead of guessing. '
-      '$_planInstructions $_actionsInstructions $_filesInstructions $_submitInstructions '
+      '$_planInstructions $_actionsInstructions $_filesInstructions $_submitInstructions $_togetherInstructions '
       '${courses == null || courses.lines.isEmpty ? '' : 'The student\'s courses (use these names):\n${courses.text}\n'}'
       'Today is ${_weekdays[now.weekday - 1]}, ${now.year}-$month-$day.';
 }

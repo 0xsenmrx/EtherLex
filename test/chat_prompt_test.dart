@@ -46,6 +46,13 @@ void main() {
     expect(p, contains('must never say that you did'));
   });
 
+  test('several requests are answered together unless the student says otherwise', () {
+    final p = chatSystemPrompt(DateTime(2026, 11, 20));
+    expect(p, contains('all of them in that one reply'));
+    expect(p, contains('Only go step by step when the student says so'));
+    expect(p, contains('list every course you need'));
+  });
+
   test('the sample assistant streams its answer in pieces that add up', () async {
     final pieces = await const SampleChatBackend(delay: Duration.zero).reply(messages: [], system: '').toList();
     expect(pieces.length, greaterThan(5));

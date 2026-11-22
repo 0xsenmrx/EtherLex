@@ -334,6 +334,10 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 38. Ask: "Hide the whole <course> folder in Files, not something inside", then "show it again".
 - [x] **Expect** a card "Hide in Files" with the course; Apply hides it in the Files tab only (the course stays everywhere else); Undo hiding or "show it again" brings it back.
 39. Ask to download a file whose name exists in two folders of a course.
-- [] **Expect** the card says "2 files match" with a Choose button listing both (with their folders and sizes); picking one makes the line a normal download of that file. Same for a folder name that fits two folders, and for a course that does not match (it offers the likely courses).
+- [x] **Expect** the card says "2 files match" with a Choose button listing both (with their folders and sizes); picking one makes the line a normal download of that file. Same for a folder name that fits two folders, and for a course that does not match (it offers the likely courses).
 40. In a long chat scroll up a little.
-- [ ] **Expect** a round arrow-down button appears at the bottom right of the messages; pressing it jumps to the newest message and it disappears. While an answer is being written, scrolled up stays where you are (it does not pull you down); sending a message always goes to the end.
+- [x] **Expect** a round arrow-down button appears at the bottom right of the messages; pressing it jumps to the newest message and it disappears. While an answer is being written, scrolled up stays where you are (it does not pull you down); sending a message always goes to the end.
+41. Ask in one message: "Star <an assignment>, hide the TA folder in <course A>, and download the syllabus of <course B>" (with the open assignments attached).
+- [ ] **Expect** one answer with several cards at once (actions, plus either file cards or one "Needs to look at your files" card listing both courses), not one step per message. Saying "one at a time" makes it go step by step.
+42. Scroll up, then press the arrow-down button.
+- [ ] **Expect** the button fades and slides in when you scroll up, glides the chat down to the end when pressed, and fades out.

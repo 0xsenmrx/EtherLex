@@ -58,8 +58,15 @@ void main() {
   group('parseLookup', () {
     test('asks for one course file list', () {
       final p = parseLookup('{"lookup":{"files":" Discrete Math "},"note":"x"}')!;
-      expect(p.course, 'Discrete Math');
+      expect(p.courses, ['Discrete Math']);
       expect(p.note, 'x');
+    });
+
+    test('several courses at once, up to four, without repeats', () {
+      expect(parseLookup('{"lookup":{"files":["A","B","A"]}}')!.courses, ['A', 'B']);
+      expect(parseLookup('{"lookup":{"files":["A","B","C","D","E"]}}'), isNull);
+      expect(parseLookup('{"lookup":{"files":[]}}'), isNull);
+      expect(parseLookup('{"lookup":{"files":["A",3]}}'), isNull);
     });
 
     test('anything else is not a card', () {

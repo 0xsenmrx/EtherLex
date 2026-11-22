@@ -45,30 +45,41 @@ class LookupCard extends ConsumerStatefulWidget {
 class _LookupCardState extends ConsumerState<LookupCard> {
   bool _busy = false;
   String? _error;
-  Course? _picked;
 
-  Course? _course(List<Course> courses) => _picked ?? matchCourse(widget.proposal.course, courses);
+  /// Courses the student picked for names that did not match: place in the list -> course.
+  final Map<int, Course> _picked = {};
 
-  Future<void> _choose(List<Course> courses) async {
+  /// The course each name means, or null where none or several fit.
+  List<Course?> _resolve(List<Course> courses) => [
+        for (final (i, name) in widget.proposal.courses.indexed) _picked[i] ?? matchCourse(name, courses),
+      ];
+
+  Future<void> _choose(int index, List<Course> courses) async {
     final course = await pickCourse(context, courses);
-    if (course != null && mounted) setState(() => _picked = course);
+    if (course != null && mounted) setState(() => _picked[index] = course);
   }
 
-  Future<void> _allow(Course course) async {
+  Future<void> _allow(List<Course> resolved) async {
     if (_busy) return;
-    // The listing goes to the AI service like any attachment: the same permission.
+    // The listings go to the AI service like any attachment: the same permission.
     if (!await ensureConsent(context, ref) || !mounted) return;
     setState(() {
       _busy = true;
       _error = null;
     });
     try {
-      final data = await ref.read(courseFilesProvider(course.id).future);
-      final text = fileTreeText(data, ref.read(hiddenFoldersProvider));
+      final hidden = ref.read(hiddenFoldersProvider);
+      final items = <FileListContext>[];
+      for (final course in resolved) {
+        final data = await ref.read(courseFilesProvider(course.id).future);
+        items.add(FileListContext(course: course.name, text: fileTreeText(data, hidden)));
+      }
+      if (!mounted) return;
       ref.read(lookupAnswersProvider.notifier).answer(widget.source, true);
+      final names = resolved.map((c) => c.name).join(', ');
       await ref.read(chatControllerProvider.notifier).send(
-        'Yes, go ahead. Here is the file list of ${course.name}.',
-        items: [FileListContext(course: course.name, text: text)],
+        resolved.length == 1 ? 'Yes, go ahead. Here is the file list of $names.' : 'Yes, go ahead. Here are the file lists of $names.',
+        items: items,
       );
     } on CanvasException catch (e) {
       if (mounted) setState(() => _error = e.message);
@@ -85,7 +96,8 @@ class _LookupCardState extends ConsumerState<LookupCard> {
     final t = context.text;
     final courses = ref.watch(coursesProvider).value ?? const <Course>[];
     final answer = ref.watch(lookupAnswersProvider)[widget.source];
-    final course = _course(courses);
+    final resolved = _resolve(courses);
+    final allKnown = resolved.every((r) => r != null);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -101,12 +113,25 @@ class _LookupCardState extends ConsumerState<LookupCard> {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            course == null
-                ? 'Which course? "${widget.proposal.course}" does not match exactly one.'
-                : 'The file list of ${course.name}: folder and file names and sizes, no contents.',
-            style: t.body,
-          ),
+          Text('The file lists (folder and file names and sizes, no contents) of:', style: t.meta),
+          const SizedBox(height: 4),
+          for (final (i, r) in resolved.indexed)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 3),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      r?.name ?? '"${widget.proposal.courses[i]}": which course?',
+                      style: r == null ? t.meta : t.body,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (r == null && answer == null) EButton(label: 'Choose course', kind: EButtonKind.ghost, onTap: () => _choose(i, courses)),
+                ],
+              ),
+            ),
           if (widget.proposal.note != null) ...[
             const SizedBox(height: 4),
             Text(widget.proposal.note!, style: t.metaMuted),
@@ -123,7 +148,7 @@ class _LookupCardState extends ConsumerState<LookupCard> {
               children: [
                 Icon(EIcons.check, size: 15, color: c.success),
                 const SizedBox(width: 6),
-                Expanded(child: Text('Allowed: the file list was sent with your message.', style: t.label)),
+                Expanded(child: Text('Allowed: the file lists were sent with your message.', style: t.label)),
               ],
             )
           else
@@ -131,21 +156,25 @@ class _LookupCardState extends ConsumerState<LookupCard> {
               children: [
                 Expanded(
                   child: Text(
-                    answer == false ? 'Not shared.' : 'It is sent to your AI service only if you allow it.',
+                    answer == false ? 'Not shared.' : 'They are sent to your AI service only if you allow it.',
                     style: t.metaMuted,
                   ),
                 ),
                 const SizedBox(width: 12),
-                if (answer == null && course == null)
-                  EButton(label: 'Choose course', kind: EButtonKind.primary, onTap: () => _choose(courses))
-                else if (answer == null) ...[
+                if (answer == null) ...[
                   EButton(
                     label: 'Not now',
                     kind: EButtonKind.ghost,
                     onTap: _busy ? null : () => ref.read(lookupAnswersProvider.notifier).answer(widget.source, false),
                   ),
                   const SizedBox(width: 8),
-                  EButton(label: 'Allow', icon: EIcons.check, kind: EButtonKind.primary, loading: _busy, onTap: () => _allow(course!)),
+                  EButton(
+                    label: 'Allow',
+                    icon: EIcons.check,
+                    kind: EButtonKind.primary,
+                    loading: _busy,
+                    onTap: allKnown ? () => _allow([for (final r in resolved) r!]) : null,
+                  ),
                 ],
               ],
             ),

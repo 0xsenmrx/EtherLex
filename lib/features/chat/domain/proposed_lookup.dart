@@ -6,15 +6,19 @@ import 'dart:convert';
 /// an attachment on the student's next message.
 const String kLookupFence = 'etherlex-lookup';
 
-class LookupProposal {
-  const LookupProposal({required this.course, this.note});
+/// Most courses asked for at once.
+const int kMaxLookupCourses = 4;
 
-  /// The course whose file list is wanted, as the assistant wrote it.
-  final String course;
+class LookupProposal {
+  const LookupProposal({required this.courses, this.note});
+
+  /// The courses whose file lists are wanted, as the assistant wrote them.
+  final List<String> courses;
   final String? note;
 }
 
-/// `{"lookup":{"files":"Discrete Mathematics"}}`. Anything else is not a card.
+/// `{"lookup":{"files":"Discrete Mathematics"}}`, or a list of up to four
+/// course names. Anything else is not a card.
 LookupProposal? parseLookup(String source) {
   final Object? j;
   try {
@@ -25,8 +29,14 @@ LookupProposal? parseLookup(String source) {
   if (j is! Map) return null;
   final l = j['lookup'];
   if (l is! Map || l.length != 1) return null;
-  final course = l['files'];
-  if (course is! String || course.trim().isEmpty || course.length > 120) return null;
+  final raw = l['files'];
+  final names = raw is List ? raw : [raw];
+  if (names.isEmpty || names.length > kMaxLookupCourses) return null;
+  final courses = <String>[];
+  for (final n in names) {
+    if (n is! String || n.trim().isEmpty || n.length > 120) return null;
+    if (!courses.contains(n.trim())) courses.add(n.trim());
+  }
   final note = j['note'];
-  return LookupProposal(course: course.trim(), note: note is String && note.trim().isNotEmpty ? note.trim() : null);
+  return LookupProposal(courses: courses, note: note is String && note.trim().isNotEmpty ? note.trim() : null);
 }

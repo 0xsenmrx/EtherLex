@@ -77,6 +77,12 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     });
   }
 
+  /// The button: glides down instead of jumping.
+  void _glideToEnd() {
+    if (!_scroll.hasClients) return;
+    _scroll.animateTo(_scroll.position.maxScrollExtent, duration: const Duration(milliseconds: 380), curve: Curves.easeOutCubic);
+  }
+
   bool _sending = false;
 
   Future<void> _send() async {
@@ -228,12 +234,25 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                         },
                       ),
                     ),
-                    if (_away)
-                      Positioned(
-                        right: 36,
-                        bottom: 12,
-                        child: EIconButton(icon: EIcons.arrowDown, tooltip: 'Jump to the latest', onTap: () => _toEnd(force: true)),
+                    Positioned(
+                      right: 36,
+                      bottom: 12,
+                      // Always in the tree so it can fade and slide both ways; not tappable while hidden.
+                      child: IgnorePointer(
+                        ignoring: !_away,
+                        child: AnimatedOpacity(
+                          opacity: _away ? 1 : 0,
+                          duration: const Duration(milliseconds: 180),
+                          curve: Curves.easeOut,
+                          child: AnimatedSlide(
+                            offset: _away ? Offset.zero : const Offset(0, 0.5),
+                            duration: const Duration(milliseconds: 220),
+                            curve: Curves.easeOutCubic,
+                            child: EIconButton(icon: EIcons.arrowDown, tooltip: 'Jump to the latest', onTap: _glideToEnd),
+                          ),
+                        ),
                       ),
+                    ),
                   ],
                 ),
         ),
