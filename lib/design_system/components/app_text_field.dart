@@ -11,6 +11,7 @@ class AppTextField extends StatefulWidget {
     this.obscure = false,
     this.autofocus = false,
     this.onSubmitted,
+    this.error,
   });
 
   final TextEditingController controller;
@@ -19,6 +20,9 @@ class AppTextField extends StatefulWidget {
   final bool obscure;
   final bool autofocus;
   final VoidCallback? onSubmitted;
+
+  /// Shown under the field in the danger colour, and the border turns red.
+  final String? error;
 
   @override
   State<AppTextField> createState() => _AppTextFieldState();
@@ -59,7 +63,7 @@ class _AppTextFieldState extends State<AppTextField> {
           decoration: BoxDecoration(
             color: c.sunken,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: _focused ? c.accent : c.line),
+            border: Border.all(color: widget.error != null ? c.danger : (_focused ? c.accent : c.line)),
             boxShadow: _focused ? [BoxShadow(color: c.accentSoft, spreadRadius: 3)] : const [],
           ),
           alignment: Alignment.centerLeft,
@@ -80,6 +84,10 @@ class _AppTextFieldState extends State<AppTextField> {
             ),
           ),
         ),
+        if (widget.error case final error?) ...[
+          const SizedBox(height: 5),
+          Text(error, style: t.meta.copyWith(color: c.danger)),
+        ],
       ],
     );
   }
