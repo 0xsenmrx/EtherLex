@@ -40,18 +40,40 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   /// What will be sent with the next message.
   final List<ContextItem> _attached = [];
 
+  /// Scrolled up from the end of the chat: shows the button that goes back down,
+  /// and stops the answer that is being written from pulling the view along.
+  bool _away = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (!_scroll.hasClients) return;
+    final p = _scroll.position;
+    final away = p.maxScrollExtent - p.pixels > 160;
+    if (away != _away) setState(() => _away = away);
+  }
+
   @override
   void dispose() {
+    _scroll.removeListener(_onScroll);
     _input.dispose();
     _inputFocus.dispose();
     _scroll.dispose();
     super.dispose();
   }
 
-  void _toEnd() {
+  /// Goes to the newest message. While an answer streams in this only follows
+  /// it if the student is still at the end; [force] (sending, the button) always goes.
+  void _toEnd({bool force = false}) {
+    if (!force && _away) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || !_scroll.hasClients) return;
       _scroll.jumpTo(_scroll.position.maxScrollExtent);
+      if (_away) setState(() => _away = false);
     });
   }
 
@@ -74,7 +96,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       _input.clear();
       setState(_attached.clear);
       ref.read(chatControllerProvider.notifier).send(text, items: items);
-      _toEnd();
+      _toEnd(force: true);
     } finally {
       _sending = false;
     }
@@ -181,26 +203,38 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       title: 'Ask anything',
                       message: 'Explain a topic, plan your week, or draft a message.',
                     ))
-              : ListView.builder(
-                  controller: _scroll,
-                  padding: const EdgeInsets.fromLTRB(28, 8, 28, 16),
-                  itemCount: messages.length,
-                  itemBuilder: (context, i) {
-                    final m = messages[i];
-                    final last = i == messages.length - 1;
-                    return Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 760),
-                        child: _Bubble(
-                          message: m,
-                          thinking: last && state.streaming && m.role == ChatRole.assistant && m.text.isEmpty,
-                          onRegenerate: last && !state.streaming && m.role == ChatRole.assistant
-                              ? controller.regenerate
-                              : null,
-                        ),
+              : Stack(
+                  children: [
+                    Positioned.fill(
+                      child: ListView.builder(
+                        controller: _scroll,
+                        padding: const EdgeInsets.fromLTRB(28, 8, 28, 16),
+                        itemCount: messages.length,
+                        itemBuilder: (context, i) {
+                          final m = messages[i];
+                          final last = i == messages.length - 1;
+                          return Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 760),
+                              child: _Bubble(
+                                message: m,
+                                thinking: last && state.streaming && m.role == ChatRole.assistant && m.text.isEmpty,
+                                onRegenerate: last && !state.streaming && m.role == ChatRole.assistant
+                                    ? controller.regenerate
+                                    : null,
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    );
-                  },
+                    ),
+                    if (_away)
+                      Positioned(
+                        right: 36,
+                        bottom: 12,
+                        child: EIconButton(icon: EIcons.arrowDown, tooltip: 'Jump to the latest', onTap: () => _toEnd(force: true)),
+                      ),
+                  ],
                 ),
         ),
         if (state.error case final e?)

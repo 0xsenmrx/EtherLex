@@ -55,6 +55,7 @@ abstract final class EIcons {
   static const IconData trash = LucideIcons.trash2;
   static const IconData sparkles = LucideIcons.sparkles;
   static const IconData send = LucideIcons.arrowUp;
+  static const IconData arrowDown = LucideIcons.arrowDown;
   static const IconData stop = LucideIcons.square;
   static const IconData copy = LucideIcons.copy;
   static const IconData attach = LucideIcons.paperclip;

@@ -318,20 +318,22 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 30. Attach a syllabus that has no grade curve and ask for a grade plan, then ask "also guess how the class is usually distributed".
 - [x] **Expect** the plan card shows the curve in a warm colour as "(a guess, not from your documents)" with the line "Guesses are estimates, not facts", and the assistant's text says it is a guess. Weights and categories are still only what the syllabus says.
 31. Ask: "Hide the <a folder name> folder in <course>", then "show it again".
-- [ ] **Expect** a card with "Hide folder" and the course and folder; Apply hides it in the Files tab; Undo hiding (or asking to show it) brings it back. A folder name that fits two folders is skipped ("no single folder matches"), never guessed.
+- [x] **Expect** a card with "Hide folder" and the course and folder; Apply hides it in the Files tab; Undo hiding (or asking to show it) brings it back. A folder name that fits two folders is skipped ("no single folder matches"), never guessed.
 32. Ask: "Save <a folder> of <course> for offline use", and "save the whole <course> offline".
-- [ ] **Expect** a card showing how many files and how much; Apply asks "Get N files (size)?" first, then the progress message (with Stop) appears and the files open without Canvas. Asking again shows "already saved".
+- [x] **Expect** a card showing how many files and how much; Apply asks "Get N files (size)?" first, then the progress message (with Stop) appears and the files open without Canvas. Asking again shows "already saved".
 33. Ask: "Download the syllabus of <course>".
-- [ ] **Expect** a card with Download and the file name and size; Apply asks once, then the file lands in Downloads. A name that fits several files is skipped.
+- [x] **Expect** a card with Download and the file name and size; Apply asks once, then the file lands in Downloads. A name that fits several files is skipped.
 34. Attach your open assignments and ask: "Help me hand in <an assignment that takes uploads>".
-- [ ] **Expect** a "Hand in an assignment" card with the title, the accepted file types and "Choose files". Nothing can be sent until you choose files yourself; a wrong file type is refused with the allowed ones. "Submit N files" opens a dialog naming the assignment, course and every file (and warning when late). Cancel sends nothing; "Submit to Canvas" uploads, marks it done and shows the toast. A locked assignment or one without uploads shows why instead.
+- [x] **Expect** a "Hand in an assignment" card with the title, the accepted file types and "Choose files". Nothing can be sent until you choose files yourself; a wrong file type is refused with the allowed ones. "Submit N files" opens a dialog naming the assignment, course and every file (and warning when late). Cancel sends nothing; "Submit to Canvas" uploads, marks it done and shows the toast. A locked assignment or one without uploads shows why instead.
 35. Ask the assistant to "submit it for me" with a file path in the message.
-- [ ] **Expect** it never claims it submitted; any card still needs your file choice and the dialog.
+- [x] **Expect** it never claims it submitted; any card still needs your file choice and the dialog.
 36. Without attaching anything, ask: "Hide the TA folder in <course>" (a folder that exists once).
-- [ ] **Expect** a card "Needs to look at your files" for that course, with Not now / Allow. Allow sends a short message with the file list attached (a chip shows it), and the assistant answers with the Hide folder card for the exact folder. Not now sends nothing.
+- [x] **Expect** a card "Needs to look at your files" for that course, with Not now / Allow. Allow sends a short message with the file list attached (a chip shows it), and the assistant answers with the Hide folder card for the exact folder. Not now sends nothing.
 37. Ask the same for a folder name that exists twice, then for one that does not exist.
-- [ ] **Expect** it asks which one, or says there is no such folder; it never hides a guess.
+- [x] **Expect** it asks which one, or says there is no such folder; it never hides a guess.
 38. Ask: "Hide the whole <course> folder in Files, not something inside", then "show it again".
-- [ ] **Expect** a card "Hide in Files" with the course; Apply hides it in the Files tab only (the course stays everywhere else); Undo hiding or "show it again" brings it back.
+- [x] **Expect** a card "Hide in Files" with the course; Apply hides it in the Files tab only (the course stays everywhere else); Undo hiding or "show it again" brings it back.
 39. Ask to download a file whose name exists in two folders of a course.
-- [ ] **Expect** the card says "2 files match: name the folder too" (or the assistant asks which folder); with the folder named it downloads the right one.
+- [] **Expect** the card says "2 files match: name the folder too" (or the assistant asks which folder); with the folder named it downloads the right one.
+40. In a long chat scroll up a little.
+- [ ] **Expect** a round arrow-down button appears at the bottom right of the messages; pressing it jumps to the newest message and it disappears. While an answer is being written, scrolled up stays where you are (it does not pull you down); sending a message always goes to the end.
