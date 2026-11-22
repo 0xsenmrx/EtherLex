@@ -9,6 +9,7 @@ class Diagnostics {
     required this.windows,
     required this.theme,
     required this.typeface,
+    required this.palette,
     required this.sampleMode,
     required this.aiService,
     required this.notifications,
@@ -22,6 +23,7 @@ class Diagnostics {
   final String windows;
   final String theme;
   final String typeface;
+  final String palette;
   final bool sampleMode;
 
   /// The chosen AI service's name, or null when it is not used. Never a key or model.
@@ -37,7 +39,7 @@ class Diagnostics {
       'Windows: ${_oneLine(windows)}',
       if (dart.isNotEmpty) 'Dart: ${_oneLine(dart)}',
       'Mode: ${sampleMode ? 'sample data' : 'signed in to Canvas'}',
-      'Look: $theme, $typeface font',
+      'Look: $theme, $palette, $typeface font',
       'AI service chosen: ${aiService ?? 'not used'}',
       'Notifications: ${yesNo(notifications)}',
       'Automatic update check: ${yesNo(autoUpdateCheck)}',

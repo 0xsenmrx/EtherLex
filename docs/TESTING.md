@@ -347,3 +347,5 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 - [x] **Expect** a toast "Diagnostics copied" and a few lines: version, Windows, Dart, mode, look, AI service chosen, notifications, update check. No token, key, name, Canvas address or course names.
 45. Settings > About > Feedback > Send feedback.
 - [x] **Expect** your browser opens a new issue on 0xsenmrx/EtherLex with a short template and the same diagnostics inside a collapsed block. Nothing is sent until you press Submit.
+46. Settings > Appearance > Colour: click each of the five dots (violet, blue, green, rose, orange), in light and in dark.
+- [ ] **Expect** the accent changes at once everywhere (buttons, links, selection, switches, focus rings) and the chosen dot has a ring; backgrounds and text stay the same. Close and reopen EtherLex: the colour is kept. Hovering a dot shows its name. White text on buttons stays readable in every colour.

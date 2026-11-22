@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../../core/appearance/appearance.dart';
+
 /// Every colour of the EtherLex look. One instance per brightness; both share
 /// the same names so widgets never branch on the theme.
 @immutable
@@ -111,6 +113,60 @@ class EtherColors {
     scrim: Color(0x4D000000),
     shadow: Color(0x24000000),
   );
+
+  /// The same look with another accent family. Violet is the base and is
+  /// returned unchanged.
+  EtherColors withPalette(PaletteChoice palette) {
+    if (palette == PaletteChoice.violet) return this;
+    final (accent, hover) = _accents[palette]![isDark ? 1 : 0];
+    return EtherColors(
+      brightness: brightness,
+      canvas: canvas,
+      dot: dot,
+      surface: surface,
+      sunken: sunken,
+      hover: this.hover,
+      selected: selected,
+      line: line,
+      lineStrong: lineStrong,
+      textPrimary: textPrimary,
+      textSecondary: textSecondary,
+      textTertiary: textTertiary,
+      accent: accent,
+      accentHover: hover,
+      onAccent: onAccent,
+      accentSoft: accent.withValues(alpha: isDark ? 0.16 : 0.10),
+      danger: danger,
+      dueSoon: dueSoon,
+      success: success,
+      star: star,
+      scrim: scrim,
+      shadow: shadow,
+    );
+  }
+
+  /// (accent, hover) per palette: [light, dark].
+  static const Map<PaletteChoice, List<(Color, Color)>> _accents = {
+    PaletteChoice.blue: [
+      (Color(0xFF2563EB), Color(0xFF1D4ED8)),
+      (Color(0xFF3B82F6), Color(0xFF60A5FA)),
+    ],
+    PaletteChoice.green: [
+      (Color(0xFF15803D), Color(0xFF166534)),
+      (Color(0xFF1FA35C), Color(0xFF34B872)),
+    ],
+    PaletteChoice.rose: [
+      (Color(0xFFE11D48), Color(0xFFBE123C)),
+      (Color(0xFFF43F5E), Color(0xFFFB7185)),
+    ],
+    PaletteChoice.orange: [
+      (Color(0xFFC2410C), Color(0xFF9A3412)),
+      (Color(0xFFEA580C), Color(0xFFF97316)),
+    ],
+  };
+
+  /// The colour shown for [palette] on a swatch, in this brightness.
+  Color swatchOf(PaletteChoice palette) => withPalette(palette).accent;
 
   EtherColors lerp(EtherColors o, double t) {
     Color l(Color a, Color b) => Color.lerp(a, b, t)!;

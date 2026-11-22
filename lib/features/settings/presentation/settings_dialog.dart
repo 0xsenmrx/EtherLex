@@ -69,6 +69,7 @@ class SettingsDialog extends ConsumerWidget {
           windows: Platform.operatingSystemVersion,
           theme: appearance.theme.name,
           typeface: appearance.typeface.name,
+          palette: appearance.palette.name,
           sampleMode: session?.isSample ?? false,
           aiService: ref.read(aiSettingsProvider).provider.label,
           notifications: notificationsOn,
@@ -118,6 +119,15 @@ class SettingsDialog extends ConsumerWidget {
                 ThemeChoice.dark => 2,
               },
               onChanged: (i) => looks.setTheme(ThemeChoice.values[i]),
+            ),
+          ),
+          _Row(
+            title: 'Colour',
+            trailing: EPalettePicker(
+              colors: [for (final p in PaletteChoice.values) c.swatchOf(p)],
+              labels: [for (final p in PaletteChoice.values) p.label],
+              selected: appearance.palette.index,
+              onChanged: (i) => looks.setPalette(PaletteChoice.values[i]),
             ),
           ),
           _Row(
