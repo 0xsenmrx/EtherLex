@@ -24,6 +24,7 @@ class ETap extends StatefulWidget {
     this.pressedScale = 0.97,
     this.focusNode,
     this.autofocus = false,
+    this.focusable = true,
   });
 
   final Widget Function(BuildContext context, TapStates states) builder;
@@ -31,6 +32,10 @@ class ETap extends StatefulWidget {
   final double pressedScale;
   final FocusNode? focusNode;
   final bool autofocus;
+
+  /// False for rows that the page drives with its own keyboard cursor: they
+  /// keep hover and press, but Tab skips them.
+  final bool focusable;
 
   @override
   State<ETap> createState() => _ETapState();
@@ -55,7 +60,7 @@ class _ETapState extends State<ETap> {
   @override
   Widget build(BuildContext context) {
     final enabled = widget.onTap != null;
-    return FocusableActionDetector(
+    final detector = FocusableActionDetector(
       enabled: enabled,
       focusNode: widget.focusNode,
       autofocus: widget.autofocus,
@@ -81,6 +86,7 @@ class _ETapState extends State<ETap> {
         ),
       ),
     );
+    return widget.focusable ? detector : ExcludeFocus(child: detector);
   }
 }
 

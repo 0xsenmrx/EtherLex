@@ -12,6 +12,7 @@ import '../../../design_system/ether/icons.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../../assignments/domain/assignment.dart';
 import '../../assignments/presentation/assignments_providers.dart';
+import '../../settings/presentation/settings_store_provider.dart';
 import '../../submission/domain/submission.dart';
 import '../../submission/presentation/submission_providers.dart';
 import '../domain/proposed_submit.dart';

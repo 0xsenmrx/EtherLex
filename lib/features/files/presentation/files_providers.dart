@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/storage/settings_store.dart';
-import '../../assignments/presentation/assignments_providers.dart';
+import '../../settings/presentation/settings_store_provider.dart';
 import '../../auth/domain/auth_provider.dart';
 import '../data/canvas_files_repository.dart';
 import '../data/mock_files_repository.dart';

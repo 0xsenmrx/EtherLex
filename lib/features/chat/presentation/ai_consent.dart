@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/storage/settings_store.dart';
-import '../../assignments/presentation/assignments_providers.dart' show settingsStoreProvider;
+import '../../settings/presentation/settings_store_provider.dart';
 import '../domain/ai_settings.dart';
 
 /// The AI services (and, for the OpenAI-compatible one, the servers) this

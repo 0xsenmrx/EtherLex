@@ -16,6 +16,7 @@ import '../../../design_system/theme/course_palette.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../../assignments/presentation/assignments_providers.dart';
 import '../../auth/domain/auth_provider.dart';
+import '../../auth/presentation/sign_out.dart';
 import '../../files/data/file_cache.dart';
 import '../../chat/presentation/ai_providers.dart';
 import '../../chat/presentation/ai_settings_section.dart';
@@ -64,6 +65,13 @@ class SettingsDialog extends ConsumerWidget {
       if (ref.read(updateProvider).status == UpdateStatus.available) await showUpdateDialog(context);
     }
 
+    // Named only when this account can use it (a key is saved), never the key or model.
+    String? aiServiceInUse() {
+      if (session == null || session.isSample) return null;
+      final provider = ref.read(aiSettingsProvider).provider;
+      return ref.read(aiKeysProvider).contains(provider) ? provider.label : null;
+    }
+
     Diagnostics diagnostics() => Diagnostics(
           appVersion: kAppVersion,
           windows: Platform.operatingSystemVersion,
@@ -71,7 +79,7 @@ class SettingsDialog extends ConsumerWidget {
           typeface: appearance.typeface.name,
           palette: appearance.palette.name,
           sampleMode: session?.isSample ?? false,
-          aiService: ref.read(aiSettingsProvider).provider.label,
+          aiService: aiServiceInUse(),
           notifications: notificationsOn,
           autoUpdateCheck: updatePrefs.autoCheck,
           dart: Platform.version.split(' ').first,
@@ -85,13 +93,7 @@ class SettingsDialog extends ConsumerWidget {
     Future<void> signOut() async {
       final auth = ref.read(authProvider.notifier);
       final nav = Navigator.of(context);
-      final ok = await confirmAction(
-        context,
-        title: 'Sign out?',
-        message: 'Your token is removed from this computer. Your settings for this account stay.',
-        confirmLabel: 'Sign out',
-        destructive: true,
-      );
+      final ok = await confirmSignOut(context, sample: session?.isSample ?? true);
       if (!ok) return;
       nav.pop();
       auth.signOut();

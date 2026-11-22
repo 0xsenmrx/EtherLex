@@ -2,9 +2,10 @@ import 'package:flutter/widgets.dart';
 
 import '../../../core/utils/date_format.dart';
 import '../../../core/utils/format.dart';
-import '../../../design_system/components/pressable.dart';
+import '../../../design_system/ether/tap.dart';
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/icons.dart';
+import '../../../design_system/theme/fixed_colors.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../domain/files_models.dart';
 
@@ -16,40 +17,40 @@ const double kFileRowExtent = 52;
   final ext = dot >= 0 ? name.substring(dot + 1).toLowerCase() : '';
   switch (ext) {
     case 'pdf':
-      return (icon: EIcons.fileText, color: const Color(0xFFEF6B6B));
+      return (icon: EIcons.fileText, color: FixedColors.pdf);
     case 'doc':
     case 'docx':
     case 'txt':
     case 'rtf':
     case 'md':
-      return (icon: EIcons.fileText, color: const Color(0xFF4F9CF0));
+      return (icon: EIcons.fileText, color: FixedColors.document);
     case 'ppt':
     case 'pptx':
     case 'key':
-      return (icon: EIcons.fileSlides, color: const Color(0xFFF08C3C));
+      return (icon: EIcons.fileSlides, color: FixedColors.slides);
     case 'xls':
     case 'xlsx':
     case 'csv':
-      return (icon: EIcons.fileSheet, color: const Color(0xFF2FB57C));
+      return (icon: EIcons.fileSheet, color: FixedColors.sheet);
     case 'zip':
     case 'rar':
     case '7z':
     case 'tar':
     case 'gz':
-      return (icon: EIcons.fileArchive, color: const Color(0xFFD9A520));
+      return (icon: EIcons.fileArchive, color: FixedColors.archive);
     case 'png':
     case 'jpg':
     case 'jpeg':
     case 'gif':
     case 'webp':
     case 'svg':
-      return (icon: EIcons.fileImage, color: const Color(0xFF9B7BF0));
+      return (icon: EIcons.fileImage, color: FixedColors.image);
     case 'mp4':
     case 'mov':
     case 'mkv':
     case 'avi':
     case 'webm':
-      return (icon: EIcons.fileVideo, color: const Color(0xFFE6689E));
+      return (icon: EIcons.fileVideo, color: FixedColors.video);
     case 'py':
     case 'java':
     case 'c':
@@ -59,9 +60,9 @@ const double kFileRowExtent = 52;
     case 'dart':
     case 'ipynb':
     case 'm':
-      return (icon: EIcons.fileCode, color: const Color(0xFF7C83F0));
+      return (icon: EIcons.fileCode, color: FixedColors.code);
     default:
-      return (icon: EIcons.file, color: const Color(0xFF8E9099));
+      return (icon: EIcons.file, color: FixedColors.other);
   }
 }
 
@@ -105,14 +106,15 @@ class EntryRow extends StatelessWidget {
       height: kFileRowExtent,
       child: Opacity(
         opacity: hidden ? 0.5 : 1,
-        child: Pressable(
+        child: ETap(
+          focusable: false,
           onTap: onTap,
           pressedScale: 0.995,
-          builder: (context, hovered) => AnimatedContainer(
+          builder: (context, tapState) => AnimatedContainer(
             duration: const Duration(milliseconds: 120),
             padding: const EdgeInsets.only(left: 10, right: 4),
             decoration: BoxDecoration(
-              color: selected ? c.selected : (hovered ? c.hover : const Color(0x00000000)),
+              color: selected ? c.selected : (tapState.hovered ? c.hover : const Color(0x00000000)),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Row(
@@ -143,7 +145,7 @@ class EntryRow extends StatelessWidget {
                 if (onToggleHidden != null)
                   SizedBox(
                     width: 34,
-                    child: hovered || selected
+                    child: tapState.hovered || selected
                         ? EIconButton(
                             icon: hidden ? EIcons.eye : EIcons.eyeOff,
                             tooltip: hidden ? 'Show' : 'Hide',
@@ -157,7 +159,7 @@ class EntryRow extends StatelessWidget {
                 SizedBox(
                   width: 34,
                   child: showDownload
-                      ? (hovered || selected
+                      ? (tapState.hovered || selected
                           ? EIconButton(
                               icon: EIcons.download,
                               tooltip: 'Save to Downloads',

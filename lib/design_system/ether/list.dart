@@ -95,7 +95,7 @@ class ESyncButton extends StatelessWidget {
               border: Border.all(color: s.hovered ? c.lineStrong : c.line),
               boxShadow: focusRing(c, s.focused),
             ),
-            child: _Spin(
+            child: ESpin(
               spinning: state.loading,
               child: Icon(EIcons.refresh, size: 16, color: s.hovered ? c.textPrimary : c.textSecondary),
             ),
@@ -104,55 +104,6 @@ class ESyncButton extends StatelessWidget {
       ],
     );
   }
-}
-
-class _Spin extends StatefulWidget {
-  const _Spin({required this.spinning, required this.child});
-  final bool spinning;
-  final Widget child;
-
-  @override
-  State<_Spin> createState() => _SpinState();
-}
-
-class _SpinState extends State<_Spin> with SingleTickerProviderStateMixin {
-  late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.spinning) _c.repeat();
-  }
-
-  bool _disposed = false;
-
-  @override
-  void didUpdateWidget(_Spin old) {
-    super.didUpdateWidget(old);
-    if (widget.spinning == old.spinning) return;
-    if (widget.spinning) {
-      // Also takes over a turn that was still finishing.
-      _c.repeat();
-    } else {
-      // Finish the turn instead of snapping back. If a new sync starts
-      // meanwhile, repeat() cancels this and the reset is skipped.
-      _c.animateTo(1).whenCompleteOrCancel(() {
-        if (!_disposed && !widget.spinning) _c.value = 0;
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    _disposed = true;
-    _c.dispose();
-    super.dispose();
-  }
-
-  // Own layer: the rotation repaints only the icon, not the page around it.
-  @override
-  Widget build(BuildContext context) => RepaintBoundary(child: RotationTransition(turns: _c, child: widget.child));
 }
 
 /// Segmented filter, like Oleafly's list/grid toggle.

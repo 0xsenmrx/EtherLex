@@ -73,10 +73,10 @@ ThemeData buildEtherTheme(EtherColors c, {required bool handwritten}) {
       waitDuration: const Duration(milliseconds: 450),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: c.isDark ? const Color(0xFF2A2B30) : const Color(0xFF1F2023),
+        color: c.tooltip,
         borderRadius: BorderRadius.circular(8),
       ),
-      textStyle: text.meta.copyWith(color: const Color(0xFFF2F2F4)),
+      textStyle: text.meta.copyWith(color: c.onTooltip),
     ),
     extensions: <ThemeExtension<dynamic>>[EtherTheme(colors: c, text: text)],
   );

@@ -3,9 +3,10 @@ import 'package:flutter/widgets.dart';
 
 import '../../../core/ui/selected_builder.dart';
 import '../../../core/utils/date_format.dart';
-import '../../../design_system/components/pressable.dart';
+import '../../../design_system/ether/tap.dart';
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/icons.dart';
+import '../../../design_system/theme/fixed_colors.dart';
 import '../../../design_system/theme/course_palette.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../../courses/domain/course.dart';
@@ -24,11 +25,11 @@ IconData activityIcon(ActivityKind kind) => switch (kind) {
 
 /// Mid-tone colours that read on both themes.
 Color activityColor(ActivityKind kind) => switch (kind) {
-      ActivityKind.announcement => const Color(0xFF8B5CF6),
-      ActivityKind.grade => const Color(0xFF2FB57C),
-      ActivityKind.discussion => const Color(0xFF3B9EE8),
-      ActivityKind.message => const Color(0xFFF08C3C),
-      ActivityKind.other => const Color(0xFF8E9099),
+      ActivityKind.announcement => FixedColors.announcement,
+      ActivityKind.grade => FixedColors.grade,
+      ActivityKind.discussion => FixedColors.discussion,
+      ActivityKind.message => FixedColors.message,
+      ActivityKind.other => FixedColors.other,
     };
 
 class ActivityRow extends StatelessWidget {
@@ -61,17 +62,18 @@ class ActivityRow extends StatelessWidget {
       height: kActivityRowExtent,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Pressable(
+        child: ETap(
+          focusable: false,
           onTap: onOpen,
           pressedScale: 0.995,
-          builder: (context, hovered) => SelectedBuilder<String>(
+          builder: (context, tapState) => SelectedBuilder<String>(
             cursor: cursor,
             id: item.id,
             builder: (context, selected, child) => AnimatedContainer(
               duration: const Duration(milliseconds: 120),
               padding: const EdgeInsets.only(left: 10, right: 12),
               decoration: BoxDecoration(
-                color: selected ? c.selected : (hovered ? c.hover : const Color(0x00000000)),
+                color: selected ? c.selected : (tapState.hovered ? c.hover : const Color(0x00000000)),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: child,

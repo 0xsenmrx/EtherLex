@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart' show Tooltip;
 import 'package:flutter/widgets.dart';
 
 import '../theme/ether_theme.dart';
+import '../theme/fixed_colors.dart';
 import 'icons.dart';
 import 'tap.dart';
 
@@ -118,7 +119,7 @@ class EButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (loading) ...[
-                _Spinner(child: Icon(EIcons.loader, size: 16, color: fg)),
+                ESpin(child: Icon(EIcons.loader, size: 16, color: fg)),
                 const SizedBox(width: 8),
               ] else if (icon != null) ...[
                 Icon(icon, size: 16, color: fg),
@@ -245,20 +246,6 @@ class EPalettePicker extends StatelessWidget {
   }
 }
 
-/// One-pixel separator in the current line colour.
-class EHairline extends StatelessWidget {
-  const EHairline({super.key, this.vertical = false});
-  final bool vertical;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.colors.line;
-    return vertical
-        ? Container(width: 1, color: c)
-        : Container(height: 1, color: c);
-  }
-}
-
 /// On/off switch. The knob glides; Enter and Space toggle it when focused.
 class ESwitch extends StatelessWidget {
   const ESwitch({super.key, required this.value, required this.onChanged});
@@ -287,7 +274,7 @@ class ESwitch extends StatelessWidget {
         child: Container(
           width: 16,
           height: 16,
-          decoration: const BoxDecoration(color: Color(0xFFFFFFFF), shape: BoxShape.circle),
+          decoration: const BoxDecoration(color: FixedColors.knob, shape: BoxShape.circle),
         ),
       ),
     );
@@ -327,20 +314,48 @@ class EKeyCap extends StatelessWidget {
   }
 }
 
-class _Spinner extends StatefulWidget {
-  const _Spinner({required this.child});
+/// Turns [child] (an icon) while [spinning]; when it stops, it finishes the
+/// turn instead of snapping back. Used by buttons and the sync button.
+class ESpin extends StatefulWidget {
+  const ESpin({super.key, this.spinning = true, required this.child});
+  final bool spinning;
   final Widget child;
 
   @override
-  State<_Spinner> createState() => _SpinnerState();
+  State<ESpin> createState() => _ESpinState();
 }
 
-class _SpinnerState extends State<_Spinner> with SingleTickerProviderStateMixin {
+class _ESpinState extends State<ESpin> with SingleTickerProviderStateMixin {
   late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 800))..repeat();
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.spinning) _c.repeat();
+  }
+
+  bool _disposed = false;
+
+  @override
+  void didUpdateWidget(ESpin old) {
+    super.didUpdateWidget(old);
+    if (widget.spinning == old.spinning) return;
+    if (widget.spinning) {
+      // Also takes over a turn that was still finishing.
+      _c.repeat();
+    } else {
+      // Finish the turn instead of snapping back. If a new sync starts
+      // meanwhile, repeat() cancels this and the reset is skipped.
+      _c.animateTo(1).whenCompleteOrCancel(() {
+        if (!_disposed && !widget.spinning) _c.value = 0;
+      });
+    }
+  }
 
   @override
   void dispose() {
+    _disposed = true;
     _c.dispose();
     super.dispose();
   }

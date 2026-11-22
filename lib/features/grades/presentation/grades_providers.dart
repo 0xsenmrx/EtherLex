@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/canvas_exception.dart';
 import '../../../core/storage/settings_store.dart';
 import '../../../core/sync/sync_state.dart';
-import '../../assignments/presentation/assignments_providers.dart' show settingsStoreProvider;
+import '../../settings/presentation/settings_store_provider.dart';
 import '../../auth/domain/auth_provider.dart';
 import '../../auth/domain/session_database.dart';
 import '../data/canvas_grades_repository.dart';

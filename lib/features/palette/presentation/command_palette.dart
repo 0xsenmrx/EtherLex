@@ -7,7 +7,7 @@ import '../../../app/shell/nav.dart';
 import '../../../core/appearance/appearance.dart';
 import '../../../core/notify/toast.dart';
 import '../../../core/utils/date_format.dart';
-import '../../../design_system/components/pressable.dart';
+import '../../../design_system/ether/tap.dart';
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/dialog.dart';
 import '../../../design_system/ether/icons.dart';
@@ -19,6 +19,7 @@ import '../../activity/presentation/activity_row.dart';
 import '../../assignments/presentation/assignment_dialog.dart';
 import '../../assignments/presentation/assignments_providers.dart';
 import '../../auth/domain/auth_provider.dart';
+import '../../auth/presentation/sign_out.dart';
 import '../../grades/presentation/grades_providers.dart';
 import '../../notifications/presentation/notifications_providers.dart';
 import '../../search/domain/search.dart';
@@ -209,13 +210,7 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
       cmd('signout', 'Sign out…', 'Actions', EIcons.signOut, () async {
         // The palette is gone after the question; keep what we need now.
         final auth = ref.read(authProvider.notifier);
-        final ok = await confirmAction(
-          host,
-          title: 'Sign out?',
-          message: 'Your token is removed from this computer. Your settings for this account stay.',
-          confirmLabel: 'Sign out',
-          destructive: true,
-        );
+        final ok = await confirmSignOut(host, sample: ref.read(authProvider).value?.isSample ?? true);
         if (ok) auth.signOut();
       }, keywords: ['logout', 'log out', 'account', 'disconnect']),
       for (final course in courses)
@@ -509,13 +504,14 @@ class _Row extends StatelessWidget {
     final tr = trailing;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 1),
-      child: Pressable(
+      child: ETap(
+          focusable: false,
         onTap: onTap,
         pressedScale: 0.995,
-        builder: (context, hovered) => Container(
+        builder: (context, tapState) => Container(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            color: selected ? c.selected : (hovered ? c.hover : const Color(0x00000000)),
+            color: selected ? c.selected : (tapState.hovered ? c.hover : const Color(0x00000000)),
             borderRadius: BorderRadius.circular(9),
           ),
           child: Row(

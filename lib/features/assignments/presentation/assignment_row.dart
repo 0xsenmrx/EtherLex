@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../../core/ui/selected_builder.dart';
 import '../../../core/utils/date_format.dart';
-import '../../../design_system/components/pressable.dart';
+import '../../../design_system/ether/tap.dart';
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/list.dart';
 import '../../../design_system/theme/course_palette.dart';
@@ -59,10 +59,11 @@ class AssignmentRow extends StatelessWidget {
       height: kRowExtent,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Pressable(
+        child: ETap(
+          focusable: false,
           onTap: onOpen,
           pressedScale: 0.995,
-          builder: (context, hovered) => SelectedBuilder<int>(
+          builder: (context, tapState) => SelectedBuilder<int>(
             cursor: cursor,
             id: a.id,
             builder: (context, selected, _) {
@@ -70,7 +71,7 @@ class AssignmentRow extends StatelessWidget {
                 duration: const Duration(milliseconds: 120),
                 padding: const EdgeInsets.only(left: 4, right: 2),
                 decoration: BoxDecoration(
-                  color: selected ? c.selected : (hovered ? c.hover : const Color(0x00000000)),
+                  color: selected ? c.selected : (tapState.hovered ? c.hover : const Color(0x00000000)),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
@@ -132,7 +133,7 @@ class AssignmentRow extends StatelessWidget {
                       width: kStarColumn,
                       child: EStar(
                         starred: a.starred,
-                        visible: hovered || selected,
+                        visible: tapState.hovered || selected,
                         onTap: onToggleStar,
                       ),
                     ),

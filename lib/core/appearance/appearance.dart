@@ -1,10 +1,10 @@
-import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' show Brightness;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../storage/app_dir.dart';
+import '../storage/json_file.dart';
 
 enum ThemeChoice { system, light, dark }
 
@@ -71,29 +71,21 @@ class Appearance {
 /// `%APPDATA%/EtherLex/appearance.json`.
 class AppearanceStore {
   AppearanceStore({File? file})
-      : _file = file ?? File('${appDataPath()}${Platform.pathSeparator}appearance.json');
+      : _json = JsonFile(file ?? File('${appDataPath()}${Platform.pathSeparator}appearance.json'));
 
-  final File _file;
+  final JsonFile _json;
 
+  /// A missing or damaged file gives the defaults.
   Future<Appearance> read() async {
     try {
-      if (!await _file.exists()) return const Appearance();
-      return Appearance.fromJson(jsonDecode(await _file.readAsString()));
+      return Appearance.fromJson(await _json.read());
     } catch (_) {
       return const Appearance();
     }
   }
 
-  Future<void>? _pending;
-
   /// Writes run one after another (quick theme toggles must not interleave).
-  Future<void> write(Appearance a) {
-    final next = (_pending ?? Future<void>.value())
-        .catchError((Object _) {})
-        .then((_) => writeFileAtomically(_file, jsonEncode(a.toJson())));
-    _pending = next;
-    return next;
-  }
+  Future<void> write(Appearance a) => _json.write(a.toJson());
 }
 
 final appearanceStoreProvider = Provider<AppearanceStore>((ref) => AppearanceStore());

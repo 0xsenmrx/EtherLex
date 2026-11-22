@@ -4,18 +4,17 @@ import 'package:material_ui/material_ui.dart';
 import '../../core/appearance/appearance.dart';
 import '../../core/notify/toast.dart';
 import '../../core/utils/initials.dart';
-import '../../design_system/ether/dialog.dart';
 import '../../design_system/ether/icons.dart';
 import '../../design_system/ether/menu.dart';
 import '../../design_system/ether/tap.dart';
 import '../../design_system/theme/ether_theme.dart';
 import '../../features/auth/domain/auth_provider.dart';
+import '../../features/auth/presentation/sign_out.dart';
 import '../../features/notifications/presentation/notifications_providers.dart';
 import '../../features/palette/presentation/shortcuts_dialog.dart';
 import '../../features/settings/presentation/settings_dialog.dart';
 
-/// Avatar in the top bar. Holds account, notifications, theme and sign out
-/// until the Settings window exists.
+/// Avatar in the top bar: account, notifications, theme, Settings and sign out.
 class AccountMenu extends ConsumerWidget {
   const AccountMenu({super.key});
 
@@ -43,15 +42,7 @@ class AccountMenu extends ConsumerWidget {
         );
 
     Future<void> signOut() async {
-      final ok = await confirmAction(
-        context,
-        title: 'Sign out?',
-        message: isSample
-            ? 'You will leave sample mode.'
-            : 'Your token is removed from this computer. Your settings for this account stay.',
-        confirmLabel: 'Sign out',
-        destructive: true,
-      );
+      final ok = await confirmSignOut(context, sample: isSample);
       if (ok) ref.read(authProvider.notifier).signOut();
     }
 
