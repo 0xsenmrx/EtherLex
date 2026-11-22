@@ -7,6 +7,7 @@ void main() {
     windows: '"Windows 11 Home China"\n 10.0.26200',
     theme: 'dark',
     typeface: 'clean',
+    palette: 'blue',
     sampleMode: false,
     aiService: 'Anthropic (Claude)',
     notifications: true,
@@ -20,7 +21,7 @@ void main() {
     expect(lines, contains('Windows: "Windows 11 Home China" 10.0.26200'));
     expect(lines, contains('Dart: 3.9.0'));
     expect(lines, contains('Mode: signed in to Canvas'));
-    expect(lines, contains('Look: dark, clean font'));
+    expect(lines, contains('Look: dark, blue, clean font'));
     expect(lines, contains('AI service chosen: Anthropic (Claude)'));
     expect(lines, contains('Notifications: on'));
     expect(lines, contains('Automatic update check: off'));
@@ -32,6 +33,7 @@ void main() {
       windows: 'x',
       theme: 'light',
       typeface: 'handwritten',
+      palette: 'violet',
       sampleMode: true,
       aiService: null,
       notifications: false,

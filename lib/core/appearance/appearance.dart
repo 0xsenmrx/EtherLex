@@ -10,22 +10,39 @@ enum ThemeChoice { system, light, dark }
 
 enum TypefaceChoice { handwritten, clean }
 
+/// The accent colour family. Surfaces, text and status colours stay the same.
+enum PaletteChoice {
+  violet('Violet'),
+  blue('Blue'),
+  green('Green'),
+  rose('Rose'),
+  orange('Orange');
+
+  const PaletteChoice(this.label);
+  final String label;
+}
+
 /// App-wide look, shared by every account.
 class Appearance {
   const Appearance({
     this.theme = ThemeChoice.system,
     this.typeface = TypefaceChoice.handwritten,
+    this.palette = PaletteChoice.violet,
   });
 
   final ThemeChoice theme;
   final TypefaceChoice typeface;
+  final PaletteChoice palette;
 
   bool get handwritten => typeface == TypefaceChoice.handwritten;
 
-  Appearance copyWith({ThemeChoice? theme, TypefaceChoice? typeface}) =>
-      Appearance(theme: theme ?? this.theme, typeface: typeface ?? this.typeface);
+  Appearance copyWith({ThemeChoice? theme, TypefaceChoice? typeface, PaletteChoice? palette}) => Appearance(
+        theme: theme ?? this.theme,
+        typeface: typeface ?? this.typeface,
+        palette: palette ?? this.palette,
+      );
 
-  Map<String, Object> toJson() => {'theme': theme.name, 'typeface': typeface.name};
+  Map<String, Object> toJson() => {'theme': theme.name, 'typeface': typeface.name, 'palette': palette.name};
 
   static Appearance fromJson(Object? json) {
     if (json is! Map) return const Appearance();
@@ -39,15 +56,16 @@ class Appearance {
     return Appearance(
       theme: pick(ThemeChoice.values, json['theme'], ThemeChoice.system),
       typeface: pick(TypefaceChoice.values, json['typeface'], TypefaceChoice.handwritten),
+      palette: pick(PaletteChoice.values, json['palette'], PaletteChoice.violet),
     );
   }
 
   @override
   bool operator ==(Object other) =>
-      other is Appearance && other.theme == theme && other.typeface == typeface;
+      other is Appearance && other.theme == theme && other.typeface == typeface && other.palette == palette;
 
   @override
-  int get hashCode => Object.hash(theme, typeface);
+  int get hashCode => Object.hash(theme, typeface, palette);
 }
 
 /// `%APPDATA%/EtherLex/appearance.json`.
@@ -90,6 +108,8 @@ class AppearanceNotifier extends Notifier<Appearance> {
   void setTheme(ThemeChoice t) => _set(state.copyWith(theme: t));
 
   void setTypeface(TypefaceChoice f) => _set(state.copyWith(typeface: f));
+
+  void setPalette(PaletteChoice p) => _set(state.copyWith(palette: p));
 
   /// Switch to the opposite of what is on screen now.
   void toggleBrightness(Brightness current) =>

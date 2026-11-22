@@ -198,6 +198,53 @@ class ESwatch extends StatelessWidget {
   }
 }
 
+/// A row of round accent colours; the chosen one has a ring.
+class EPalettePicker extends StatelessWidget {
+  const EPalettePicker({super.key, required this.colors, required this.labels, required this.selected, required this.onChanged});
+
+  final List<Color> colors;
+  final List<String> labels;
+  final int selected;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 0; i < colors.length; i++)
+          Padding(
+            padding: EdgeInsets.only(left: i == 0 ? 0 : 6),
+            child: Tooltip(
+              message: labels[i],
+              child: ETap(
+                onTap: () => onChanged(i),
+                pressedScale: 0.9,
+                builder: (context, s) {
+                  final on = i == selected;
+                  return Container(
+                    width: 26,
+                    height: 26,
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: on ? colors[i] : (s.hovered || s.focused ? c.lineStrong : const Color(0x00000000)),
+                        width: 2,
+                      ),
+                    ),
+                    child: DecoratedBox(decoration: BoxDecoration(shape: BoxShape.circle, color: colors[i])),
+                  );
+                },
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
 /// One-pixel separator in the current line colour.
 class EHairline extends StatelessWidget {
   const EHairline({super.key, this.vertical = false});

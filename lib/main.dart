@@ -22,12 +22,12 @@ class PerfOverlayNotifier extends Notifier<bool> {
 final perfOverlayProvider = NotifierProvider<PerfOverlayNotifier, bool>(PerfOverlayNotifier.new);
 
 final _lightThemeProvider = Provider<ThemeData>((ref) => buildEtherTheme(
-      EtherColors.light,
+      EtherColors.light.withPalette(ref.watch(appearanceProvider.select((a) => a.palette))),
       handwritten: ref.watch(appearanceProvider.select((a) => a.handwritten)) && !diag('cleanfont'),
     ));
 
 final _darkThemeProvider = Provider<ThemeData>((ref) => buildEtherTheme(
-      EtherColors.dark,
+      EtherColors.dark.withPalette(ref.watch(appearanceProvider.select((a) => a.palette))),
       handwritten: ref.watch(appearanceProvider.select((a) => a.handwritten)) && !diag('cleanfont'),
     ));
 

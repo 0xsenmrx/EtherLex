@@ -28,6 +28,14 @@ void main() {
     expect(Appearance.fromJson(a.toJson()), a);
   });
 
+  test('the colour palette is saved and defaults to violet', () {
+    expect(const Appearance().palette, PaletteChoice.violet);
+    const a = Appearance(palette: PaletteChoice.green);
+    expect(Appearance.fromJson(a.toJson()), a);
+    expect(Appearance.fromJson({'theme': 'dark'}).palette, PaletteChoice.violet);
+    expect(Appearance.fromJson({'palette': 'neon'}).palette, PaletteChoice.violet);
+  });
+
   test('unknown or broken values fall back to defaults', () {
     expect(Appearance.fromJson({'theme': 'purple', 'typeface': 3}), const Appearance());
     expect(Appearance.fromJson('nonsense'), const Appearance());
