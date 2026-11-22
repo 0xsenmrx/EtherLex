@@ -233,6 +233,8 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 - [x] **Expect** the program is removed. (Your data in `%APPDATA%\EtherLex` stays by design; delete it by hand to fully reset.)
 6. Push a tag like `v0.1.0` to GitHub.
 - [x] **Expect** the Release workflow attaches the installer to a release; the CI workflow is green on every push.
+7. Download the installer from the GitHub release on a PC that has never run EtherLex, and open it.
+- [ ] **Expect** "Windows protected your PC"; More info, then Run anyway installs it (as the README says). `Get-FileHash` matches the `.sha256` file on the release page.
 
 ## 14. Look and feel (redesign) [DONE]
 
