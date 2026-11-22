@@ -5,8 +5,11 @@
 **Sizes:** S = one sitting, M = a few sittings, L = the long pole.
 
 ## Status
-- M1 done and merged (#19).
-- Next: M3 (AI chat), then M2, then M4.
+- M1 file links: done (#6, PR #19).
+- M3 AI chat: done (#8 to #12, PRs #23 to #31), including proposals with Apply/Undo and permissioned lookups.
+- M2 themes: five accent palettes done (#7, PR #33). Extras (background pattern, density) moved to the audit issues.
+- M4: SmartScreen notes and feedback/diagnostics done (#15, #16, PR #32). Other schools (#13, #14) stay in the backlog: EtherLex targets SJTU for now.
+- Next: the pre-release audit issues (milestone 0.3.0), then the review skills, README (#17) and the release (#18).
 
 ## What the code already has (so we don't rebuild it)
 
