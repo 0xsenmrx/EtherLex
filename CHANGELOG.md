@@ -20,6 +20,8 @@
 - Word and PowerPoint files are read with size limits, and programs, scripts and macro documents from Canvas are only shown in their folder, never run.
 - Files from Canvas are now marked as downloaded from the internet, so Word, Excel and PowerPoint open them in Protected View. Web pages (.html, .svg...) ask before opening in your browser, and more kinds of Windows launchers are only shown in their folder.
 - Your permission to send Canvas data to an OpenAI-compatible service now belongs to that server: pointing EtherLex at another server asks again, and if a key is saved it first asks whether the key may go there. The server address is checked as you type (https, or http only for a model on this computer).
+- Starting EtherLex while it is already open now brings the open window forward instead of starting a second copy that could overwrite its data.
+- Settings > AI assistant > Save now says that it saved.
 - Pictures in a chat say why they could not load; the message box text is aligned with the send button.
 
 ## 0.2.2

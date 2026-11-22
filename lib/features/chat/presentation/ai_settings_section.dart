@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/notify/toast.dart';
 import '../../../design_system/components/app_text_field.dart';
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/dialog.dart';
@@ -103,6 +104,12 @@ class _AiSettingsSectionState extends ConsumerState<AiSettingsSection> {
       await ref.read(aiKeysProvider.notifier).save(provider, newKey);
       _key.clear();
     }
+    if (!mounted) return;
+    ref.read(toastProvider.notifier).show(
+          newKey.isNotEmpty
+              ? 'Saved. Your ${provider.label} key is in the Windows credential store.'
+              : 'Saved ${provider.label} settings',
+        );
   }
 
   @override
