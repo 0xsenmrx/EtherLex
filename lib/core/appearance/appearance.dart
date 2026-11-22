@@ -103,6 +103,9 @@ class AppearanceNotifier extends Notifier<Appearance> {
 
   void setPalette(PaletteChoice p) => _set(state.copyWith(palette: p));
 
+  /// Settings > Appearance > Reset: Match Windows, handwritten, violet.
+  void reset() => _set(const Appearance());
+
   /// Switch to the opposite of what is on screen now.
   void toggleBrightness(Brightness current) =>
       setTheme(current == Brightness.dark ? ThemeChoice.light : ThemeChoice.dark);

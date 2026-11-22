@@ -46,6 +46,10 @@ class NotificationsController extends Notifier<bool> {
     _check();
   }
 
+  void set(bool on) {
+    if (on != state) toggle();
+  }
+
   void toggle() {
     state = !state;
     ref.read(settingsStoreProvider).writeNotificationsEnabled(state).catchError((Object _) {});

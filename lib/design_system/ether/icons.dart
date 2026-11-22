@@ -64,4 +64,9 @@ abstract final class EIcons {
   static const IconData keyboard = LucideIcons.keyboard;
   static const IconData loader = LucideIcons.loaderCircle;
   static const IconData help = LucideIcons.circleHelp;
+  static const IconData account = LucideIcons.circleUser;
+  static const IconData palette = LucideIcons.palette;
+  static const IconData info = LucideIcons.info;
+  static const IconData storage = LucideIcons.hardDrive;
+  static const IconData reset = LucideIcons.rotateCcw;
 }

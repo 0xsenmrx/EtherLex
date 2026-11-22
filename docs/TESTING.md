@@ -257,6 +257,19 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 7. Keyboard only: Tab through the title bar and dialogs.
 - [x] **Expect** a violet focus ring on whatever has focus (never after a mouse click).
 
+## 14b. Settings window
+
+1. Ctrl+, then click through every section in the sidebar.
+- [ ] **Expect** a wide window with the sections on the left and rounded rows on the right (title, one line under it, control on the right). Every setting from before is somewhere. The search box has the cursor.
+2. Type "dark", then "key", then "update", then "refresh", then a course name, then "zzz".
+- [ ] **Expect** results grouped by section with the words marked; the controls work right in the results. "refresh" finds the shortcut; "zzz" says nothing matches. Enter jumps to the first result's section. Clicking a group title opens that section.
+3. Appearance > Reset to defaults (after changing theme, accent and font); also Courses, Notifications, Assistant, Updates.
+- [ ] **Expect** a question saying what will be reset, then a toast. The Assistant reset keeps your key, server address and permission. Sections without choices (Account, Files, Shortcuts, About) have no Reset.
+4. Close and press Ctrl+, again; in the Assistant with no key, press "Open settings".
+- [ ] **Expect** it opens on the section you used last; "Open settings" opens Assistant directly.
+5. Make the window narrow (about 800 px).
+- [ ] **Expect** the sidebar shrinks to icons with tooltips; everything still works.
+
 ## 15. AI assistant (needs your own API key)
 
 1. Sample mode: open **Assistant** (Alt+6) and send "hello".
@@ -353,7 +366,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 44b. Settings > AI assistant > OpenAI-compatible: type `http://example.com/v1` in Server address, then `https://api.example.com/v1`, with a key saved; Save. Then attach something in the Assistant.
 - [x] **Expect** the http address shows a red line under the field and Save does nothing. The https one asks "Send your API key to api.example.com?" (Cancel puts the old address back). After Use, attaching asks "Send Canvas data to OpenAI-compatible (api.example.com)?" again, even if you allowed the old server. Anthropic and DeepSeek permissions are unchanged.
 44c. In light and in dark, and with two accent colours: look at row details (due times, counts, "Updated 11:19"), Settings descriptions, a primary button, the Sign out confirm button and today's date in Calendar.
-- [ ] **Expect** the quiet grey text is easy to read but still clearly quieter than normal text; button text is crisp white on a solid colour in dark mode too. The app still looks like EtherLex.
+- [x] **Expect** the quiet grey text is easy to read but still clearly quieter than normal text; button text is crisp white on a solid colour in dark mode too. The app still looks like EtherLex.
 44. Settings > About > Diagnostics > Copy, then paste into Notepad.
 - [x] **Expect** a toast "Diagnostics copied" and a few lines: version, Windows, Dart, mode, look, AI service chosen, notifications, update check. No token, key, name, Canvas address or course names.
 45. Settings > About > Feedback > Send feedback.

@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### New
+- **New Settings**: a wide window with a sidebar of sections (Account, Appearance, Notifications, Courses, Assistant, Files & downloads, Updates, Keyboard shortcuts, Help & About) and a search box that finds any setting by its name, its description or related words ("dark", "key", "update"). Each section that has choices can be reset to its defaults, which never touches your token, keys or data. Ctrl+, opens the section you used last.
 - **Assistant** (Alt+6): ask an AI about your courses with your own API key: Anthropic, DeepSeek, or any OpenAI-compatible service (including a model running on your own computer). Answers stream in with full Markdown, highlighted code and copy buttons. Conversations are saved per account.
 - Attach assignments, grades, announcements, course files and pictures, or files from your computer. Long files show how much of them is sent, and can be sent whole.
 - The assistant can propose changes: a grade plan from a syllabus, starring or marking work done, hiding folders or courses, saving offline, downloading, opening a hand-in card, app settings. Each proposal is a card; nothing happens until you press Apply, and every change has Undo. It never hands in work by itself.

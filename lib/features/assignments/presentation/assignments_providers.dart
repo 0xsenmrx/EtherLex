@@ -120,6 +120,13 @@ class DisabledCoursesNotifier extends Notifier<Set<int>> {
     state = {...state}..remove(id);
     _save();
   }
+
+  /// Settings > Courses > Reset: every course on again.
+  void enableAll() {
+    if (state.isEmpty) return;
+    state = <int>{};
+    _save();
+  }
 }
 
 final disabledCoursesProvider =
