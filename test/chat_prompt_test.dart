@@ -4,6 +4,7 @@ import 'package:etherlex/features/chat/domain/context_item.dart';
 import 'package:etherlex/features/chat/domain/proposed_actions.dart';
 import 'package:etherlex/features/chat/domain/proposed_courses.dart';
 import 'package:etherlex/features/chat/domain/proposed_files.dart';
+import 'package:etherlex/features/chat/domain/proposed_lookup.dart';
 import 'package:etherlex/features/chat/domain/proposed_submit.dart';
 import 'package:etherlex/features/grades/domain/plan_proposal.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -34,6 +35,8 @@ void main() {
     final p = chatSystemPrompt(DateTime(2026, 11, 20));
     expect(p, contains('language is $kFilesFence'));
     expect(p, contains('Never delete or upload files'));
+    expect(p, contains('language is $kLookupFence'));
+    expect(p, contains('do not ask them to attach it'));
   });
 
   test('it tells the assistant it only names the assignment to hand in, never files', () {

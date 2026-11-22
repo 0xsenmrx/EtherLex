@@ -23,7 +23,7 @@ class AttachException implements Exception {
   String toString() => 'AttachException: $message';
 }
 
-enum ContextKind { assignments, grades, announcements, file, image, courses }
+enum ContextKind { assignments, grades, announcements, file, image, courses, fileList }
 
 /// Something the user chose to send along with a message. Items are plain
 /// values (no Canvas types), so they are easy to test and to show as chips.
@@ -297,4 +297,24 @@ class CoursesContext extends ContextItem {
       : [
           for (final c in lines) '- ${c.name}${c.code.isEmpty ? '' : ' (${c.code})'}; ${c.hidden ? 'hidden in EtherLex' : 'shown'}',
         ].join('\n');
+}
+
+/// The folders and files of one course, as a tree of paths, so the assistant
+/// can name the exact folder or file in a proposal.
+class FileListContext extends ContextItem {
+  const FileListContext({required this.course, required this.text});
+
+  final String course;
+
+  @override
+  final String text;
+
+  @override
+  ContextKind get kind => ContextKind.fileList;
+
+  @override
+  String get key => 'filelist:$course';
+
+  @override
+  String get label => 'Files of $course';
 }

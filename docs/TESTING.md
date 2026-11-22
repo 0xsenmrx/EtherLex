@@ -327,3 +327,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 - [ ] **Expect** a "Hand in an assignment" card with the title, the accepted file types and "Choose files". Nothing can be sent until you choose files yourself; a wrong file type is refused with the allowed ones. "Submit N files" opens a dialog naming the assignment, course and every file (and warning when late). Cancel sends nothing; "Submit to Canvas" uploads, marks it done and shows the toast. A locked assignment or one without uploads shows why instead.
 35. Ask the assistant to "submit it for me" with a file path in the message.
 - [ ] **Expect** it never claims it submitted; any card still needs your file choice and the dialog.
+36. Without attaching anything, ask: "Hide the TA folder in <course>" (a folder that exists once).
+- [ ] **Expect** a card "Needs to look at your files" for that course, with Not now / Allow. Allow sends a short message with the file list attached (a chip shows it), and the assistant answers with the Hide folder card for the exact folder. Not now sends nothing.
+37. Ask the same for a folder name that exists twice, then for one that does not exist.
+- [ ] **Expect** it asks which one, or says there is no such folder; it never hides a guess.
