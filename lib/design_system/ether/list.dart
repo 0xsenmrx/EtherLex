@@ -268,7 +268,7 @@ class ECheck extends StatelessWidget {
               spring: Springs.glide,
               builder: (context, v, _) => CustomPaint(
                 size: const Size(18, 18),
-                painter: _CheckPainter(v, ring: c.textTertiary, fill: c.accent, tick: c.onAccent),
+                painter: _CheckPainter(v, ring: c.textTertiary, fill: c.accentFill, tick: c.onAccent),
               ),
             ),
           ),

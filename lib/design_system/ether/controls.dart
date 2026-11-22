@@ -97,8 +97,8 @@ class EButton extends StatelessWidget {
       autofocus: autofocus,
       builder: (context, s) {
         final (Color bg, Color fg, Color? border) = switch (kind) {
-          EButtonKind.primary => (s.hovered ? c.accentHover : c.accent, c.onAccent, null),
-          EButtonKind.danger => (c.danger.withValues(alpha: s.hovered ? 0.9 : 1), c.onAccent, null),
+          EButtonKind.primary => (s.hovered ? c.accentFillHover : c.accentFill, c.onAccent, null),
+          EButtonKind.danger => (c.dangerFill.withValues(alpha: s.hovered ? 0.9 : 1), c.onAccent, null),
           EButtonKind.secondary =>
             (s.hovered ? c.hover : _clear, c.textPrimary, s.hovered ? c.lineStrong : c.line),
           EButtonKind.ghost =>

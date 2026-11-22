@@ -193,9 +193,9 @@ class _Render {
         height: 16,
         margin: EdgeInsets.only(top: ((lineHeight - 16) / 2).clamp(0.0, 8.0).toDouble()),
         decoration: BoxDecoration(
-          color: checked ? c.accent : null,
+          color: checked ? c.accentFill : null,
           borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: checked ? c.accent : c.lineStrong, width: 1.5),
+          border: Border.all(color: checked ? c.accentFill : c.lineStrong, width: 1.5),
         ),
         child: checked ? Icon(EIcons.check, size: 12, color: c.onAccent) : null,
       );

@@ -352,6 +352,8 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 - [x] **Expect** Word opens the document in Protected View ("Enable Editing" bar). The .html asks "Open this web page?" first; Cancel does nothing. A `.exe` or `.appref-ms` is only shown in its folder. In Explorer, the downloaded file's Properties shows "This file came from another computer".
 44b. Settings > AI assistant > OpenAI-compatible: type `http://example.com/v1` in Server address, then `https://api.example.com/v1`, with a key saved; Save. Then attach something in the Assistant.
 - [x] **Expect** the http address shows a red line under the field and Save does nothing. The https one asks "Send your API key to api.example.com?" (Cancel puts the old address back). After Use, attaching asks "Send Canvas data to OpenAI-compatible (api.example.com)?" again, even if you allowed the old server. Anthropic and DeepSeek permissions are unchanged.
+44c. In light and in dark, and with two accent colours: look at row details (due times, counts, "Updated 11:19"), Settings descriptions, a primary button, the Sign out confirm button and today's date in Calendar.
+- [ ] **Expect** the quiet grey text is easy to read but still clearly quieter than normal text; button text is crisp white on a solid colour in dark mode too. The app still looks like EtherLex.
 44. Settings > About > Diagnostics > Copy, then paste into Notepad.
 - [x] **Expect** a toast "Diagnostics copied" and a few lines: version, Windows, Dart, mode, look, AI service chosen, notifications, update check. No token, key, name, Canvas address or course names.
 45. Settings > About > Feedback > Send feedback.

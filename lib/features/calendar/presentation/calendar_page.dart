@@ -314,7 +314,7 @@ class _DayColumnState extends State<_DayColumn> {
                   padding: const EdgeInsets.symmetric(horizontal: 6),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: today ? c.accent : const Color(0x00000000),
+                    color: today ? c.accentFill : const Color(0x00000000),
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: Text(
