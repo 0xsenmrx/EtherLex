@@ -13,6 +13,7 @@ import '../../../design_system/ether/list.dart';
 import '../../../design_system/ether/tap.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../../auth/domain/auth_provider.dart';
+import '../../settings/domain/settings_search.dart';
 import '../../settings/presentation/settings_dialog.dart';
 import '../domain/ai_settings.dart';
 import '../domain/chat_backend.dart';
@@ -202,7 +203,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       icon: EIcons.sparkles,
                       title: 'Add an API key to start',
                       message: 'The assistant uses your own key from ${settings.provider.label}. It stays on this computer.',
-                      action: EButton(label: 'Open settings', onTap: () => showSettings(context)),
+                      action: EButton(label: 'Open settings', onTap: () => showSettings(context, section: SettingsSection.assistant)),
                     )
                   : const EEmptyState(
                       icon: EIcons.sparkles,
@@ -261,7 +262,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
             error: e,
             onRetry: messages.isEmpty ? null : controller.regenerate,
             onSettings: e.kind == ChatErrorKind.noKey || e.kind == ChatErrorKind.noModel || e.kind == ChatErrorKind.unauthorized
-                ? () => showSettings(context)
+                ? () => showSettings(context, section: SettingsSection.assistant)
                 : null,
             onDismiss: controller.dismissError,
           ),

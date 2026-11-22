@@ -12,7 +12,7 @@ import '../domain/ai_settings.dart';
 import 'ai_consent.dart';
 import 'ai_providers.dart';
 
-/// Settings for the assistant: which service, your own API key, the model.
+/// Settings > Assistant: which service, your own API key, the model.
 class AiSettingsSection extends ConsumerStatefulWidget {
   const AiSettingsSection({super.key});
 
@@ -123,9 +123,8 @@ class _AiSettingsSectionState extends ConsumerState<AiSettingsSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const ESectionLabel('AI assistant', trailing: 'Your own API key, kept on this computer'),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.only(bottom: 12),
           child: Align(
             alignment: Alignment.centerLeft,
             child: ESegmented(

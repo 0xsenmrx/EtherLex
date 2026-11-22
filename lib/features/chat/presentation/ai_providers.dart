@@ -50,6 +50,11 @@ class AiSettingsNotifier extends Notifier<AiSettings> {
 
   void setOpenAiBaseUrl(String url) => _set(state.copyWith(openAiBaseUrl: url.trim()));
 
+  /// Settings > Assistant > Reset: the default service and model names. The
+  /// server address stays (changing it has its own question about the key);
+  /// keys and permissions are not settings and are never reset.
+  void resetChoices() => _set(AiSettings(openAiBaseUrl: state.openAiBaseUrl));
+
   void _set(AiSettings next) {
     if (next == state) return;
     state = next;
