@@ -30,8 +30,11 @@ class OpenAiBackend implements ChatBackend {
       throw const ChatException(ChatErrorKind.noModel, 'Choose a model in Settings first.');
     }
     final base = baseUrl.trim().replaceAll(RegExp(r'/+$'), '');
-    if (!base.startsWith('https://') && !base.startsWith('http://')) {
-      throw const ChatException(ChatErrorKind.unexpected, 'The server address in Settings must start with https://');
+    if (!isAllowedAiBaseUrl(base)) {
+      throw const ChatException(
+        ChatErrorKind.unexpected,
+        'The server address in Settings must start with https:// (http:// is only allowed for localhost).',
+      );
     }
     final key = apiKey.trim();
     final events = postEvents(
@@ -45,6 +48,15 @@ class OpenAiBackend implements ChatBackend {
       if (piece != null && piece.isNotEmpty) yield piece;
     }
   }
+}
+
+/// https for any server; plain http only for a model running on this computer,
+/// because the key and your course data would otherwise cross the network in clear.
+bool isAllowedAiBaseUrl(String url) {
+  final u = Uri.tryParse(url.trim());
+  if (u == null || u.host.isEmpty) return false;
+  if (u.scheme == 'https') return true;
+  return u.scheme == 'http' && (u.host == 'localhost' || u.host == '127.0.0.1' || u.host == '[::1]' || u.host == '::1');
 }
 
 /// The request body. Messages with no text are left out.
