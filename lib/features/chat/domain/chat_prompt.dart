@@ -2,6 +2,7 @@ import '../../grades/domain/plan_proposal.dart';
 import 'context_item.dart';
 import 'proposed_courses.dart';
 import 'proposed_files.dart';
+import 'proposed_submit.dart';
 import 'proposed_actions.dart';
 
 const List<String> _weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -38,8 +39,8 @@ const String _actionsInstructions =
     '{"type":"theme","value":"dark"} (system, light or dark), {"type":"font","value":"clean"} (handwritten '
     'or clean), {"type":"notifications","value":false}, {"type":"course","course":"Physics II","value":false} '
     '(hide with false, show with true), and {"type":"open","page":"grades"} (assignments, activity, '
-    'calendar, grades, files or chat). Marking done only changes EtherLex and submits nothing to Canvas. You cannot submit '
-    'work, change anything else in the app, or change anything outside what these blocks describe: say so '
+    'calendar, grades, files or chat). Marking done only changes EtherLex and submits nothing to Canvas. You cannot hand in '
+    'work yourself (see below for the hand-in card), change anything else in the app, or change anything outside what these blocks describe: say so '
     'if asked. Never guess which assignments are meant: if it is not clear, ask. For courses use the exact name from the course list below when there is one, and propose one entry per course for a group the student describes ("my math courses"); if you cannot tell which course is meant, write "?" as the course name and the student will pick it on the card. When the student asks to see, list or manage their courses, reply with one sentence and a fenced block whose language is $kCoursesFence containing {} (or {"show":"hidden"} or {"show":"shown"}): the card lists the real courses with switches. Do not list them yourself. Without a course list, write the name as the student wrote it. For things that '
     'do not matter much (a rough study estimate, a likely class distribution) you may give an estimate in '
     'plain text, but call it an estimate. Never say a change is made: the student sees a card under your answer and presses Apply.';
@@ -57,6 +58,14 @@ const String _filesInstructions =
     'several things, so never invent a path. Never delete or upload files, and never claim they are saved: the student '
     'presses Apply on the card. ';
 
+/// How the assistant helps hand in an assignment, without ever doing it.
+const String _submitInstructions =
+    'When the student wants to hand in or submit an assignment, reply with one or two plain sentences and exactly one '
+    'fenced code block whose language is $kSubmitFence, containing only {"submit":{"assignment":12}} where 12 is the '
+    'item number shown as [#12] in the attached lists (if it is not attached, ask them to attach it; never invent one). '
+    'Never put files, paths or text in it: the student chooses the files on the card and confirms before anything is '
+    'sent to the teacher. You cannot submit for them and must never say that you did. ';
+
 /// What the assistant is told before the conversation starts.
 ///
 /// [courses] is the student's course list (names, codes, which are hidden in
@@ -68,7 +77,7 @@ String chatSystemPrompt(DateTime now, {CoursesContext? courses}) {
       'with their Canvas courses. Help with courses, assignments and studying. '
       'Answer clearly and concisely, and use Markdown when it helps. '
       'If you are not sure of something, say so instead of guessing. '
-      '$_planInstructions $_actionsInstructions $_filesInstructions '
+      '$_planInstructions $_actionsInstructions $_filesInstructions $_submitInstructions '
       '${courses == null || courses.lines.isEmpty ? '' : 'The student\'s courses (use these names):\n${courses.text}\n'}'
       'Today is ${_weekdays[now.weekday - 1]}, ${now.year}-$month-$day.';
 }

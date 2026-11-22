@@ -323,3 +323,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 - [ ] **Expect** a card showing how many files and how much; Apply asks "Get N files (size)?" first, then the progress message (with Stop) appears and the files open without Canvas. Asking again shows "already saved".
 33. Ask: "Download the syllabus of <course>".
 - [ ] **Expect** a card with Download and the file name and size; Apply asks once, then the file lands in Downloads. A name that fits several files is skipped.
+34. Attach your open assignments and ask: "Help me hand in <an assignment that takes uploads>".
+- [ ] **Expect** a "Hand in an assignment" card with the title, the accepted file types and "Choose files". Nothing can be sent until you choose files yourself; a wrong file type is refused with the allowed ones. "Submit N files" opens a dialog naming the assignment, course and every file (and warning when late). Cancel sends nothing; "Submit to Canvas" uploads, marks it done and shows the toast. A locked assignment or one without uploads shows why instead.
+35. Ask the assistant to "submit it for me" with a file path in the message.
+- [ ] **Expect** it never claims it submitted; any card still needs your file choice and the dialog.

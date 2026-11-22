@@ -4,6 +4,7 @@ import 'package:etherlex/features/chat/domain/context_item.dart';
 import 'package:etherlex/features/chat/domain/proposed_actions.dart';
 import 'package:etherlex/features/chat/domain/proposed_courses.dart';
 import 'package:etherlex/features/chat/domain/proposed_files.dart';
+import 'package:etherlex/features/chat/domain/proposed_submit.dart';
 import 'package:etherlex/features/grades/domain/plan_proposal.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -33,6 +34,13 @@ void main() {
     final p = chatSystemPrompt(DateTime(2026, 11, 20));
     expect(p, contains('language is $kFilesFence'));
     expect(p, contains('Never delete or upload files'));
+  });
+
+  test('it tells the assistant it only names the assignment to hand in, never files', () {
+    final p = chatSystemPrompt(DateTime(2026, 11, 20));
+    expect(p, contains('language is $kSubmitFence'));
+    expect(p, contains('Never put files, paths or text in it'));
+    expect(p, contains('must never say that you did'));
   });
 
   test('the sample assistant streams its answer in pieces that add up', () async {
