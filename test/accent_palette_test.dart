@@ -29,6 +29,18 @@ void main() {
       }
     });
 
+    test('swatches show their own colour whatever palette is on screen ($mode)', () {
+      // Regression: with rose chosen, the violet dot was drawn rose.
+      for (final current in PaletteChoice.values) {
+        final onScreen = base.withPalette(current);
+        for (final p in PaletteChoice.values) {
+          expect(onScreen.swatchOf(p), base.swatchOf(p), reason: '${p.name} while ${current.name} is on');
+          expect(onScreen.withPalette(p).accentFill, base.withPalette(p).accentFill, reason: p.name);
+        }
+      }
+      expect(base.withPalette(PaletteChoice.rose).withPalette(PaletteChoice.violet).accent, base.accent);
+    });
+
     test('palettes differ from each other in accent ($mode)', () {
       final accents = {for (final p in PaletteChoice.values) base.swatchOf(p).toARGB32()};
       expect(accents.length, PaletteChoice.values.length);
