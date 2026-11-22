@@ -18,6 +18,7 @@
 - When Canvas rejects your token, a banner offers to sign in again.
 - Your Canvas token is only sent to your own Canvas address over https, also when a download is redirected. The AI server address must be https (plain http only for a model on this computer).
 - Word and PowerPoint files are read with size limits, and programs, scripts and macro documents from Canvas are only shown in their folder, never run.
+- Files from Canvas are now marked as downloaded from the internet, so Word, Excel and PowerPoint open them in Protected View. Web pages (.html, .svg...) ask before opening in your browser, and more kinds of Windows launchers are only shown in their folder.
 - Pictures in a chat say why they could not load; the message box text is aligned with the send button.
 
 ## 0.2.2

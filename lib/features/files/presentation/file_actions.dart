@@ -17,7 +17,7 @@ Future<void> downloadWithToast(WidgetRef ref, FileEntry f) async {
     final path = await ref.read(filesRepositoryProvider).download(f);
     toast.show(
       'Saved to Downloads',
-      actionLabel: isRiskyFile(path) ? 'Show' : 'Open',
+      actionLabel: openSafetyOf(path) == OpenSafety.open ? 'Open' : 'Show',
       onAction: () => openDownloaded(path),
       duration: const Duration(seconds: 6),
     );

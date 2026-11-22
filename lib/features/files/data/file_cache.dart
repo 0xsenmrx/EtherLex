@@ -83,6 +83,7 @@ class FileCache {
     final dest = File(target);
     if (dest.existsSync()) dest.deleteSync();
     part.renameSync(target);
+    await markFromInternet(target);
     _dropOtherVersions(f, keep: target);
     prune();
     fileCacheRevision.value++;

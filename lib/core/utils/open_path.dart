@@ -49,27 +49,86 @@ const _risky = {
   'msc', 'wsh', 'wsc', 'vb', 'inf', 'ins', 'isp', 'gadget', 'scf', 'iso', 'img', 'vhd', 'vhdx',
   'docm', 'dotm', 'xlsm', 'xltm', 'xlam', 'xll', 'pptm', 'potm', 'ppam', 'ppsm', 'sldm',
   'jnlp', 'library-ms', 'searchconnector-ms', 'pyw', 'py', 'rb', 'pl',
+  // Windows launchers and ClickOnce, PowerShell's old shells, Access projects, old add-ins.
+  'appref-ms', 'settingcontent-ms', 'diagcab', 'website', 'application', 'xbap', 'ws',
+  'msh', 'msh1', 'msh2', 'mshxml', 'msh1xml', 'msh2xml', 'ade', 'adp', 'mde', 'accde', 'mda',
+  'xla', 'xlsb', 'cab', 'theme', 'themepack', 'desktopthemepack', 'ms-appinstaller',
 };
 
-bool isRiskyFile(String path) {
-  final dot = path.lastIndexOf('.');
-  return dot >= 0 && _risky.contains(path.substring(dot + 1).toLowerCase());
+/// Web pages run their scripts when a browser opens them from disk.
+const _web = {'html', 'htm', 'shtml', 'xhtml', 'xht', 'mht', 'mhtml', 'svg', 'svgz'};
+
+/// How EtherLex may open a file that came from Canvas.
+enum OpenSafety {
+  /// Documents, pictures, archives: open with the default app.
+  open,
+
+  /// Web pages: open only after the student says yes.
+  askFirst,
+
+  /// Programs, scripts, launchers, macro documents: only shown in the folder.
+  revealOnly,
 }
 
-/// Opens a downloaded file with its default app. Programs and scripts are
-/// only revealed in the folder, never run.
+/// The extension Windows would act on: the text after the last dot of the
+/// file name, ignoring trailing dots and spaces (Windows drops them, so
+/// `a.exe.` runs as `a.exe`) and NTFS stream names (`a.exe:x`).
+String _launchExtension(String path) {
+  var name = path.split(RegExp(r'[\\/]')).last;
+  final colon = name.indexOf(':');
+  if (colon >= 0) name = name.substring(0, colon);
+  name = name.replaceAll(RegExp(r'[. ]+$'), '');
+  final dot = name.lastIndexOf('.');
+  return dot >= 0 ? name.substring(dot + 1).toLowerCase() : '';
+}
+
+OpenSafety openSafetyOf(String path) {
+  final ext = _launchExtension(path);
+  if (_risky.contains(ext)) return OpenSafety.revealOnly;
+  if (_web.contains(ext)) return OpenSafety.askFirst;
+  return OpenSafety.open;
+}
+
+bool isRiskyFile(String path) => openSafetyOf(path) == OpenSafety.revealOnly;
+
+/// What Windows writes next to a file downloaded from the internet. With it,
+/// Office opens the file in Protected View and SmartScreen checks programs.
+const String kZoneIdentifier = '[ZoneTransfer]\r\nZoneId=3\r\nHostUrl=about:internet\r\n';
+
+/// Marks [path] as downloaded from the internet (Windows and NTFS only;
+/// quietly does nothing elsewhere or when the disk cannot hold the mark).
+Future<void> markFromInternet(String path) async {
+  if (!Platform.isWindows) return;
+  try {
+    await File('$path:Zone.Identifier').writeAsString(kZoneIdentifier, flush: true);
+  } catch (_) {}
+}
+
+/// Opens a downloaded file with its default app, marked as coming from the
+/// internet. Programs and scripts are only revealed in the folder, never run;
+/// web pages are revealed too (use `openWithCare` where the student can be
+/// asked first).
 Future<void> openDownloaded(String path) async {
   try {
-    if (isRiskyFile(path)) {
+    if (openSafetyOf(path) != OpenSafety.open) {
       await revealInFolder(path);
-    } else if (Platform.isWindows) {
-      await Process.run('explorer', [path]);
-    } else if (Platform.isMacOS) {
-      await Process.run('open', [path]);
-    } else {
-      await Process.run('xdg-open', [path]);
+      return;
     }
+    await launchMarked(path);
   } catch (_) {}
+}
+
+/// Marks [path] as coming from the internet and opens it with its default
+/// app, without any other check. Callers decide with [openSafetyOf] first.
+Future<void> launchMarked(String path) async {
+  await markFromInternet(path);
+  if (Platform.isWindows) {
+    await Process.run('explorer', [path]);
+  } else if (Platform.isMacOS) {
+    await Process.run('open', [path]);
+  } else {
+    await Process.run('xdg-open', [path]);
+  }
 }
 
 Future<void> revealInFolder(String path) async {
