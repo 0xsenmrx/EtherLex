@@ -13,6 +13,16 @@ Sign in with a Canvas personal access token, or try it with sample data.
 - **Command palette** (Ctrl+K): search everything and run any action from the keyboard. Ctrl+/ lists every shortcut.
 - Light and dark themes, a handwritten or clean font, deadline and grade notifications, separate settings per Canvas account.
 
+## Install
+Download `EtherLex-Setup-<version>.exe` from the [latest release](../../releases/latest) and run it. Windows 10 or 11.
+
+**"Windows protected your PC".** The installer is not code-signed yet, so Windows SmartScreen warns about any new unsigned program. To continue: click **More info**, then **Run anyway**. You only need this for the first install; updates installed from inside EtherLex are downloaded by the app itself and normally do not show it.
+
+To check that the file is the one we built, compare its SHA-256 with the `.sha256` file next to it on the release page:
+```powershell
+Get-FileHash .\EtherLex-Setup-<version>.exe -Algorithm SHA256
+```
+
 ## Develop
 - Flutter 3.47.8 (pinned, see CLAUDE.md)
 - Run: `flutter run -d windows --profile` (F9 shows frame times)
