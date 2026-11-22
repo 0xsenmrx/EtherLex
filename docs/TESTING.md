@@ -338,8 +338,8 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 40. In a long chat scroll up a little.
 - [x] **Expect** a round arrow-down button appears at the bottom right of the messages; pressing it jumps to the newest message and it disappears. While an answer is being written, scrolled up stays where you are (it does not pull you down); sending a message always goes to the end.
 41. Ask in one message: "Star <an assignment>, hide the TA folder in <course A>, and download the syllabus of <course B>" (with the open assignments attached).
-- [ ] **Expect** one answer with several cards at once (actions, plus either file cards or one "Needs to look at your files" card listing both courses), not one step per message. Saying "one at a time" makes it go step by step.
+- [x] **Expect** one answer with several cards at once (actions, plus either file cards or one "Needs to look at your files" card listing both courses), not one step per message. Saying "one at a time" makes it go step by step.
 42. Scroll up, then press the arrow-down button.
-- [ ] **Expect** the button fades and slides in when you scroll up, glides the chat down to the end when pressed, and fades out.
+- [x] **Expect** the button fades and slides in when you scroll up, glides the chat down to the end when pressed, and fades out.
 43. Without attaching anything, ask: "Download the <course A> syllabus, star <an assignment> of <course B>, and make the grade plan for <course C> from its syllabus".
-- [ ] **Expect** one "Needs to look at some of your data" card listing: File list (course A), Assignments (course B) and Read file (course C, syllabus). One Allow loads and sends all of it (a file that fits two names asks which first). The next answer has the download card, the star card and the grade plan card together. Nothing is asked to be attached or pasted by hand.
+- [x] **Expect** one "Needs to look at some of your data" card listing: File list (course A), Assignments (course B) and Read file (course C, syllabus). One Allow loads and sends all of it (a file that fits two names asks which first). The next answer has the download card, the star card and the grade plan card together. Nothing is asked to be attached or pasted by hand.
