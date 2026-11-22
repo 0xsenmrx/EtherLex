@@ -5,6 +5,7 @@ import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/icons.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../../assignments/presentation/assignments_providers.dart';
+import '../../settings/presentation/settings_store_provider.dart';
 import '../../courses/domain/course.dart';
 import '../../grades/domain/grade_plan.dart';
 import '../../grades/domain/grades.dart';

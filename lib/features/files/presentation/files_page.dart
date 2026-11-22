@@ -9,6 +9,7 @@ import '../../../core/ui/hover_prefetch.dart';
 import '../../../core/utils/format.dart';
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/icons.dart';
+import '../../../design_system/theme/fixed_colors.dart';
 import '../../../design_system/ether/list.dart';
 import '../../../design_system/ether/tap.dart';
 import '../../../design_system/theme/course_palette.dart';
@@ -22,7 +23,7 @@ import 'file_actions.dart';
 import 'file_row.dart';
 import 'files_providers.dart';
 
-const Color _folderColor = Color(0xFFD9A520);
+const Color _folderColor = FixedColors.folder;
 
 /// One row of a list: how to draw it, what Enter does, what D does.
 typedef _RowSpec = ({

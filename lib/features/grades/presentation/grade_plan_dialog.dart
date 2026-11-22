@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../design_system/components/app_text_field.dart';
 import '../../../design_system/components/compact_field.dart';
-import '../../../design_system/components/pressable.dart';
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/dialog.dart';
 import '../../../design_system/ether/icons.dart';
@@ -517,10 +516,11 @@ class _CategoryBlock extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: Pressable(
+                  child: ETap(
+          focusable: false,
                     onTap: onToggle,
                     pressedScale: 0.995,
-                    builder: (context, hovered) => Row(
+                    builder: (context, tapState) => Row(
                       children: [
                         AnimatedRotation(
                           turns: open ? 0.25 : 0,
@@ -528,7 +528,7 @@ class _CategoryBlock extends StatelessWidget {
                           child: Icon(
                             EIcons.chevronRight,
                             size: 15,
-                            color: hovered ? colors.textPrimary : colors.textTertiary,
+                            color: tapState.hovered ? colors.textPrimary : colors.textTertiary,
                           ),
                         ),
                         const SizedBox(width: 8),

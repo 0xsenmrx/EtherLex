@@ -6,6 +6,7 @@ import '../../../core/storage/settings_store.dart';
 import '../../../core/sync/sync_state.dart';
 import '../../auth/domain/auth_provider.dart';
 import '../../auth/domain/session_database.dart';
+import '../../settings/presentation/settings_store_provider.dart';
 import '../../courses/domain/course.dart';
 import '../data/cached_assignments_repository.dart';
 import '../data/mock_assignments_repository.dart';
@@ -87,18 +88,6 @@ class CourseFilterNotifier extends Notifier<Set<int>> {
 
 final courseFilterProvider =
     NotifierProvider<CourseFilterNotifier, Set<int>>(CourseFilterNotifier.new);
-
-/// Settings of the signed-in account (stars live in that account's database).
-/// Switching accounts gives a new store, so everything that watches it reloads.
-final settingsStoreProvider = Provider<SettingsStore>((ref) {
-  final s = ref.watch(authProvider.select((a) => a.value));
-  final scope = s == null
-      ? 'signed_out'
-      : s.isSample
-          ? 'sample'
-          : s.scope;
-  return FileSettingsStore.forScope(scope);
-});
 
 /// Courses the user has hidden (e.g. ones they TA and never submit to).
 /// Hidden courses drop out of the list and counts; they live in the

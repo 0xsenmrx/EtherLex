@@ -29,6 +29,8 @@ class EtherColors {
     required this.star,
     required this.scrim,
     required this.shadow,
+    required this.tooltip,
+    required this.onTooltip,
   });
 
   final Brightness brightness;
@@ -62,6 +64,10 @@ class EtherColors {
   final Color scrim;
   final Color shadow;
 
+  /// Tooltip bubble and its text: dark in both themes, so it stands out.
+  final Color tooltip;
+  final Color onTooltip;
+
   bool get isDark => brightness == Brightness.dark;
 
   static const EtherColors dark = EtherColors(
@@ -87,6 +93,8 @@ class EtherColors {
     star: Color(0xFFFACC15),
     scrim: Color(0x99000000),
     shadow: Color(0x80000000),
+    tooltip: Color(0xFF2A2B30),
+    onTooltip: Color(0xFFF2F2F4),
   );
 
   static const EtherColors light = EtherColors(
@@ -112,6 +120,8 @@ class EtherColors {
     star: Color(0xFFEAB308),
     scrim: Color(0x4D000000),
     shadow: Color(0x24000000),
+    tooltip: Color(0xFF1F2023),
+    onTooltip: Color(0xFFF2F2F4),
   );
 
   /// The same look with another accent family. Violet is the base and is
@@ -142,6 +152,8 @@ class EtherColors {
       star: star,
       scrim: scrim,
       shadow: shadow,
+      tooltip: tooltip,
+      onTooltip: onTooltip,
     );
   }
 
@@ -193,6 +205,8 @@ class EtherColors {
       star: l(star, o.star),
       scrim: l(scrim, o.scrim),
       shadow: l(shadow, o.shadow),
+      tooltip: l(tooltip, o.tooltip),
+      onTooltip: l(onTooltip, o.onTooltip),
     );
   }
 }

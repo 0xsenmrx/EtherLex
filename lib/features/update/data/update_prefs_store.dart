@@ -1,33 +1,25 @@
-import 'dart:convert';
 import 'dart:io';
 
 import '../../../core/storage/app_dir.dart';
+import '../../../core/storage/json_file.dart';
 import '../domain/update_prefs.dart';
 
 /// `%APPDATA%/EtherLex/updates.json`.
 class UpdatePrefsStore {
   UpdatePrefsStore({File? file})
-      : _file = file ?? File('${appDataPath()}${Platform.pathSeparator}updates.json');
+      : _json = JsonFile(file ?? File('${appDataPath()}${Platform.pathSeparator}updates.json'));
 
-  final File _file;
+  final JsonFile _json;
 
+  /// A missing or damaged file gives the defaults.
   Future<UpdatePrefs> read() async {
     try {
-      if (!await _file.exists()) return const UpdatePrefs();
-      return UpdatePrefs.fromJson(jsonDecode(await _file.readAsString()));
+      return UpdatePrefs.fromJson(await _json.read());
     } catch (_) {
       return const UpdatePrefs();
     }
   }
 
-  Future<void>? _pending;
-
   /// Writes run one after another.
-  Future<void> write(UpdatePrefs prefs) {
-    final next = (_pending ?? Future<void>.value())
-        .catchError((Object _) {})
-        .then((_) => writeFileAtomically(_file, jsonEncode(prefs.toJson())));
-    _pending = next;
-    return next;
-  }
+  Future<void> write(UpdatePrefs prefs) => _json.write(prefs.toJson());
 }

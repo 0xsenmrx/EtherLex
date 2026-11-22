@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 
+import '../../../core/storage/account_scope.dart';
 import '../../../core/storage/app_dir.dart';
 import '../../../core/utils/open_path.dart';
 import '../domain/files_models.dart';
@@ -17,7 +18,7 @@ final ValueNotifier<int> fileCacheRevision = ValueNotifier<int>(0);
 class FileCache {
   FileCache(String scope, {String? root, this.maxBytes = 3 * 1024 * 1024 * 1024})
       : _root = root ?? appDataPath(),
-        scope = scope.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
+        scope = cleanScope(scope);
 
   final String scope;
   final int maxBytes;

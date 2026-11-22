@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:etherlex/core/storage/settings_store.dart';
-import 'package:etherlex/features/assignments/presentation/assignments_providers.dart';
+import 'package:etherlex/features/settings/presentation/settings_store_provider.dart';
 import 'package:etherlex/features/chat/domain/ai_settings.dart';
 import 'package:etherlex/features/chat/presentation/ai_consent.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

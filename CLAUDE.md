@@ -14,7 +14,8 @@ Premium, smooth, desktop-first Flutter companion for Canvas LMS. Windows first. 
 - UI reads local Drift streams or cached data; repositories write them. Sample mode uses in-memory mock repositories (`Mock*Repository`), real mode uses `Canvas*Repository`. Every repository interface needs both.
 - Riverpod 3 (Notifier, AsyncNotifier, StreamProvider). Routing: go_router ShellRoute. HTTP: Dio through `CanvasClient`. DB: one Drift file per Canvas host (`AppDatabase.forAccount`).
 - Everything EtherLex writes lives in `%APPDATA%/EtherLex/`, keyed by account scope (`core/storage/account_scope.dart`; old host-named data is adopted by the first account, nothing is deleted on sign-out or update):
-  - `settings/<scope>.json`: courses, hidden folders, notifications, grade plans, AI consent (`FileSettingsStore.forScope`). Notifiers must `ref.watch(settingsStoreProvider)` and ignore loads from a stale store.
+  - `settings/<scope>.json`: courses, hidden folders, notifications, grade plans, AI consent (`FileSettingsStore.forScope`). Notifiers must `ref.watch(settingsStoreProvider)` (`features/settings/presentation/settings_store_provider.dart`) and ignore loads from a stale store.
+  - Every JSON file goes through `core/storage/json_file.dart` (`JsonFile`: writes to one path are queued and atomic, damaged files read as null). File names use `cleanScope`.
   - `ai/<scope>.json`: AI service, model names, OpenAI-compatible address (`AiSettingsStore`). `chats/<scope>.json`: conversations (`ChatStore`).
   - `files/<scope>/` offline copies (LRU, 3 GB) and `file_index/<scope>/` saved listings. All file access goes through `FilesRepository.localPath`.
   - App-wide: `appearance.json` (theme, typeface, palette), `updates.json` (update check).
@@ -23,8 +24,8 @@ Premium, smooth, desktop-first Flutter companion for Canvas LMS. Windows first. 
 
 ## Design system
 - New look ("Oleafly feel"): dotted canvas, flat surfaces with hairlines, violet accent, handwritten Ink Free (Windows font, falls back to Segoe Print then Inter) or clean Inter, light and dark.
-- Tokens: `design_system/theme/ether_colors.dart` (EtherColors.light/dark), `ether_text.dart`, `ether_theme.dart`. Read them with `context.colors` and `context.text`; never hard-code colours.
-- Components: `design_system/ether/` (ETap for hover/focus/press, EIconButton, EButton, ESearchTrigger, ESwatch, DotGrid, showEtherDialog/EDialog/confirmAction, menu styles). Icons only via `EIcons` (Lucide).
+- Tokens: `design_system/theme/ether_colors.dart` (EtherColors.light/dark), `ether_text.dart`, `ether_theme.dart`. Read them with `context.colors` and `context.text`; never hard-code colours. Colours that mark a kind of thing and stay the same in every theme (file types, activity kinds, the close button) live in `theme/fixed_colors.dart`, course colours in `course_palette.dart`.
+- Components: `design_system/ether/` (ETap for hover/focus/press, `focusable: false` for rows the page drives with its own cursor; ESpin, EIconButton, EButton, ESearchTrigger, ESwatch, DotGrid, showEtherDialog/EDialog/confirmAction, menu styles). Icons only via `EIcons` (Lucide).
 - List screens: `design_system/ether/list.dart` (EPageHeader, ESyncButton, ESegmented, EGroupHeader, ESectionLabel, ECheck, EStar, EEmptyState, EErrorState, ESkeletonList) and `detail_pane.dart` (details beside the list from 860 px of content width, a dialog below that). Selection = keyboard cursor = what the pane shows; Esc clears it.
 - Appearance (theme, typeface, accent palette) is app-wide: `%APPDATA%/EtherLex/appearance.json`, `appearanceProvider`.
 - One running copy per install folder: the runner holds a session mutex named after the program path (`ClaimSingleInstance` in `windows/runner/main.cpp`); a second launch brings the first window forward and quits. A dev build and the installed app do not block each other.

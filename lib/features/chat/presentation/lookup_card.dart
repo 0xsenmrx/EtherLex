@@ -7,6 +7,7 @@ import '../../../design_system/ether/icons.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../../assignments/domain/assignment.dart';
 import '../../assignments/presentation/assignments_providers.dart';
+import '../../settings/presentation/settings_store_provider.dart';
 import '../../courses/domain/course.dart';
 import '../../files/domain/files_models.dart';
 import '../../files/presentation/files_providers.dart';

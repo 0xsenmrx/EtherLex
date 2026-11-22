@@ -1,7 +1,8 @@
-import 'dart:convert';
 import 'dart:io';
 
+import 'account_scope.dart';
 import 'app_dir.dart';
+import 'json_file.dart';
 
 abstract interface class SettingsStore {
   Future<Set<int>> readDisabledCourses();
@@ -28,16 +29,16 @@ abstract interface class SettingsStore {
 }
 
 /// Tiny JSON file in the user's app-data folder (not secret, so not in the
-/// credential store). Will move into the Drift database with the cache step.
+/// credential store).
 class FileSettingsStore implements SettingsStore {
-  FileSettingsStore({File? file}) : _file = file ?? _defaultFile();
+  FileSettingsStore({File? file}) : _json = JsonFile(file ?? _defaultFile());
 
   /// One settings file per account (`settings/<scope>.json`). The first
   /// account to open after the upgrade inherits the old shared `settings.json`.
   factory FileSettingsStore.forScope(String scope, {String? root}) {
     final sep = Platform.pathSeparator;
     final base = root ?? appDataPath();
-    final clean = scope.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
+    final clean = cleanScope(scope);
     final file = File('$base${sep}settings$sep$clean.json');
     try {
       final legacy = File('$base${sep}settings.json');
@@ -50,35 +51,14 @@ class FileSettingsStore implements SettingsStore {
     return FileSettingsStore(file: file);
   }
 
-  final File _file;
+  final JsonFile _json;
 
   static File _defaultFile() => File('${appDataPath()}${Platform.pathSeparator}settings.json');
 
-  // Each write is a read-modify-write of the whole file. Writes run one at a
-  // time (two at once would each drop the other's change) and replace the
-  // file in one step (a crash mid-write must not wipe every setting).
-  static final Map<String, Future<void>> _queues = {};
+  // Each write is a read-modify-write of the whole file (see JsonFile.update).
+  Future<void> _update(void Function(Map<String, dynamic> map) change) => _json.update(change);
 
-  Future<void> _update(void Function(Map<String, dynamic> map) change) {
-    final key = _file.path;
-    final next = (_queues[key] ?? Future<void>.value()).catchError((Object _) {}).then((_) async {
-      final map = await _readMap();
-      change(map);
-      await writeFileAtomically(_file, jsonEncode(map));
-    });
-    _queues[key] = next;
-    return next;
-  }
-
-  Future<Map<String, dynamic>> _readMap() async {
-    try {
-      if (!await _file.exists()) return <String, dynamic>{};
-      final decoded = jsonDecode(await _file.readAsString());
-      return decoded is Map<String, dynamic> ? decoded : <String, dynamic>{};
-    } catch (_) {
-      return <String, dynamic>{};
-    }
-  }
+  Future<Map<String, dynamic>> _readMap() => _json.readMap();
 
   @override
   Future<Set<int>> readDisabledCourses() async {

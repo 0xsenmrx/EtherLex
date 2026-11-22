@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../activity/presentation/activity_providers.dart';
 import '../../../core/storage/settings_store.dart';
 import '../../assignments/presentation/assignments_providers.dart';
+import '../../settings/presentation/settings_store_provider.dart';
 import '../data/notification_service.dart';
 import '../domain/alerts.dart';
 

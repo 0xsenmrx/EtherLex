@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/motion/smooth_scroll.dart';
 import '../../../core/ui/hover_prefetch.dart';
 import '../../../core/ui/selected_builder.dart';
-import '../../../design_system/components/pressable.dart';
+import '../../../design_system/ether/tap.dart';
 import '../../../design_system/ether/breakpoint.dart';
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/icons.dart';
@@ -409,10 +409,11 @@ class _Chip extends ConsumerWidget {
       padding: const EdgeInsets.only(bottom: 6),
       child: HoverPrefetch(
         onPrefetch: () => ref.read(submissionInfoProvider((courseId: a.courseId, assignmentId: a.id))),
-        child: Pressable(
+        child: ETap(
+          focusable: false,
           onTap: onTap,
           pressedScale: 0.98,
-          builder: (context, hovered) => SelectedBuilder<int>(
+          builder: (context, tapState) => SelectedBuilder<int>(
             cursor: cursor,
             id: a.id,
             builder: (context, selected, child) {
@@ -420,10 +421,10 @@ class _Chip extends ConsumerWidget {
                 duration: const Duration(milliseconds: 120),
                 padding: const EdgeInsets.fromLTRB(10, 8, 10, 9),
                 decoration: BoxDecoration(
-                  color: hovered ? Color.alphaBlend(c.hover, c.surface) : c.surface,
+                  color: tapState.hovered ? Color.alphaBlend(c.hover, c.surface) : c.surface,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: selected ? c.accent : (hovered ? c.lineStrong : c.line),
+                    color: selected ? c.accent : (tapState.hovered ? c.lineStrong : c.line),
                     width: selected ? 1.5 : 1,
                   ),
                 ),

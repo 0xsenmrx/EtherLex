@@ -7,7 +7,7 @@ import '../../../core/motion/smooth_scroll.dart';
 import '../../../core/ui/hover_prefetch.dart';
 import '../../../core/ui/selected_builder.dart';
 import '../../../core/utils/date_format.dart';
-import '../../../design_system/components/pressable.dart';
+import '../../../design_system/ether/tap.dart';
 import '../../../design_system/ether/breakpoint.dart';
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/detail_pane.dart';
@@ -353,17 +353,18 @@ class _CourseRow extends ConsumerWidget {
       onPrefetch: () => ref.read(courseWorkProvider(course.id)),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
-        child: Pressable(
+        child: ETap(
+          focusable: false,
           onTap: onTap,
           pressedScale: 0.995,
-          builder: (context, hovered) => SelectedBuilder<int>(
+          builder: (context, tapState) => SelectedBuilder<int>(
             cursor: cursor,
             id: course.id,
             builder: (context, selected, child) => AnimatedContainer(
               duration: const Duration(milliseconds: 120),
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: selected ? c.selected : (hovered ? c.hover : const Color(0x00000000)),
+                color: selected ? c.selected : (tapState.hovered ? c.hover : const Color(0x00000000)),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: child,

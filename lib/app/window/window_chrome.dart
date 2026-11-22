@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../design_system/ether/icons.dart';
 import '../../design_system/theme/ether_theme.dart';
+import '../../design_system/theme/fixed_colors.dart';
 
 /// EtherLex draws its own title bar on Windows. The runner
 /// (`windows/runner/window_frame.cpp`) removes the native caption but keeps a
@@ -179,11 +180,11 @@ class _CaptionButtonState extends State<_CaptionButton> {
     if (!hover) {
       bg = const Color(0x00000000);
     } else if (widget.danger) {
-      bg = pressed ? const Color(0xFFC53A3F) : const Color(0xFFE5484D);
+      bg = pressed ? FixedColors.closePressed : FixedColors.close;
     } else {
       bg = pressed ? c.selected : c.hover;
     }
-    final fg = hover && widget.danger ? const Color(0xFFFFFFFF) : c.textSecondary;
+    final fg = hover && widget.danger ? FixedColors.onClose : c.textSecondary;
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = _pressed = false),
