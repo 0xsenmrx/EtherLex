@@ -8,6 +8,7 @@ import 'package:material_ui/material_ui.dart' show SelectableText;
 import 'package:pdfrx/pdfrx.dart';
 
 import '../../../core/network/canvas_exception.dart';
+import '../../../core/ui/open_with_care.dart';
 import '../../../core/notify/toast.dart';
 import '../../../core/utils/format.dart';
 import '../../../core/utils/open_path.dart';
@@ -90,6 +91,7 @@ class _FilePreviewDialogState extends ConsumerState<FilePreviewDialog> {
       final dir = Directory(downloadsDirPath())..createSync(recursive: true);
       final target = uniquePath(dir.path, sanitizeFileName(widget.file.name));
       await File(cached).copy(target); // async: large files must not freeze the UI
+      await markFromInternet(target);
       toast.show(
         'Saved to Downloads',
         actionLabel: 'Show',
@@ -141,7 +143,8 @@ class _FilePreviewDialogState extends ConsumerState<FilePreviewDialog> {
                   kind: EButtonKind.ghost,
                   onTap: () async {
                     try {
-                      await openDownloaded(await _path);
+                      final path = await _path;
+                      if (context.mounted) await openWithCare(context, path);
                     } catch (_) {}
                   },
                 ),

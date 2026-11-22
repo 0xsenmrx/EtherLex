@@ -77,6 +77,7 @@ class MockFilesRepository implements FilesRepository {
     final dir = Directory(downloadsDirPath())..createSync(recursive: true);
     final path = uniquePath(dir.path, sanitizeFileName(file.name));
     File(saved).copySync(path);
+    await markFromInternet(path);
     return path;
   }
 }
