@@ -12,6 +12,7 @@ import '../../files/presentation/file_actions.dart';
 import '../../files/presentation/files_providers.dart';
 import '../../grades/domain/plan_proposal.dart';
 import '../domain/proposed_files.dart';
+import 'choice_pick.dart';
 
 /// What was applied from a files card, and how to put the folder changes back.
 /// Saved and downloaded files stay: Undo only covers hiding and showing folders.
@@ -57,11 +58,39 @@ class FilesCard extends ConsumerStatefulWidget {
 class _FilesCardState extends ConsumerState<FilesCard> {
   bool _busy = false;
 
+  /// What the student picked on skipped lines: place in the list -> id.
+  final Map<int, int> _courseChoices = {};
+  final Map<int, int> _folderChoices = {};
+  final Map<int, int> _fileChoices = {};
+
+  Future<void> _choose(int index, FileLine l) async {
+    final kind = l.pick!;
+    final title = switch (kind) {
+      PickKind.course => 'Which course?',
+      PickKind.folder => 'Which folder?',
+      PickKind.file => 'Which file?',
+    };
+    final id = await pickChoice(context, title, l.options);
+    if (id == null || !mounted) return;
+    setState(() {
+      switch (kind) {
+        case PickKind.course:
+          _courseChoices[index] = id;
+        case PickKind.folder:
+          _folderChoices[index] = id;
+        case PickKind.file:
+          _fileChoices[index] = id;
+      }
+    });
+  }
+
   List<FileLine> _lines(List<Course> courses) {
     final repo = ref.read(filesRepositoryProvider);
     final data = <int, CourseFiles?>{};
-    for (final a in widget.proposal.actions) {
-      final course = matchCourse(a.course, courses);
+    final actions = widget.proposal.actions;
+    for (var i = 0; i < actions.length; i++) {
+      final picked = _courseChoices[i] == null ? null : courses.where((c) => c.id == _courseChoices[i]).firstOrNull;
+      final course = picked ?? matchCourse(actions[i].course, courses);
       if (course != null && !data.containsKey(course.id)) data[course.id] = ref.watch(courseFilesProvider(course.id)).value;
     }
     return previewFileActions(
@@ -71,6 +100,9 @@ class _FilesCardState extends ConsumerState<FilesCard> {
       hiddenFolders: ref.watch(hiddenFoldersProvider),
       hiddenCourses: ref.watch(hiddenFileCoursesProvider),
       saved: (f) => repo.cachedPath(f) != null,
+      courseChoices: _courseChoices,
+      folderChoices: _folderChoices,
+      fileChoices: _fileChoices,
     );
   }
 
@@ -137,7 +169,7 @@ class _FilesCardState extends ConsumerState<FilesCard> {
   static String _note(FileLine l) => switch (l.effect) {
         FileEffect.change => l.note,
         FileEffect.same => l.note,
-        FileEffect.unknown => '${l.note}, skipped',
+        FileEffect.unknown => l.pick != null ? l.note : '${l.note}, skipped',
         FileEffect.loading => l.note,
       };
 
@@ -166,7 +198,7 @@ class _FilesCardState extends ConsumerState<FilesCard> {
             ],
           ),
           const SizedBox(height: 8),
-          for (final l in lines)
+          for (final (index, l) in lines.indexed)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Row(
@@ -182,6 +214,10 @@ class _FilesCardState extends ConsumerState<FilesCard> {
                     child: Text(l.detail, style: l.effect == FileEffect.change ? t.body : t.meta, maxLines: 1, overflow: TextOverflow.ellipsis),
                   ),
                   if (_note(l).isNotEmpty) ...[const SizedBox(width: 8), Text(_note(l), style: t.metaMuted)],
+                  if (applied == null && l.pick != null && l.options.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    EButton(label: 'Choose', kind: EButtonKind.ghost, onTap: () => _choose(index, l)),
+                  ],
                 ],
               ),
             ),

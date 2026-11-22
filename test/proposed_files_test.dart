@@ -73,9 +73,42 @@ void main() {
     final p = parseFileActions('{"files":[{"type":"download","course":"physics","file":"syllabus.pdf"},{"type":"download","course":"physics","folder":"Labs","file":"syllabus.pdf"}]}')!;
     final lines = previewFileActions(p, _courses, dataFor: (_) => twice, hiddenFolders: const {}, saved: (_) => false);
     expect(lines[0].effect, FileEffect.unknown);
-    expect(lines[0].note, '2 files match: name the folder too');
+    expect(lines[0].note, '2 files match');
+    expect(lines[0].pick, PickKind.file);
+    expect(lines[0].options.map((o) => o.id), [2, 9]);
+    expect(lines[0].options.first.sub, startsWith('Lectures'));
+    // the student's pick settles it
+    final picked = previewFileActions(p, _courses, dataFor: (_) => twice, hiddenFolders: const {}, saved: (_) => false, fileChoices: {0: 9});
+    expect(picked[0].effect, FileEffect.change);
+    expect(picked[0].files.single.id, 9);
     expect(lines[1].effect, FileEffect.change);
     expect(lines[1].files.single.id, 9);
+  });
+
+  test('several folders fit: they are offered, and a pick settles it', () {
+    final p = parseFileActions('{"files":[{"type":"hide_folder","course":"physics","folder":"Week 1"}]}')!;
+    final lines = previewFileActions(p, _courses, dataFor: (_) => _data, hiddenFolders: const {}, saved: (_) => false);
+    expect(lines.single.effect, FileEffect.unknown);
+    expect(lines.single.pick, PickKind.folder);
+    expect(lines.single.options.map((o) => o.label), ['Lectures/Week 1', 'Labs/Week 1']);
+    final picked = previewFileActions(p, _courses, dataFor: (_) => _data, hiddenFolders: const {}, saved: (_) => false, folderChoices: {0: 13});
+    expect(picked.single.effect, FileEffect.change);
+    expect(picked.single.folderId, 13);
+    // nothing matching offers nothing to pick
+    final none = previewFileActions(parseFileActions('{"files":[{"type":"hide_folder","course":"physics","folder":"Zzz"}]}')!, _courses,
+        dataFor: (_) => _data, hiddenFolders: const {}, saved: (_) => false);
+    expect(none.single.pick, isNull);
+    expect(none.single.note, 'no folder matches');
+  });
+
+  test('an unknown course offers the likely ones, or all of them, and a pick settles it', () {
+    final p = parseFileActions('{"files":[{"type":"hide_course","course":"xyz"}]}')!;
+    final lines = previewFileActions(p, _courses, dataFor: (_) => null, hiddenFolders: const {}, saved: (_) => false);
+    expect(lines.single.pick, PickKind.course);
+    expect(lines.single.options.map((o) => o.id), [1, 2]);
+    final picked = previewFileActions(p, _courses, dataFor: (_) => null, hiddenFolders: const {}, saved: (_) => false, courseChoices: {0: 2});
+    expect(picked.single.effect, FileEffect.change);
+    expect(picked.single.courseId, 2);
   });
 
   group('resolveFolder', () {
