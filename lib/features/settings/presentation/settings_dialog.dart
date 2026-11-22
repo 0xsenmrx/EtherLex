@@ -1,9 +1,14 @@
+import 'dart:io';
+
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../../app/app_info.dart';
 import '../../../core/appearance/appearance.dart';
+import '../../../core/notify/toast.dart';
 import '../../../core/utils/format.dart';
+import '../../../core/utils/open_url.dart';
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/dialog.dart';
 import '../../../design_system/ether/list.dart';
@@ -12,7 +17,9 @@ import '../../../design_system/theme/ether_theme.dart';
 import '../../assignments/presentation/assignments_providers.dart';
 import '../../auth/domain/auth_provider.dart';
 import '../../files/data/file_cache.dart';
+import '../../chat/presentation/ai_providers.dart';
 import '../../chat/presentation/ai_settings_section.dart';
+import '../domain/diagnostics.dart';
 import '../../files/presentation/files_providers.dart';
 import '../../notifications/presentation/notifications_providers.dart';
 import '../../update/data/update_service.dart';
@@ -55,6 +62,23 @@ class SettingsDialog extends ConsumerWidget {
       if (ref.read(updateProvider).status != UpdateStatus.available) await updates.check(manual: true);
       if (!context.mounted) return;
       if (ref.read(updateProvider).status == UpdateStatus.available) await showUpdateDialog(context);
+    }
+
+    Diagnostics diagnostics() => Diagnostics(
+          appVersion: kAppVersion,
+          windows: Platform.operatingSystemVersion,
+          theme: appearance.theme.name,
+          typeface: appearance.typeface.name,
+          sampleMode: session?.isSample ?? false,
+          aiService: ref.read(aiSettingsProvider).provider.label,
+          notifications: notificationsOn,
+          autoUpdateCheck: updatePrefs.autoCheck,
+          dart: Platform.version.split(' ').first,
+        );
+
+    Future<void> copyDiagnostics() async {
+      await Clipboard.setData(ClipboardData(text: diagnostics().toText()));
+      ref.read(toastProvider.notifier).show('Diagnostics copied');
     }
 
     Future<void> signOut() async {
@@ -169,6 +193,20 @@ class SettingsDialog extends ConsumerWidget {
           ],
           const _Section('About'),
           _Row(title: kAppName, subtitle: 'Version $kAppVersion'),
+          _Row(
+            title: 'Feedback',
+            subtitle: 'Opens a new issue on GitHub. You read and edit it before sending.',
+            trailing: EButton(
+              label: 'Send feedback',
+              kind: EButtonKind.ghost,
+              onTap: () => openExternal(feedbackUri(diagnostics()).toString()),
+            ),
+          ),
+          _Row(
+            title: 'Diagnostics',
+            subtitle: 'Version, Windows and look only. No token, key, name or course.',
+            trailing: EButton(label: 'Copy', kind: EButtonKind.ghost, onTap: copyDiagnostics),
+          ),
           const SizedBox(height: 4),
           Text(
             'Settings are saved on this computer, separately for each Canvas account.',

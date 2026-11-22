@@ -343,3 +343,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 - [x] **Expect** the button fades and slides in when you scroll up, glides the chat down to the end when pressed, and fades out.
 43. Without attaching anything, ask: "Download the <course A> syllabus, star <an assignment> of <course B>, and make the grade plan for <course C> from its syllabus".
 - [x] **Expect** one "Needs to look at some of your data" card listing: File list (course A), Assignments (course B) and Read file (course C, syllabus). One Allow loads and sends all of it (a file that fits two names asks which first). The next answer has the download card, the star card and the grade plan card together. Nothing is asked to be attached or pasted by hand.
+44. Settings > About > Diagnostics > Copy, then paste into Notepad.
+- [x] **Expect** a toast "Diagnostics copied" and a few lines: version, Windows, Dart, mode, look, AI service chosen, notifications, update check. No token, key, name, Canvas address or course names.
+45. Settings > About > Feedback > Send feedback.
+- [x] **Expect** your browser opens a new issue on 0xsenmrx/EtherLex with a short template and the same diagnostics inside a collapsed block. Nothing is sent until you press Submit.
