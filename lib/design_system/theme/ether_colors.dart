@@ -142,41 +142,43 @@ class EtherColors {
     onTooltip: Color(0xFFF2F2F4),
   );
 
-  /// The same look with another accent family. Violet is the base and is
-  /// returned unchanged.
+  /// The same look with another accent family. Always built from the base
+  /// set of this brightness, so it does not matter which palette `this`
+  /// already has; violet is the base itself.
   EtherColors withPalette(PaletteChoice palette) {
-    if (palette == PaletteChoice.violet) return this;
+    final base = isDark ? EtherColors.dark : EtherColors.light;
+    if (palette == PaletteChoice.violet) return base;
     final (accent, hover) = _accents[palette]![isDark ? 1 : 0];
     // Fills behind white text use the deeper (light-mode) shade in both modes.
     final (fill, fillHover) = _accents[palette]![0];
     return EtherColors(
-      brightness: brightness,
-      canvas: canvas,
-      dot: dot,
-      surface: surface,
-      sunken: sunken,
-      hover: this.hover,
-      selected: selected,
-      line: line,
-      lineStrong: lineStrong,
-      textPrimary: textPrimary,
-      textSecondary: textSecondary,
-      textTertiary: textTertiary,
+      brightness: base.brightness,
+      canvas: base.canvas,
+      dot: base.dot,
+      surface: base.surface,
+      sunken: base.sunken,
+      hover: base.hover,
+      selected: base.selected,
+      line: base.line,
+      lineStrong: base.lineStrong,
+      textPrimary: base.textPrimary,
+      textSecondary: base.textSecondary,
+      textTertiary: base.textTertiary,
       accent: accent,
       accentHover: hover,
-      onAccent: onAccent,
+      onAccent: base.onAccent,
       accentSoft: accent.withValues(alpha: isDark ? 0.16 : 0.10),
       accentFill: fill,
       accentFillHover: fillHover,
-      danger: danger,
-      dangerFill: dangerFill,
-      dueSoon: dueSoon,
-      success: success,
-      star: star,
-      scrim: scrim,
-      shadow: shadow,
-      tooltip: tooltip,
-      onTooltip: onTooltip,
+      danger: base.danger,
+      dangerFill: base.dangerFill,
+      dueSoon: base.dueSoon,
+      success: base.success,
+      star: base.star,
+      scrim: base.scrim,
+      shadow: base.shadow,
+      tooltip: base.tooltip,
+      onTooltip: base.onTooltip,
     );
   }
 
