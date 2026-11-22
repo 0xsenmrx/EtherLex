@@ -3,6 +3,9 @@ import 'package:etherlex/features/chat/domain/chat_prompt.dart';
 import 'package:etherlex/features/chat/domain/context_item.dart';
 import 'package:etherlex/features/chat/domain/proposed_actions.dart';
 import 'package:etherlex/features/chat/domain/proposed_courses.dart';
+import 'package:etherlex/features/chat/domain/proposed_files.dart';
+import 'package:etherlex/features/chat/domain/proposed_lookup.dart';
+import 'package:etherlex/features/chat/domain/proposed_submit.dart';
 import 'package:etherlex/features/grades/domain/plan_proposal.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -14,11 +17,11 @@ void main() {
   });
 
   test('the course names are in the prompt when given, and only then', () {
-    const list = CoursesContext(lines: [CourseLine(name: 'Discrete Mathematics', code: 'MATH2160J'), CourseLine(name: 'Linear Algebra', hidden: true)]);
+    const list = CoursesContext(lines: [CourseLine(name: 'Quantum Basket Weaving', code: 'QBW101'), CourseLine(name: 'Linear Algebra', hidden: true)]);
     final withList = chatSystemPrompt(DateTime(2026, 11, 20), courses: list);
-    expect(withList, contains('- Discrete Mathematics (MATH2160J); shown'));
+    expect(withList, contains('- Quantum Basket Weaving (QBW101); shown'));
     expect(withList, contains('- Linear Algebra; hidden in EtherLex'));
-    expect(chatSystemPrompt(DateTime(2026, 11, 20)), isNot(contains('Discrete Mathematics')));
+    expect(chatSystemPrompt(DateTime(2026, 11, 20)), isNot(contains('Quantum Basket Weaving')));
     expect(chatSystemPrompt(DateTime(2026, 11, 20), courses: const CoursesContext(lines: [])), isNot(contains("The student's courses")));
   });
 
@@ -26,6 +29,31 @@ void main() {
     final p = chatSystemPrompt(DateTime(2026, 11, 20));
     expect(p, contains('write "?" as the course name'));
     expect(p, contains('language is $kCoursesFence'));
+  });
+
+  test('it tells the assistant how to propose file changes, without doing them', () {
+    final p = chatSystemPrompt(DateTime(2026, 11, 20));
+    expect(p, contains('language is $kFilesFence'));
+    expect(p, contains('Never delete or upload files'));
+    expect(p, contains('language is $kLookupFence'));
+    expect(p, contains('do not ask them to attach it'));
+    expect(p, contains('the text of a file such as a syllabus'));
+    expect(p, contains('that reads it'));
+  });
+
+  test('it tells the assistant it only names the assignment to hand in, never files', () {
+    final p = chatSystemPrompt(DateTime(2026, 11, 20));
+    expect(p, contains('language is $kSubmitFence'));
+    expect(p, contains('Never put files, paths or text in it'));
+    expect(p, contains('must never say that you did'));
+  });
+
+  test('several requests are answered together unless the student says otherwise', () {
+    final p = chatSystemPrompt(DateTime(2026, 11, 20));
+    expect(p, contains('all of them in that one reply'));
+    expect(p, contains('Only go step by step when the student says so'));
+    expect(p, contains('Put everything you need in that one'));
+    expect(p, contains('Never write a block with nothing in it'));
   });
 
   test('the sample assistant streams its answer in pieces that add up', () async {

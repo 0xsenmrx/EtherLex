@@ -397,6 +397,7 @@ class AttachChips extends StatelessWidget {
         ContextKind.file => EIcons.fileText,
         ContextKind.image => EIcons.fileImage,
         ContextKind.courses => EIcons.files,
+        ContextKind.fileList => EIcons.files,
       };
 
   @override
