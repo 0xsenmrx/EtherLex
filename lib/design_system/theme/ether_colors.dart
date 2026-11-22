@@ -23,7 +23,10 @@ class EtherColors {
     required this.accentHover,
     required this.onAccent,
     required this.accentSoft,
+    required this.accentFill,
+    required this.accentFillHover,
     required this.danger,
+    required this.dangerFill,
     required this.dueSoon,
     required this.success,
     required this.star,
@@ -55,7 +58,16 @@ class EtherColors {
   final Color accentHover;
   final Color onAccent;
   final Color accentSoft;
+
+  /// Behind white ([onAccent]) text and icons: primary buttons, today's date,
+  /// ticked boxes. In dark mode a deeper shade than [accent], which stays
+  /// light enough to read as link text on the dark canvas.
+  final Color accentFill;
+  final Color accentFillHover;
   final Color danger;
+
+  /// Behind white text on a destructive button (same reason as [accentFill]).
+  final Color dangerFill;
 
   /// Due within a day: warm, but not alarming like [danger].
   final Color dueSoon;
@@ -82,12 +94,15 @@ class EtherColors {
     lineStrong: Color(0x29FFFFFF),
     textPrimary: Color(0xFFEEEEF0),
     textSecondary: Color(0xFF9C9DA4),
-    textTertiary: Color(0xFF64656C),
-    accent: Color(0xFF8B5CF6),
-    accentHover: Color(0xFF9F7AF8),
+    textTertiary: Color(0xFF82838A),
+    accent: Color(0xFF9B72F7),
+    accentHover: Color(0xFFA884F9),
     onAccent: Color(0xFFFFFFFF),
-    accentSoft: Color(0x298B5CF6),
+    accentSoft: Color(0x299B72F7),
+    accentFill: Color(0xFF7C3AED),
+    accentFillHover: Color(0xFF6D28D9),
     danger: Color(0xFFF87171),
+    dangerFill: Color(0xFFDC2626),
     dueSoon: Color(0xFFFB923C),
     success: Color(0xFF4ADE80),
     star: Color(0xFFFACC15),
@@ -109,14 +124,17 @@ class EtherColors {
     lineStrong: Color(0x29000000),
     textPrimary: Color(0xFF141416),
     textSecondary: Color(0xFF5C5D65),
-    textTertiary: Color(0xFF95969D),
+    textTertiary: Color(0xFF6F7077),
     accent: Color(0xFF7C3AED),
     accentHover: Color(0xFF6D28D9),
     onAccent: Color(0xFFFFFFFF),
     accentSoft: Color(0x1A7C3AED),
-    danger: Color(0xFFDC2626),
-    dueSoon: Color(0xFFEA580C),
-    success: Color(0xFF16A34A),
+    accentFill: Color(0xFF7C3AED),
+    accentFillHover: Color(0xFF6D28D9),
+    danger: Color(0xFFC81E1E),
+    dangerFill: Color(0xFFC81E1E),
+    dueSoon: Color(0xFFC2410C),
+    success: Color(0xFF15803D),
     star: Color(0xFFEAB308),
     scrim: Color(0x4D000000),
     shadow: Color(0x24000000),
@@ -129,6 +147,8 @@ class EtherColors {
   EtherColors withPalette(PaletteChoice palette) {
     if (palette == PaletteChoice.violet) return this;
     final (accent, hover) = _accents[palette]![isDark ? 1 : 0];
+    // Fills behind white text use the deeper (light-mode) shade in both modes.
+    final (fill, fillHover) = _accents[palette]![0];
     return EtherColors(
       brightness: brightness,
       canvas: canvas,
@@ -146,7 +166,10 @@ class EtherColors {
       accentHover: hover,
       onAccent: onAccent,
       accentSoft: accent.withValues(alpha: isDark ? 0.16 : 0.10),
+      accentFill: fill,
+      accentFillHover: fillHover,
       danger: danger,
+      dangerFill: dangerFill,
       dueSoon: dueSoon,
       success: success,
       star: star,
@@ -168,7 +191,7 @@ class EtherColors {
       (Color(0xFF1FA35C), Color(0xFF34B872)),
     ],
     PaletteChoice.rose: [
-      (Color(0xFFE11D48), Color(0xFFBE123C)),
+      (Color(0xFFBE123C), Color(0xFF9F1239)),
       (Color(0xFFF43F5E), Color(0xFFFB7185)),
     ],
     PaletteChoice.orange: [
@@ -199,7 +222,10 @@ class EtherColors {
       accentHover: l(accentHover, o.accentHover),
       onAccent: l(onAccent, o.onAccent),
       accentSoft: l(accentSoft, o.accentSoft),
+      accentFill: l(accentFill, o.accentFill),
+      accentFillHover: l(accentFillHover, o.accentFillHover),
       danger: l(danger, o.danger),
+      dangerFill: l(dangerFill, o.dangerFill),
       dueSoon: l(dueSoon, o.dueSoon),
       success: l(success, o.success),
       star: l(star, o.star),

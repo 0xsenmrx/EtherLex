@@ -34,11 +34,42 @@ void main() {
       expect(accents.length, PaletteChoice.values.length);
     });
 
-    test('white text stays readable on every accent ($mode)', () {
+    // WCAG AA for normal text: 4.5:1. Checked for every palette, on every
+    // background text sits on.
+    test('text colours reach 4.5:1 on canvas, surface and sunken ($mode)', () {
       for (final p in PaletteChoice.values) {
         final c = base.withPalette(p);
-        expect(_contrast(c.onAccent, c.accent), greaterThan(3.0), reason: '${p.name} $mode');
+        final text = {
+          'textPrimary': c.textPrimary,
+          'textSecondary': c.textSecondary,
+          'textTertiary': c.textTertiary,
+          'accent (links)': c.accent,
+          'danger': c.danger,
+          'dueSoon': c.dueSoon,
+          'success': c.success,
+        };
+        final backgrounds = {'canvas': c.canvas, 'surface': c.surface, 'sunken': c.sunken};
+        for (final fg in text.entries) {
+          for (final bg in backgrounds.entries) {
+            expect(_contrast(fg.value, bg.value), greaterThanOrEqualTo(4.5),
+                reason: '${fg.key} on ${bg.key}, ${p.name} $mode');
+          }
+        }
       }
+    });
+
+    test('white text on filled buttons reaches 4.5:1 ($mode)', () {
+      for (final p in PaletteChoice.values) {
+        final c = base.withPalette(p);
+        expect(_contrast(c.onAccent, c.accentFill), greaterThanOrEqualTo(4.5), reason: 'accentFill ${p.name} $mode');
+        expect(_contrast(c.onAccent, c.accentFillHover), greaterThanOrEqualTo(4.5),
+            reason: 'accentFillHover ${p.name} $mode');
+        expect(_contrast(c.onAccent, c.dangerFill), greaterThanOrEqualTo(4.5), reason: 'dangerFill $mode');
+      }
+    });
+
+    test('tooltips are readable ($mode)', () {
+      expect(_contrast(base.onTooltip, base.tooltip), greaterThanOrEqualTo(4.5));
     });
   }
 }

@@ -153,7 +153,7 @@ class _SubmitSectionState extends ConsumerState<SubmitSection> {
             decoration: BoxDecoration(
               color: _dragging ? c.accentSoft : c.sunken,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: _dragging ? c.accent : c.line),
+              border: Border.all(color: _dragging ? c.accentFill : c.line),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,9 +164,9 @@ class _SubmitSectionState extends ConsumerState<SubmitSection> {
                       width: 34,
                       height: 34,
                       decoration: BoxDecoration(
-                        color: _dragging ? c.accent : c.canvas,
+                        color: _dragging ? c.accentFill : c.canvas,
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: _dragging ? c.accent : c.line),
+                        border: Border.all(color: _dragging ? c.accentFill : c.line),
                       ),
                       child: Icon(
                         EIcons.upload,

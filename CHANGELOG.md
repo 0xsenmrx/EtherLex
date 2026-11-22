@@ -14,6 +14,7 @@
 - The README explains the "Windows protected your PC" warning on first install and how to check the installer's SHA-256.
 
 ### Fixed and safer
+- Easier to read: quiet grey text, warnings and links now meet the WCAG AA contrast level (4.5:1) in light and dark and in every accent colour, and white text on buttons stays readable in dark mode (the red Delete and Sign out buttons were hard to read).
 - Every Canvas account now has fully separate data: database, settings, AI service and key, conversations and offline files. Data from an older version is adopted by the first account; nothing is deleted on sign-out or update.
 - When Canvas rejects your token, a banner offers to sign in again.
 - Your Canvas token is only sent to your own Canvas address over https, also when a download is redirected. The AI server address must be https (plain http only for a model on this computer).

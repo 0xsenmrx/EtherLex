@@ -40,11 +40,11 @@ ThemeData buildEtherTheme(EtherColors c, {required bool handwritten}) {
     brightness: c.brightness,
     colorScheme: ColorScheme(
       brightness: c.brightness,
-      primary: c.accent,
+      primary: c.accentFill,
       onPrimary: c.onAccent,
       secondary: c.accent,
       onSecondary: c.onAccent,
-      error: c.danger,
+      error: c.dangerFill,
       onError: c.onAccent,
       surface: c.surface,
       onSurface: c.textPrimary,
