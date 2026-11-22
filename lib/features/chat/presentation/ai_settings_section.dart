@@ -125,10 +125,11 @@ class _AiSettingsSectionState extends ConsumerState<AiSettingsSection> {
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 12),
-          child: Align(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: ESegmented(
-              labels: [for (final p in AiProvider.values) p.label],
+              labels: [for (final p in AiProvider.values) p.shortLabel],
               selected: provider.index,
               onChanged: (i) => ref.read(aiSettingsProvider.notifier).setProvider(AiProvider.values[i]),
             ),

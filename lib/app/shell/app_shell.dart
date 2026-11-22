@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/appearance/appearance.dart';
 import '../../core/notify/toast.dart';
 import '../../design_system/ether/breakpoint.dart';
 import '../../design_system/ether/dot_grid.dart';
@@ -60,6 +61,7 @@ class AppShell extends ConsumerWidget {
         const SingleActivator(LogicalKeyboardKey.digit6, alt: true): () => context.go('/chat'),
       },
       child: DotGrid(
+        pattern: ref.watch(appearanceProvider.select((a) => a.background)),
         child: BreakpointBuilder<bool>(
           mode: (box) => box.maxWidth >= wideBreakpoint,
           builder: (context, wide) {

@@ -241,7 +241,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 
 ## 14. Look and feel (redesign) [DONE]
 
-1. Avatar menu → Theme: Light, Dark, Match Windows; and the sun/moon button in the title bar.
+1. Settings > Appearance → Theme cards: Light, Dark, Match Windows; and the sun/moon button in the title bar.
 - [x] **Expect** every screen, dialog, menu and toast reads well in both themes; the choice survives restart.
 2. Settings → Font: Handwritten and Clean.
 - [x] **Expect** the whole UI switches; document previews always use the clean font.
@@ -260,15 +260,17 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 ## 14b. Settings window
 
 1. Ctrl+, then click through every section in the sidebar.
-- [ ] **Expect** a wide window with the sections on the left and rounded rows on the right (title, one line under it, control on the right). Every setting from before is somewhere. The search box has the cursor.
+- [x] **Expect** a wide window with the sections on the left and rounded rows on the right (title, one line under it, control on the right). Every setting from before is somewhere. The search box has the cursor.
 2. Type "dark", then "key", then "update", then "refresh", then a course name, then "zzz".
-- [ ] **Expect** results grouped by section with the words marked; the controls work right in the results. "refresh" finds the shortcut; "zzz" says nothing matches. Enter jumps to the first result's section. Clicking a group title opens that section.
+- [x] **Expect** results grouped by section with the words marked; the controls work right in the results. "refresh" finds the shortcut; "zzz" says nothing matches. Enter jumps to the first result's section. Clicking a group title opens that section.
 3. Appearance > Reset to defaults (after changing theme, accent and font); also Courses, Notifications, Assistant, Updates.
-- [ ] **Expect** a question saying what will be reset, then a toast. The Assistant reset keeps your key, server address and permission. Sections without choices (Account, Files, Shortcuts, About) have no Reset.
+- [x] **Expect** a question saying what will be reset, then a toast. The Assistant reset keeps your key, server address and permission. Sections without choices (Account, Files, Shortcuts, About) have no Reset.
 4. Close and press Ctrl+, again; in the Assistant with no key, press "Open settings".
-- [ ] **Expect** it opens on the section you used last; "Open settings" opens Assistant directly.
+- [x] **Expect** it opens on the section you used last; "Open settings" opens Assistant directly.
 5. Make the window narrow (about 800 px).
-- [ ] **Expect** the sidebar shrinks to icons with tooltips; everything still works.
+- [x] **Expect** the sidebar shrinks to icons with tooltips; everything still works.
+6. Settings > Appearance: click each Theme card, both Font cards, each Background card (Dots, Grid, Plain), in light and dark. Then Ctrl+K, type "grid" and "accent blue". Open the avatar menu. Open Settings > Assistant in a narrow window.
+- [x] **Expect** the chosen card has an accent border; the font cards show a sample in their own font; the background changes at once everywhere (sign-in screen too) and survives a restart. Ctrl+K offers "Background: Grid" and "Accent colour: Blue". The avatar menu has no theme or font items any more. The AI service switcher never overflows (it shrinks to fit).
 
 ## 15. AI assistant (needs your own API key)
 

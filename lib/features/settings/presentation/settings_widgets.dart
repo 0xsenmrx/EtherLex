@@ -105,3 +105,41 @@ class SettingsBanner extends StatelessWidget {
     );
   }
 }
+
+/// A setting whose control needs the full width (option cards, a form): the
+/// title and description on top, [child] below, in the same rounded frame.
+class SettingsBlock extends StatelessWidget {
+  const SettingsBlock({super.key, required this.title, this.description, required this.child, this.query = ''});
+
+  final String title;
+  final String? description;
+  final Widget child;
+  final String query;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final t = context.text;
+    final d = description;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+      decoration: BoxDecoration(
+        color: c.sunken,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: c.line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text.rich(highlightedSpan(title, query, t.label, c.accentSoft)),
+          if (d != null && d.isNotEmpty) ...[
+            const SizedBox(height: 3),
+            Text.rich(highlightedSpan(d, query, t.meta.copyWith(color: c.textTertiary), c.accentSoft)),
+          ],
+          const SizedBox(height: 12),
+          child,
+        ],
+      ),
+    );
+  }
+}

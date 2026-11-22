@@ -10,7 +10,7 @@
 - It can ask to look at a course's files or assignments or a file's text; one Allow answers several requests at once.
 - Canvas data goes to the AI service only when you attach it or allow a lookup, after you agree once per service and account. You can take that back in Settings.
 - File links in announcements open the exact file in Files.
-- Five accent colours in Settings > Appearance: violet, blue, green, rose and orange.
+- Settings > Appearance shows each choice as a card you can see: Light, Dark or Match Windows; the font with a sample; and a new **Background**: dots, grid or plain. Five accent colours: violet, blue, green, rose and orange. Ctrl+K can switch them too (type "accent" or "grid"). Theme and font left the avatar menu.
 - Settings > About: **Send feedback** opens a prefilled GitHub issue that you read and edit before sending, and **Copy diagnostics** copies version, Windows and look (never a token, key, name or course).
 - The README explains the "Windows protected your PC" warning on first install and how to check the installer's SHA-256.
 
