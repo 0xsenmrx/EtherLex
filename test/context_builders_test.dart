@@ -81,4 +81,19 @@ void main() {
     expect(c.lines.first.title, 'N11');
     expect(c.lines.any((l) => l.title == 'Graded'), isFalse);
   });
+
+  test('one course: open first by due date, then done, with item numbers', () {
+    const course = Course(id: 1, name: 'Linear Algebra', code: 'MATH2140J');
+    final all = [
+      Assignment(id: 3, courseId: 1, title: 'Homework 3', dueAt: DateTime(2026, 11, 30), points: 10, done: true),
+      Assignment(id: 5, courseId: 1, title: 'Homework 5', dueAt: DateTime(2026, 12, 10), points: 10),
+      Assignment(id: 4, courseId: 1, title: 'Homework 4', dueAt: DateTime(2026, 12, 1), points: 10, starred: true),
+      Assignment(id: 9, courseId: 2, title: 'Other course', dueAt: null, points: null),
+    ];
+    final c = courseAssignmentsContext(course, all);
+    expect(c.title, 'Assignments of Linear Algebra');
+    expect([for (final l in c.lines) l.id], [4, 5, 3]);
+    expect(c.text, contains('Homework 4 [#4]'));
+    expect(c.text, contains('starred'));
+  });
 }

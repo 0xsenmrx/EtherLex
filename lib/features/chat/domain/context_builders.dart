@@ -31,6 +31,26 @@ AssignmentsContext openAssignmentsContext(List<Assignment> all, Map<int, Course>
   );
 }
 
+/// Every assignment of one course, open ones first (soonest due first), done
+/// ones after, each with its item number so the assistant can name it.
+AssignmentsContext courseAssignmentsContext(Course course, List<Assignment> all) {
+  final mine = [for (final a in all) if (a.courseId == course.id) a]..sort((a, b) {
+      if (a.done != b.done) return a.done ? 1 : -1;
+      final x = a.dueAt, y = b.dueAt;
+      if (x == null && y == null) return a.title.compareTo(b.title);
+      if (x == null) return 1;
+      if (y == null) return -1;
+      return x.compareTo(y);
+    });
+  return AssignmentsContext(
+    title: 'Assignments of ${course.name}',
+    lines: [
+      for (final a in mine)
+        AssignmentLine(id: a.id, course: course.shortLabel, title: a.title, dueAt: a.dueAt, points: a.points, done: a.done, starred: a.starred),
+    ],
+  );
+}
+
 /// One line per course, as Canvas reports it. A course Canvas gives no grade
 /// for (nothing graded yet, hidden by the teacher, or one the student teaches)
 /// is listed as such, so the model never has to guess why it is missing.

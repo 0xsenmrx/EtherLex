@@ -37,6 +37,8 @@ void main() {
     expect(p, contains('Never delete or upload files'));
     expect(p, contains('language is $kLookupFence'));
     expect(p, contains('do not ask them to attach it'));
+    expect(p, contains('the text of a file such as a syllabus'));
+    expect(p, contains('that reads it'));
   });
 
   test('it tells the assistant it only names the assignment to hand in, never files', () {
@@ -50,7 +52,8 @@ void main() {
     final p = chatSystemPrompt(DateTime(2026, 11, 20));
     expect(p, contains('all of them in that one reply'));
     expect(p, contains('Only go step by step when the student says so'));
-    expect(p, contains('list every course you need'));
+    expect(p, contains('Put everything you need in that one'));
+    expect(p, contains('Never write a block with nothing in it'));
   });
 
   test('the sample assistant streams its answer in pieces that add up', () async {

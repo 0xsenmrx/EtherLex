@@ -69,6 +69,24 @@ void main() {
       expect(parseLookup('{"lookup":{"files":["A",3]}}'), isNull);
     });
 
+    test('assignments and files to read, alone or together', () {
+      final p = parseLookup('{"lookup":{"files":"A","assignments":["B"],"read":[{"course":"A","file":"syllabus"}]}}')!;
+      expect(p.courses, ['A']);
+      expect(p.assignmentCourses, ['B']);
+      expect(p.reads.single.file, 'syllabus');
+      expect(parseLookup('{"lookup":{"assignments":"B"}}')!.courses, isEmpty);
+      expect(parseLookup('{"lookup":{"read":{"course":"A","file":"x"}}}')!.reads.length, 1);
+    });
+
+    test('too many reads, bad reads, or nothing asked are not cards', () {
+      expect(parseLookup('{"lookup":{"read":[{"course":"A","file":"1"},{"course":"A","file":"2"},{"course":"A","file":"3"},{"course":"A","file":"4"}]}}'), isNull);
+      expect(parseLookup('{"lookup":{"read":[{"course":"A"}]}}'), isNull);
+      expect(parseLookup('{"lookup":{"read":[{"course":"A","file":"x","path":"C:/x"}]}}'), isNull);
+      expect(parseLookup('{"lookup":{"read":[]}}'), isNull);
+      expect(parseLookup('{"lookup":{}}'), isNull);
+      expect(parseLookup('{"lookup":{"grades":"A"}}'), isNull);
+    });
+
     test('anything else is not a card', () {
       expect(parseLookup('{"lookup":{"files":""}}'), isNull);
       expect(parseLookup('{"lookup":{"files":"a","grades":"b"}}'), isNull);

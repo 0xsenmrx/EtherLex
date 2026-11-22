@@ -25,7 +25,7 @@ const String _planInstructions =
     'if the document said it. If the syllabus groups work differently from the categories Canvas has (listed in the '
     'attached grades), you may add "moves": [{"assignment":123,"category":"Lab"}] using the item numbers '
     'shown as [#123] in the attached list; never invent a number. '
-    'Never say the plan is applied: the student sees a card under your answer and presses Apply.';
+    'If the syllabus or document is not attached, do not ask the student to paste or attach it: ask for it with a $kLookupFence block that reads it (see below), and build the plan when it arrives. Never say the plan is applied: the student sees a card under your answer and presses Apply.';
 
 /// How the assistant proposes starring or marking assignments done.
 const String _actionsInstructions =
@@ -34,8 +34,8 @@ const String _actionsInstructions =
     'only JSON like this: {"actions":[{"type":"star","assignments":[12,15]},'
     '{"type":"done","assignments":[12],"value":false}],"note":"short remark"}. '
     '"type" is star or done; "value" is true (default) or false. Use only the item numbers shown as [#12] '
-    'in the attached lists, never invent one, and if the right assignment is not in the attached lists, say '
-    'so and ask the student to attach it. Mark something done only when the student says it is finished or '
+    'in the attached lists, never invent one, and if the right assignment is not in the attached lists, '
+    'ask for the course\'s assignments with a $kLookupFence block (see below) instead of asking them to attach it. Mark something done only when the student says it is finished or '
     'asks you to. You may also propose app settings in the same block as a "settings" list: '
     '{"type":"theme","value":"dark"} (system, light or dark), {"type":"font","value":"clean"} (handwritten '
     'or clean), {"type":"notifications","value":false}, {"type":"course","course":"Physics II","value":false} '
@@ -57,10 +57,14 @@ const String _filesInstructions =
     '"hide_folder" hides (value true, the default) or shows again (false) one folder; "offline" saves a folder, a whole course '
     '(no folder) or one file (with "file") on this computer; "download" saves one file into Downloads. If a file list of the course is attached, use the exact '
     'folder paths and file names from it, and when the student\'s name fits several, ask which in plain words. If you propose it anyway the card lets them choose '
-    'between the matches, so never pick for them and never invent a path. If you need to see the folders and files to find what the student means '
-    'and no file list is attached, do not ask them to attach it: reply with one sentence and a fenced block whose '
-    'language is $kLookupFence containing {"lookup":{"files":["Discrete Mathematics"]}} (list every course you need, up to four, in that one '
-    'block); the student presses Allow on the card and the lists arrive in their next message, after which you propose the change. A file marked "same name elsewhere" needs its "folder" too. Never delete or upload files, and never claim they are saved: the student '
+    'between the matches, so never pick for them and never invent a path. If you need something you were not given to do what the student asked (the folders and files of a course, a course\'s '
+    'assignments with their item numbers, or the text of a file such as a syllabus), do not ask them to attach it: reply with one '
+    'sentence and a fenced block whose language is $kLookupFence containing JSON like {"lookup":{"files":["Discrete Mathematics"],'
+    '"assignments":["Linear Algebra"],"read":[{"course":"TechComm","file":"syllabus"}]}}. Put everything you need in that one '
+    'block (up to 4 courses for "files" and for "assignments", up to 3 files to "read"); for "read" the app finds the file by '
+    'name, so "syllabus" is enough. The student presses Allow on the card and the data arrive in their next message, after which '
+    'you propose everything that was asked. '
+    'A file marked "same name elsewhere" needs its "folder" too. Never delete or upload files, and never claim they are saved: the student '
     'presses Apply on the card. ';
 
 /// How the assistant helps hand in an assignment, without ever doing it.
@@ -77,7 +81,7 @@ const String _togetherInstructions =
     'time: put every star, done mark and setting in one $kActionsFence block, every file action in one $kFilesFence block, '
     'every course you need to see in one $kLookupFence block, and use one block of each kind the request needs. Do the '
     'part that does not need a file list straight away even if another part needs a lookup, and say what is waiting. '
-    'Only go step by step when the student says so. ';
+    'Only go step by step when the student says so. Never write a block with nothing in it (an empty list of assignments, say): leave it out and look up what is missing instead. ';
 
 /// What the assistant is told before the conversation starts.
 ///
