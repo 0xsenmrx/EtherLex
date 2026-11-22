@@ -169,6 +169,7 @@ class _LookupCardState extends ConsumerState<LookupCard> {
     final courses = ref.watch(coursesProvider).value ?? const <Course>[];
     final answer = ref.watch(lookupAnswersProvider)[widget.source];
     final p = widget.proposal;
+    final service = ref.watch(aiSettingsProvider).provider.label;
     final asking = answer == null;
     final allKnown = [
       for (final (i, n) in p.courses.indexed) _course('f$i', n, courses),
@@ -194,7 +195,7 @@ class _LookupCardState extends ConsumerState<LookupCard> {
           for (final (i, n) in p.assignmentCourses.indexed) _row(context, 'a$i', 'Assignments', n, courses, asking),
           for (final (i, r) in p.reads.indexed) _row(context, 'r$i', 'Read file', r.course, courses, asking, extra: r.file),
           const SizedBox(height: 2),
-          Text('File lists are names and sizes only. A file is read as text.', style: t.metaMuted),
+          Text('File lists are names and sizes only. A file is read as text. Nothing else is sent.', style: t.metaMuted),
           if (p.note != null) ...[
             const SizedBox(height: 4),
             Text(p.note!, style: t.metaMuted),
@@ -219,7 +220,7 @@ class _LookupCardState extends ConsumerState<LookupCard> {
               children: [
                 Expanded(
                   child: Text(
-                    answer == false ? 'Not shared.' : 'Sent to your AI service only if you allow it.',
+                    answer == false ? 'Not shared.' : 'Goes to $service only if you allow it.',
                     style: t.metaMuted,
                   ),
                 ),
