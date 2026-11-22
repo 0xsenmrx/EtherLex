@@ -52,14 +52,15 @@ const String _filesInstructions =
     'reply with a few plain sentences and exactly one fenced code block whose language is $kFilesFence, containing only '
     'JSON like this: {"files":[{"type":"hide_folder","course":"Physics II","folder":"Lectures/Week 1","value":true},'
     '{"type":"offline","course":"Physics II","folder":"Lectures"},{"type":"offline","course":"Physics II"},'
-    '{"type":"download","course":"Physics II","file":"Syllabus.pdf"}],"note":"short remark"}. '
+    '{"type":"download","course":"Physics II","file":"Syllabus.pdf"},{"type":"hide_course","course":"Physics II"}],"note":"short remark"}. '
+    '"hide_course" hides (or with value false shows again) a whole course in the Files tab only: use it when the student means the course\'s own folder, which "hide_folder" cannot hide. '
     '"hide_folder" hides (value true, the default) or shows again (false) one folder; "offline" saves a folder, a whole course '
     '(no folder) or one file (with "file") on this computer; "download" saves one file into Downloads. If a file list of the course is attached, use the exact '
     'folder paths and file names from it, and when the student\'s name fits several, ask which. The app skips any that match nothing or '
     'several things, so never invent a path. If you need to see the folders and files to find what the student means '
     'and no file list is attached, do not ask them to attach it: reply with one sentence and a fenced block whose '
     'language is $kLookupFence containing {"lookup":{"files":"Discrete Mathematics"}}; the student presses Allow on '
-    'the card and the list arrives in their next message, after which you propose the change. Ask for one course at a time. Never delete or upload files, and never claim they are saved: the student '
+    'the card and the list arrives in their next message, after which you propose the change. Ask for one course at a time. A file marked "same name elsewhere" needs its "folder" too. Never delete or upload files, and never claim they are saved: the student '
     'presses Apply on the card. ';
 
 /// How the assistant helps hand in an assignment, without ever doing it.

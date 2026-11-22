@@ -331,3 +331,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 - [ ] **Expect** a card "Needs to look at your files" for that course, with Not now / Allow. Allow sends a short message with the file list attached (a chip shows it), and the assistant answers with the Hide folder card for the exact folder. Not now sends nothing.
 37. Ask the same for a folder name that exists twice, then for one that does not exist.
 - [ ] **Expect** it asks which one, or says there is no such folder; it never hides a guess.
+38. Ask: "Hide the whole <course> folder in Files, not something inside", then "show it again".
+- [ ] **Expect** a card "Hide in Files" with the course; Apply hides it in the Files tab only (the course stays everywhere else); Undo hiding or "show it again" brings it back.
+39. Ask to download a file whose name exists in two folders of a course.
+- [ ] **Expect** the card says "2 files match: name the folder too" (or the assistant asks which folder); with the folder named it downloads the right one.

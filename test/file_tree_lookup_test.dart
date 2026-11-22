@@ -28,6 +28,14 @@ void main() {
         '    - hw0.pdf (1000 B)');
   });
 
+  test('a file name that occurs twice is marked, so the assistant gives its folder', () {
+    final twice = CourseFiles(folders: _data.folders, files: [..._data.files, _f(9, 13, 'syllabus.PDF')]);
+    final text = fileTreeText(twice, {});
+    expect(text, contains('- Syllabus.pdf (1000 B) [same name elsewhere: give its folder]'));
+    expect(text, contains('- syllabus.PDF (1000 B) [same name elsewhere: give its folder]'));
+    expect(text, isNot(contains('week1.pdf (2.0 MB) [')));
+  });
+
   test('the paths in the tree are the ones the folder matcher understands', () {
     expect(resolveFolder(_data, 'TA/Old')?.id, 12);
     expect(resolveFolder(_data, 'ta')?.id, 11);

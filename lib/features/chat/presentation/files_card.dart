@@ -16,12 +16,15 @@ import '../domain/proposed_files.dart';
 /// What was applied from a files card, and how to put the folder changes back.
 /// Saved and downloaded files stay: Undo only covers hiding and showing folders.
 class AppliedFiles {
-  const AppliedFiles({required this.lines, required this.hideUndo});
+  const AppliedFiles({required this.lines, required this.hideUndo, this.courseUndo = const {}});
 
   final List<FileLine> lines;
 
   /// Folder id -> hidden before.
   final Map<int, bool> hideUndo;
+
+  /// Course id -> hidden in Files before.
+  final Map<int, bool> courseUndo;
 }
 
 class AppliedFilesNotifier extends Notifier<Map<String, AppliedFiles>> {
@@ -66,6 +69,7 @@ class _FilesCardState extends ConsumerState<FilesCard> {
       courses,
       dataFor: (id) => data[id],
       hiddenFolders: ref.watch(hiddenFoldersProvider),
+      hiddenCourses: ref.watch(hiddenFileCoursesProvider),
       saved: (f) => repo.cachedPath(f) != null,
     );
   }
@@ -89,12 +93,18 @@ class _FilesCardState extends ConsumerState<FilesCard> {
     final hiddenNow = ref.read(hiddenFoldersProvider);
     final folders = ref.read(hiddenFoldersProvider.notifier);
     final undo = <int, bool>{};
+    final courseUndo = <int, bool>{};
+    final hiddenCoursesNow = ref.read(hiddenFileCoursesProvider);
+    final fileCourses = ref.read(hiddenFileCoursesProvider.notifier);
     try {
       for (final l in todo) {
         switch (l.action.kind) {
           case FileActionKind.hideFolder:
             undo.putIfAbsent(l.folderId!, () => hiddenNow.contains(l.folderId));
             l.action.value ? folders.hide(l.folderId!) : folders.show(l.folderId!);
+          case FileActionKind.hideCourse:
+            courseUndo.putIfAbsent(l.courseId!, () => hiddenCoursesNow.contains(l.courseId));
+            l.action.value ? fileCourses.hide(l.courseId!) : fileCourses.show(l.courseId!);
           case FileActionKind.offline:
             await saveOffline(ref, l.files);
           case FileActionKind.download:
@@ -104,7 +114,7 @@ class _FilesCardState extends ConsumerState<FilesCard> {
         }
         if (!mounted) break;
       }
-      ref.read(appliedFilesProvider.notifier).mark(widget.source, AppliedFiles(lines: lines, hideUndo: undo));
+      ref.read(appliedFilesProvider.notifier).mark(widget.source, AppliedFiles(lines: lines, hideUndo: undo, courseUndo: courseUndo));
     } catch (_) {
       // Whatever was done stays; the button can be pressed again for the rest.
     } finally {
@@ -116,6 +126,10 @@ class _FilesCardState extends ConsumerState<FilesCard> {
     final folders = ref.read(hiddenFoldersProvider.notifier);
     for (final e in a.hideUndo.entries) {
       e.value ? folders.hide(e.key) : folders.show(e.key);
+    }
+    final fileCourses = ref.read(hiddenFileCoursesProvider.notifier);
+    for (final e in a.courseUndo.entries) {
+      e.value ? fileCourses.hide(e.key) : fileCourses.show(e.key);
     }
     ref.read(appliedFilesProvider.notifier).clear(widget.source);
   }
@@ -209,7 +223,7 @@ class _FilesCardState extends ConsumerState<FilesCard> {
                 Icon(EIcons.check, size: 15, color: c.success),
                 const SizedBox(width: 6),
                 Expanded(child: Text('Applied $changes ${changes == 1 ? 'change' : 'changes'}', style: t.label)),
-                if (applied.hideUndo.isNotEmpty) EButton(label: 'Undo hiding', kind: EButtonKind.ghost, onTap: () => _undo(applied)),
+                if (applied.hideUndo.isNotEmpty || applied.courseUndo.isNotEmpty) EButton(label: 'Undo hiding', kind: EButtonKind.ghost, onTap: () => _undo(applied)),
               ],
             ),
         ],

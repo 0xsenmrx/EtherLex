@@ -51,6 +51,33 @@ void main() {
     });
   });
 
+  test('hide_course needs no folder or file, and works without the listing', () {
+    expect(parseFileActions('{"files":[{"type":"hide_course","course":"physics"}]}')!.actions.single.kind, FileActionKind.hideCourse);
+    expect(parseFileActions('{"files":[{"type":"hide_course","course":"physics","folder":"x"}]}'), isNull);
+    final p = parseFileActions('{"files":[{"type":"hide_course","course":"physics"},{"type":"hide_course","course":"chem","value":false}]}')!;
+    final lines = previewFileActions(p, _courses, dataFor: (_) => null, hiddenFolders: const {}, hiddenCourses: {2}, saved: (_) => false);
+    expect(lines[0].label, 'Hide in Files');
+    expect(lines[0].effect, FileEffect.change);
+    expect(lines[0].courseId, 1);
+    expect(lines[1].label, 'Show in Files');
+    expect(lines[1].effect, FileEffect.change);
+    final again = previewFileActions(p, _courses, dataFor: (_) => null, hiddenFolders: const {}, hiddenCourses: {1}, saved: (_) => false);
+    expect(again[0].effect, FileEffect.same);
+  });
+
+  test('two files with the same name: say so, and a folder settles it', () {
+    final twice = CourseFiles(
+      folders: _data.folders,
+      files: [..._data.files, _f(9, 14, 'Syllabus.pdf')],
+    );
+    final p = parseFileActions('{"files":[{"type":"download","course":"physics","file":"syllabus.pdf"},{"type":"download","course":"physics","folder":"Labs","file":"syllabus.pdf"}]}')!;
+    final lines = previewFileActions(p, _courses, dataFor: (_) => twice, hiddenFolders: const {}, saved: (_) => false);
+    expect(lines[0].effect, FileEffect.unknown);
+    expect(lines[0].note, '2 files match: name the folder too');
+    expect(lines[1].effect, FileEffect.change);
+    expect(lines[1].files.single.id, 9);
+  });
+
   group('resolveFolder', () {
     test('a plain name, a path, and the ambiguous ones', () {
       expect(resolveFolder(_data, 'lectures')?.id, 11);

@@ -12,11 +12,15 @@ String fileTreeText(CourseFiles data, Set<int> hiddenFolders, {int maxLines = kM
   final lines = <String>[];
   final root = data.folders.where((f) => f.parentId == null).firstOrNull;
   int byName(String a, String b) => a.toLowerCase().compareTo(b.toLowerCase());
+  final seen = <String, int>{};
+  for (final f in data.files) {
+    seen.update(f.name.toLowerCase(), (n) => n + 1, ifAbsent: () => 1);
+  }
 
   void filesIn(int? folderId, String indent) {
     final files = data.files.where((f) => f.folderId == (folderId ?? 0)).toList()..sort((a, b) => byName(a.name, b.name));
     for (final f in files) {
-      lines.add('$indent- ${f.name} (${sizeText(f.size)})');
+      lines.add('$indent- ${f.name} (${sizeText(f.size)})${seen[f.name.toLowerCase()]! > 1 ? ' [same name elsewhere: give its folder]' : ''}');
     }
   }
 

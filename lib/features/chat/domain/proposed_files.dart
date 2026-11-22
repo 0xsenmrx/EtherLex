@@ -18,6 +18,9 @@ enum FileActionKind {
 
   /// Save one file into the Downloads folder.
   download,
+
+  /// Hide a whole course in the Files tab (or show it again). The course stays everywhere else.
+  hideCourse,
 }
 
 class FileAction {
@@ -34,7 +37,7 @@ class FileAction {
   /// A file name (download, or offline for one file).
   final String? file;
 
-  /// hideFolder: true = hide, false = show again.
+  /// hideFolder / hideCourse: true = hide, false = show again.
   final bool value;
 }
 
@@ -76,6 +79,10 @@ FilesProposal? parseFileActions(String source) {
         final value = r['value'] ?? true;
         if (folder == null || file != null || value is! bool) return null;
         out.add(FileAction(kind: FileActionKind.hideFolder, course: course, folder: folder, value: value));
+      case 'hide_course':
+        final value = r['value'] ?? true;
+        if (folder != null || file != null || value is! bool) return null;
+        out.add(FileAction(kind: FileActionKind.hideCourse, course: course, value: value));
       case 'offline':
         out.add(FileAction(kind: FileActionKind.offline, course: course, folder: folder, file: file));
       case 'download':
@@ -123,16 +130,20 @@ Set<int> folderTree(CourseFiles data, int root) {
   return ids;
 }
 
-/// The file [name] means, among [files]: exact (ignoring case and punctuation)
-/// first, then a name that contains it. Null when none or several fit.
-FileEntry? resolveFile(List<FileEntry> files, String name) {
+/// The files [name] could mean: those named exactly that (ignoring case and
+/// punctuation), else those whose name contains it.
+List<FileEntry> fileMatches(List<FileEntry> files, String name) {
   final n = normalizeName(name);
-  if (n.isEmpty) return null;
+  if (n.isEmpty) return const [];
   final exact = files.where((f) => normalizeName(f.name) == n).toList();
-  if (exact.length == 1) return exact.single;
-  if (exact.length > 1) return null;
-  final contained = files.where((f) => n.length >= 4 && normalizeName(f.name).contains(n)).toList();
-  return contained.length == 1 ? contained.single : null;
+  if (exact.isNotEmpty) return exact;
+  return n.length >= 4 ? files.where((f) => normalizeName(f.name).contains(n)).toList() : const [];
+}
+
+/// The one file [name] means, or null when none or several fit.
+FileEntry? resolveFile(List<FileEntry> files, String name) {
+  final found = fileMatches(files, name);
+  return found.length == 1 ? found.single : null;
 }
 
 enum FileEffect { change, same, unknown, loading }
@@ -183,6 +194,7 @@ List<FileLine> previewFileActions(
   List<Course> courses, {
   required CourseFiles? Function(int courseId) dataFor,
   required Set<int> hiddenFolders,
+  Set<int> hiddenCourses = const {},
   required bool Function(FileEntry) saved,
 }) {
   final out = <FileLine>[];
@@ -191,6 +203,7 @@ List<FileLine> previewFileActions(
       FileActionKind.hideFolder => a.value ? 'Hide folder' : 'Show folder',
       FileActionKind.offline => 'Save offline',
       FileActionKind.download => 'Download',
+      FileActionKind.hideCourse => a.value ? 'Hide in Files' : 'Show in Files',
     };
     final course = matchCourse(a.course, courses);
     if (course == null) {
@@ -198,6 +211,18 @@ List<FileLine> previewFileActions(
       continue;
     }
     final where = course.shortLabel;
+    if (a.kind == FileActionKind.hideCourse) {
+      final hidden = hiddenCourses.contains(course.id);
+      out.add(FileLine(
+        action: a,
+        label: label,
+        detail: course.name,
+        effect: hidden == a.value ? FileEffect.same : FileEffect.change,
+        note: hidden == a.value ? 'already so' : '',
+        courseId: course.id,
+      ));
+      continue;
+    }
     final data = dataFor(course.id);
     if (data == null) {
       out.add(FileLine(action: a, label: label, detail: where, effect: FileEffect.loading, courseId: course.id, note: 'loading the files'));
@@ -213,6 +238,8 @@ List<FileLine> previewFileActions(
     }
     final detail = [where, if (folder != null) folder.name, if (a.file != null) a.file!].join(' · ');
     switch (a.kind) {
+      case FileActionKind.hideCourse:
+        break; // handled above
       case FileActionKind.hideFolder:
         final hidden = hiddenFolders.contains(folder!.id);
         out.add(FileLine(
@@ -229,12 +256,20 @@ List<FileLine> previewFileActions(
         final pool = folder == null ? data.files : [for (final f in data.files) if (folderTree(data, folder.id).contains(f.folderId)) f];
         List<FileEntry> files;
         if (a.file != null) {
-          final one = resolveFile(a.kind == FileActionKind.download && folder == null ? data.files : pool, a.file!);
-          if (one == null) {
-            out.add(FileLine(action: a, label: label, detail: detail, effect: FileEffect.unknown, courseId: course.id, folderId: folder?.id, note: 'no single file matches'));
+          final found = fileMatches(a.kind == FileActionKind.download && folder == null ? data.files : pool, a.file!);
+          if (found.length != 1) {
+            out.add(FileLine(
+              action: a,
+              label: label,
+              detail: detail,
+              effect: FileEffect.unknown,
+              courseId: course.id,
+              folderId: folder?.id,
+              note: found.isEmpty ? 'no file matches' : '${found.length} files match: name the folder too',
+            ));
             continue;
           }
-          files = [one];
+          files = found;
         } else {
           files = pool;
         }
