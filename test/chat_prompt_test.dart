@@ -17,11 +17,11 @@ void main() {
   });
 
   test('the course names are in the prompt when given, and only then', () {
-    const list = CoursesContext(lines: [CourseLine(name: 'Discrete Mathematics', code: 'MATH2160J'), CourseLine(name: 'Linear Algebra', hidden: true)]);
+    const list = CoursesContext(lines: [CourseLine(name: 'Quantum Basket Weaving', code: 'QBW101'), CourseLine(name: 'Linear Algebra', hidden: true)]);
     final withList = chatSystemPrompt(DateTime(2026, 11, 20), courses: list);
-    expect(withList, contains('- Discrete Mathematics (MATH2160J); shown'));
+    expect(withList, contains('- Quantum Basket Weaving (QBW101); shown'));
     expect(withList, contains('- Linear Algebra; hidden in EtherLex'));
-    expect(chatSystemPrompt(DateTime(2026, 11, 20)), isNot(contains('Discrete Mathematics')));
+    expect(chatSystemPrompt(DateTime(2026, 11, 20)), isNot(contains('Quantum Basket Weaving')));
     expect(chatSystemPrompt(DateTime(2026, 11, 20), courses: const CoursesContext(lines: [])), isNot(contains("The student's courses")));
   });
 

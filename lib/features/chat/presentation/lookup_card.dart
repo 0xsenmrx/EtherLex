@@ -29,7 +29,7 @@ class LookupAnswersNotifier extends Notifier<Map<String, bool>> {
 
 final lookupAnswersProvider = NotifierProvider<LookupAnswersNotifier, Map<String, bool>>(LookupAnswersNotifier.new);
 
-/// "To do that I need to see the file list of <course>": the assistant asks,
+/// "To do that I need to see the file list of the course": the assistant asks,
 /// the student decides. Allowing loads the listing and sends it with a short
 /// message, so the assistant can carry on with the exact folder names.
 class LookupCard extends ConsumerStatefulWidget {
