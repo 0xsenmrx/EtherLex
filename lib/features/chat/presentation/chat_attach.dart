@@ -25,6 +25,7 @@ import '../../grades/presentation/grades_providers.dart';
 import '../../viewer/data/file_text.dart';
 import '../../viewer/domain/preview_kind.dart';
 import '../../../core/utils/format.dart';
+import '../domain/ai_settings.dart';
 import '../domain/attach_rules.dart';
 import '../domain/context_builders.dart';
 import '../domain/context_item.dart';
@@ -40,19 +41,25 @@ typedef ContextBuilder = Future<ContextItem?> Function();
 Future<bool> ensureConsent(BuildContext context, WidgetRef ref) async {
   final session = ref.read(authProvider).value;
   if (session == null || session.isSample) return true;
-  final provider = ref.read(aiSettingsProvider).provider;
-  if (ref.read(aiConsentProvider).contains(provider)) return true;
+  final settings = ref.read(aiSettingsProvider);
+  final consent = ref.read(aiConsentProvider.notifier);
+  if (consent.allows(settings)) {
+    // Bind an old server-less yes to this server now.
+    if (!ref.read(aiConsentProvider).contains(consentKeyFor(settings))) consent.grant(settings);
+    return true;
+  }
+  final name = aiServiceName(settings);
   final ok = await confirmAction(
     context,
-    title: 'Send Canvas data to ${provider.label}?',
+    title: 'Send Canvas data to $name?',
     message: 'What you attach (assignments, grades, announcements, files or pictures) is sent to '
-        '${provider.label} together with your question, using your own API key. '
+        '$name together with your question, using your own API key. '
         'The names of your courses go along with every question, so it can find the one you mean. '
         'EtherLex sends nothing else. '
         'You can take this permission back in Settings.',
     confirmLabel: 'Allow',
   );
-  if (ok) ref.read(aiConsentProvider.notifier).grant(provider);
+  if (ok) consent.grant(settings);
   return ok;
 }
 

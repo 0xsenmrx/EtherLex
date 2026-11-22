@@ -4,16 +4,17 @@ import '../../../core/storage/settings_store.dart';
 import '../../assignments/presentation/assignments_providers.dart' show settingsStoreProvider;
 import '../domain/ai_settings.dart';
 
-/// The AI services this account has agreed to send Canvas data to. Nothing
+/// The AI services (and, for the OpenAI-compatible one, the servers) this
+/// account has agreed to send Canvas data to, as [consentKeyFor] keys. Nothing
 /// from Canvas goes to a service until the student has said yes to it once;
 /// the answer belongs to the account, so another account on this computer is
 /// asked again.
-class AiConsentNotifier extends Notifier<Set<AiProvider>> {
+class AiConsentNotifier extends Notifier<Set<String>> {
   /// The student answered before the saved answers were read: their answer wins.
   bool _changed = false;
 
   @override
-  Set<AiProvider> build() {
+  Set<String> build() {
     _changed = false;
     _load(ref.watch(settingsStoreProvider));
     return const {};
@@ -21,28 +22,44 @@ class AiConsentNotifier extends Notifier<Set<AiProvider>> {
 
   Future<void> _load(SettingsStore store) async {
     try {
-      final names = await store.readAiConsent();
+      final keys = await store.readAiConsent();
       if (ref.mounted && !_changed && identical(store, ref.read(settingsStoreProvider))) {
-        state = {for (final p in AiProvider.values) if (names.contains(p.name)) p};
+        state = {...keys};
       }
     } catch (_) {}
   }
 
   void _save() {
-    ref.read(settingsStoreProvider).writeAiConsent({for (final p in state) p.name}).catchError((Object _) {});
+    ref.read(settingsStoreProvider).writeAiConsent(state).catchError((Object _) {});
   }
 
-  void grant(AiProvider p) {
+  bool allows(AiSettings s) => consentAllows(state, s);
+
+  /// Yes for the service and server in [s]. An old server-less "openai" yes
+  /// is replaced by this one.
+  void grant(AiSettings s) {
     _changed = true;
-    state = {...state, p};
+    state = {...state, consentKeyFor(s)}..remove(kLegacyOpenAiConsent);
     _save();
   }
 
-  void revoke(AiProvider p) {
+  /// Takes the yes for [s] back (and an old server-less one for the same service).
+  void revoke(AiSettings s) {
     _changed = true;
-    state = {...state}..remove(p);
+    state = {...state}
+      ..remove(consentKeyFor(s))
+      ..removeWhere((k) => s.provider == AiProvider.openai && k == kLegacyOpenAiConsent);
+    _save();
+  }
+
+  /// The OpenAI-compatible address is changing: an old server-less yes must
+  /// not follow it to the new server.
+  void forgetLegacyOpenAi() {
+    if (!state.contains(kLegacyOpenAiConsent)) return;
+    _changed = true;
+    state = {...state}..remove(kLegacyOpenAiConsent);
     _save();
   }
 }
 
-final aiConsentProvider = NotifierProvider<AiConsentNotifier, Set<AiProvider>>(AiConsentNotifier.new);
+final aiConsentProvider = NotifierProvider<AiConsentNotifier, Set<String>>(AiConsentNotifier.new);

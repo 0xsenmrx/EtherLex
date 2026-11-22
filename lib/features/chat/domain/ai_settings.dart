@@ -83,3 +83,33 @@ class AiSettings {
   @override
   int get hashCode => Object.hash(provider, openAiBaseUrl, Object.hashAllUnordered(models.entries.map((e) => (e.key, e.value))));
 }
+
+/// The server part of an address ("api.example.com", or "localhost:11434"
+/// when a port is written), lower case; null when it is not an address.
+String? aiHostOf(String url) {
+  final u = Uri.tryParse(url.trim());
+  if (u == null || u.host.isEmpty) return null;
+  final host = u.host.toLowerCase();
+  return u.hasPort ? '$host:${u.port}' : host;
+}
+
+/// What the student's "yes, send Canvas data" is tied to. For the
+/// OpenAI-compatible service it is the service and its server, so pointing
+/// EtherLex at another server asks again.
+String consentKeyFor(AiSettings s) => switch (s.provider) {
+      AiProvider.openai => 'openai@${aiHostOf(s.openAiBaseUrl) ?? '?'}',
+      final p => p.name,
+    };
+
+/// Consent saved by 0.3 previews: "openai" without a server. It still counts
+/// until it is bound to the current server ([consentAllows] and the notifier).
+const String kLegacyOpenAiConsent = 'openai';
+
+/// True when [keys] hold a yes for the service and server in [s].
+bool consentAllows(Set<String> keys, AiSettings s) =>
+    keys.contains(consentKeyFor(s)) || (s.provider == AiProvider.openai && keys.contains(kLegacyOpenAiConsent));
+
+/// How the service is named to the student: with its server for the
+/// OpenAI-compatible one ("OpenAI-compatible (api.example.com)").
+String aiServiceName(AiSettings s) =>
+    s.provider == AiProvider.openai ? '${s.provider.label} (${aiHostOf(s.openAiBaseUrl) ?? 'no address'})' : s.provider.label;

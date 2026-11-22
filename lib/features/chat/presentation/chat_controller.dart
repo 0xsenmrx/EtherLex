@@ -202,7 +202,7 @@ class ChatController extends Notifier<ChatState> {
   /// exactly. Sent only after they allowed sending Canvas data to this service.
   CoursesContext? _courseList() {
     final session = ref.read(authProvider).value;
-    final allowed = session != null && (session.isSample || ref.read(aiConsentProvider).contains(ref.read(aiSettingsProvider).provider));
+    final allowed = session != null && (session.isSample || ref.read(aiConsentProvider.notifier).allows(ref.read(aiSettingsProvider)));
     if (!allowed) return null;
     final disabled = ref.read(disabledCoursesProvider);
     final courses = [...(ref.read(coursesProvider).value ?? const <Course>[])]..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
