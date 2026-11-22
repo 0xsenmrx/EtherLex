@@ -188,6 +188,14 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
         ),
         keywords: ['font', 'typeface', 'handwriting', 'inter', 'ink'],
       ),
+      for (final p in PaletteChoice.values)
+        if (p != appearance.palette)
+          cmd('accent:${p.name}', 'Accent colour: ${p.label}', 'Actions', EIcons.palette, () => looks.setPalette(p),
+              keywords: ['colour', 'color', 'accent', 'theme', 'palette']),
+      for (final b in BackgroundPattern.values)
+        if (b != appearance.background)
+          cmd('background:${b.name}', 'Background: ${b.label}', 'Actions', EIcons.palette, () => looks.setBackground(b),
+              keywords: ['pattern', 'dots', 'grid', 'plain', 'canvas', 'appearance']),
       cmd(
         'notifications',
         notificationsOn ? 'Turn notifications off' : 'Turn notifications on',
@@ -256,6 +264,8 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
         String? section;
         for (final e in all) {
           if (e.command.section == 'Courses') continue;
+          // Accent and background choices only when typed for ("accent", "grid").
+          if (e.command.id.startsWith('accent:') || e.command.id.startsWith('background:')) continue;
           if (e.command.section != section) {
             section = e.command.section;
             entries.add(_SectionEntry(section));

@@ -10,7 +10,9 @@ import '../../../core/notify/toast.dart';
 import '../../../core/utils/format.dart';
 import '../../../core/utils/open_url.dart';
 import '../../../design_system/ether/controls.dart';
-import '../../../design_system/ether/list.dart';
+import '../../../design_system/ether/dot_grid.dart';
+import '../../../design_system/ether/icons.dart';
+import '../../../design_system/ether/option_cards.dart';
 import '../../../design_system/theme/course_palette.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../../assignments/presentation/assignments_providers.dart';
@@ -61,6 +63,19 @@ SettingsItem _row(
       section,
       SettingsSearchText(title: title, description: description ?? '', keywords: keywords),
       (q) => SettingsRow(title: title, description: description, trailing: trailing, leading: leading, query: q),
+    );
+
+SettingsItem _block(
+  SettingsSection section,
+  String title, {
+  String? description,
+  List<String> keywords = const [],
+  required Widget child,
+}) =>
+    SettingsItem(
+      section,
+      SettingsSearchText(title: title, description: description ?? '', keywords: keywords),
+      (q) => SettingsBlock(title: title, description: description, query: q, child: child),
     );
 
 SettingsItem _note(SettingsSection section, String text) =>
@@ -156,19 +171,23 @@ List<SettingsItem> buildSettingsItems(BuildContext context, WidgetRef ref) {
         'Your token is kept in the Windows credential store.'),
 
     // Appearance
-    _row(
+    _block(
       look,
       'Theme',
       description: 'Light, dark, or whatever Windows uses',
-      keywords: const ['dark', 'light', 'mode', 'windows', 'system'],
-      trailing: ESegmented(
-        labels: const ['Windows', 'Light', 'Dark'],
+      keywords: const ['dark', 'light', 'mode', 'windows', 'system', 'match'],
+      child: EOptionCards(
+        options: const [
+          EOptionCard(label: 'Light', icon: EIcons.sun),
+          EOptionCard(label: 'Dark', icon: EIcons.moon),
+          EOptionCard(label: 'Match Windows', icon: EIcons.monitor),
+        ],
         selected: switch (appearance.theme) {
-          ThemeChoice.system => 0,
-          ThemeChoice.light => 1,
-          ThemeChoice.dark => 2,
+          ThemeChoice.light => 0,
+          ThemeChoice.dark => 1,
+          ThemeChoice.system => 2,
         },
-        onChanged: (i) => looks.setTheme(ThemeChoice.values[i]),
+        onChanged: (i) => looks.setTheme(const [ThemeChoice.light, ThemeChoice.dark, ThemeChoice.system][i]),
       ),
     ),
     _row(
@@ -186,15 +205,33 @@ List<SettingsItem> buildSettingsItems(BuildContext context, WidgetRef ref) {
         onChanged: (i) => looks.setPalette(PaletteChoice.values[i]),
       ),
     ),
-    _row(
+    _block(
       look,
       'Font',
       description: 'Handwritten uses Ink Free, which comes with Windows',
       keywords: const ['handwritten', 'clean', 'typeface', 'ink free', 'inter'],
-      trailing: ESegmented(
-        labels: const ['Handwritten', 'Clean'],
+      child: EOptionCards(
+        previewHeight: 48,
+        options: const [
+          EOptionCard(label: 'Handwritten', preview: _FontSample(handwritten: true)),
+          EOptionCard(label: 'Clean', preview: _FontSample(handwritten: false)),
+        ],
         selected: appearance.handwritten ? 0 : 1,
         onChanged: (i) => looks.setTypeface(i == 0 ? TypefaceChoice.handwritten : TypefaceChoice.clean),
+      ),
+    ),
+    _block(
+      look,
+      'Background',
+      description: 'What sits behind the lists',
+      keywords: const ['pattern', 'dots', 'grid', 'plain', 'canvas', 'background'],
+      child: EOptionCards(
+        previewHeight: 48,
+        options: [
+          for (final p in BackgroundPattern.values) EOptionCard(label: p.label, preview: _PatternSample(p)),
+        ],
+        selected: appearance.background.index,
+        onChanged: (i) => looks.setBackground(BackgroundPattern.values[i]),
       ),
     ),
     _note(look, 'The look is shared by every account on this computer.'),
@@ -374,3 +411,43 @@ Map<SettingsSection, SettingsReset> settingsResets(WidgetRef ref) => {
           () => ref.read(updatePrefsProvider.notifier).setAutoCheck(true),
         ),
     };
+
+/// Two lines in the given font, for the Font cards.
+class _FontSample extends StatelessWidget {
+  const _FontSample({required this.handwritten});
+  final bool handwritten;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final s = EtherText.build(c, handwritten: handwritten);
+    return Container(
+      color: c.canvas,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      alignment: Alignment.centerLeft,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Problem Set 3', maxLines: 1, overflow: TextOverflow.ellipsis, style: s.label),
+          Text('Due Friday 23:59', maxLines: 1, overflow: TextOverflow.ellipsis, style: s.meta),
+        ],
+      ),
+    );
+  }
+}
+
+/// A small piece of the canvas with [pattern], for the Background cards.
+class _PatternSample extends StatelessWidget {
+  const _PatternSample(this.pattern);
+  final BackgroundPattern pattern;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    return CustomPaint(
+      painter: PatternPainter(c.canvas, c.dot, 12, MediaQuery.devicePixelRatioOf(context), pattern),
+      child: const SizedBox.expand(),
+    );
+  }
+}

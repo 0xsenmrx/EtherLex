@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../../core/appearance/appearance.dart';
 import '../../core/notify/toast.dart';
 import '../../core/utils/initials.dart';
 import '../../design_system/ether/icons.dart';
@@ -14,7 +13,8 @@ import '../../features/notifications/presentation/notifications_providers.dart';
 import '../../features/palette/presentation/shortcuts_dialog.dart';
 import '../../features/settings/presentation/settings_dialog.dart';
 
-/// Avatar in the top bar: account, notifications, theme, Settings and sign out.
+/// Avatar in the top bar: account, notifications, Settings, shortcuts and
+/// sign out. The look lives in Settings > Appearance (and the sun/moon button).
 class AccountMenu extends ConsumerWidget {
   const AccountMenu({super.key});
 
@@ -26,20 +26,7 @@ class AccountMenu extends ConsumerWidget {
     final name = session?.userName ?? '';
     final isSample = session?.isSample ?? true;
     final notificationsOn = ref.watch(notificationsProvider);
-    final appearance = ref.watch(appearanceProvider);
-    final looks = ref.read(appearanceProvider.notifier);
     final item = etherMenuItemStyle(c, t);
-
-    Widget themeItem(ThemeChoice choice, String label, IconData icon) => MenuItemButton(
-          style: item,
-          closeOnActivate: false,
-          leadingIcon: Icon(icon),
-          trailingIcon: appearance.theme == choice
-              ? Icon(EIcons.check, size: 15, color: c.accent)
-              : null,
-          onPressed: () => looks.setTheme(choice),
-          child: Text(label),
-        );
 
     Future<void> signOut() async {
       final ok = await confirmSignOut(context, sample: isSample);
@@ -74,20 +61,6 @@ class AccountMenu extends ConsumerWidget {
                 );
           },
           child: const Text('Notifications'),
-        ),
-        const EMenuCaption('Theme'),
-        themeItem(ThemeChoice.system, 'Match Windows', EIcons.monitor),
-        themeItem(ThemeChoice.light, 'Light', EIcons.sun),
-        themeItem(ThemeChoice.dark, 'Dark', EIcons.moon),
-        MenuItemButton(
-          style: item,
-          closeOnActivate: false,
-          leadingIcon: const Icon(EIcons.pen),
-          trailingIcon: Text(appearance.handwritten ? 'On' : 'Off', style: t.metaMuted),
-          onPressed: () => looks.setTypeface(
-            appearance.handwritten ? TypefaceChoice.clean : TypefaceChoice.handwritten,
-          ),
-          child: const Text('Handwritten font'),
         ),
         const EMenuDivider(),
         MenuItemButton(

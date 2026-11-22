@@ -93,6 +93,7 @@ class _SetupPageState extends ConsumerState<SetupPage> {
     final t = context.text;
 
     return DotGrid(
+      pattern: ref.watch(appearanceProvider.select((a) => a.background)),
       child: Stack(
         children: [
           // Empty title bar space moves the window; it lies under the brand

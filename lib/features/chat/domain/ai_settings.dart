@@ -2,13 +2,19 @@ const String kOpenAiBaseUrl = 'https://api.openai.com/v1';
 const String kDeepSeekBaseUrl = 'https://api.deepseek.com';
 
 enum AiProvider {
-  anthropic('Anthropic (Claude)', 'claude-sonnet-5-5'),
+  anthropic('Anthropic (Claude)', 'claude-sonnet-5-5', shortName: 'Anthropic'),
   openai('OpenAI-compatible', ''),
   deepseek('DeepSeek', 'deepseek-chat', readsImages: false);
 
-  const AiProvider(this.label, this.defaultModel, {this.readsImages = true});
+  const AiProvider(this.label, this.defaultModel, {this.readsImages = true, this.shortName});
 
   final String label;
+
+  /// A shorter [label], when there is one.
+  final String? shortName;
+
+  /// For tight places like the service switcher.
+  String get shortLabel => shortName ?? label;
 
   /// False when the service has no way to take a picture, so EtherLex says so
   /// instead of sending it. (For "OpenAI-compatible" it depends on the model

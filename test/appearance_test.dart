@@ -36,6 +36,15 @@ void main() {
     expect(Appearance.fromJson({'palette': 'neon'}).palette, PaletteChoice.violet);
   });
 
+  test('the background pattern is saved and defaults to dots', () {
+    expect(const Appearance().background, BackgroundPattern.dots);
+    const a = Appearance(background: BackgroundPattern.grid);
+    expect(Appearance.fromJson(a.toJson()), a);
+    expect(Appearance.fromJson({'theme': 'dark'}).background, BackgroundPattern.dots);
+    expect(Appearance.fromJson({'background': 'stripes'}).background, BackgroundPattern.dots);
+    expect(a == const Appearance(), isFalse);
+  });
+
   test('unknown or broken values fall back to defaults', () {
     expect(Appearance.fromJson({'theme': 'purple', 'typeface': 3}), const Appearance());
     expect(Appearance.fromJson('nonsense'), const Appearance());
