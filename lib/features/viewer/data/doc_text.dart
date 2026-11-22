@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -102,19 +103,60 @@ Future<T> _withSafePath<T>(String path, Future<T> Function(String path) run) asy
   }
 }
 
-Future<String?> _readZipEntryAt(String zipPath, String entry) async {
+/// Biggest Office file we open, and the most text we take out of one part.
+/// A zip can be tiny and still unpack to gigabytes.
+const int kMaxOfficeFileBytes = 50 * 1024 * 1024;
+const int kMaxOfficePartBytes = 20 * 1024 * 1024;
+
+/// The system tar by its full path, so a look-alike `tar.exe` in the PATH or
+/// the working folder is never run.
+String get _tarExe {
+  if (Platform.isWindows) {
+    final root = Platform.environment['SystemRoot'] ?? r'C:\Windows';
+    final system = '$root\\System32\\tar.exe';
+    if (File(system).existsSync()) return system;
+  }
+  return 'tar';
+}
+
+/// Runs tar and returns its output, or null on failure or if it is too big.
+Future<String?> _tarOutput(List<String> args, {int maxBytes = kMaxOfficePartBytes}) async {
   try {
-    final r = await Process.run(
-      'tar',
-      ['-xOf', zipPath, entry],
-      stdoutEncoding: utf8,
-      stderrEncoding: utf8,
-    );
-    if (r.exitCode != 0) return null;
-    final out = r.stdout as String;
-    return out.isEmpty ? null : out;
+    final proc = await Process.start(_tarExe, args);
+    final bytes = <int>[];
+    var tooBig = false;
+    final sub = proc.stdout.listen((chunk) {
+      if (tooBig) return;
+      bytes.addAll(chunk);
+      if (bytes.length > maxBytes) {
+        tooBig = true;
+        proc.kill();
+      }
+    });
+    unawaited(proc.stderr.drain<void>());
+    final code = await proc.exitCode.timeout(const Duration(seconds: 20), onTimeout: () {
+      proc.kill();
+      return -1;
+    });
+    await sub.asFuture<void>().timeout(const Duration(seconds: 2), onTimeout: () {});
+    if (tooBig || code != 0) return null;
+    return utf8.decode(bytes, allowMalformed: true);
   } catch (_) {
     return null;
+  }
+}
+
+Future<String?> _readZipEntryAt(String zipPath, String entry) async {
+  if (!await _smallEnough(zipPath)) return null;
+  final out = await _tarOutput(['-xOf', zipPath, entry]);
+  return out == null || out.isEmpty ? null : out;
+}
+
+Future<bool> _smallEnough(String path) async {
+  try {
+    return await File(path).length() <= kMaxOfficeFileBytes;
+  } catch (_) {
+    return false;
   }
 }
 
@@ -129,16 +171,13 @@ Future<List<DocBlock>?> readDocx(String path) async {
 }
 
 Future<List<String>> _zipEntries(String zipPath, RegExp match) => _withSafePath(zipPath, (p) async {
-      try {
-        final r = await Process.run('tar', ['-tf', p], stdoutEncoding: utf8);
-        if (r.exitCode != 0) return const <String>[];
-        return [
-          for (final line in (r.stdout as String).split(RegExp(r'\r?\n')))
-            if (match.hasMatch(line.trim())) line.trim(),
-        ];
-      } catch (_) {
-        return const <String>[];
-      }
+      if (!await _smallEnough(p)) return const <String>[];
+      final listing = await _tarOutput(['-tf', p]);
+      if (listing == null) return const <String>[];
+      return [
+        for (final line in listing.split(RegExp(r'\r?\n')))
+          if (match.hasMatch(line.trim())) line.trim(),
+      ];
     });
 
 /// Slides in order, each a heading block ("Slide N") followed by its text.

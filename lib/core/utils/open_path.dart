@@ -44,6 +44,11 @@ String uniquePath(String dir, String fileName) {
 const _risky = {
   'exe', 'bat', 'cmd', 'com', 'msi', 'ps1', 'vbs', 'vbe', 'js', 'jse', 'wsf', 'jar',
   'scr', 'lnk', 'reg', 'hta', 'pif', 'cpl', 'dll', 'sh', 'app', 'command', 'appimage',
+  // Shortcuts, installers, packages, macro documents and other things that can run code.
+  'url', 'chm', 'msp', 'msix', 'msixbundle', 'appx', 'appxbundle', 'psm1', 'ps1xml', 'psc1',
+  'msc', 'wsh', 'wsc', 'vb', 'inf', 'ins', 'isp', 'gadget', 'scf', 'iso', 'img', 'vhd', 'vhdx',
+  'docm', 'dotm', 'xlsm', 'xltm', 'xlam', 'xll', 'pptm', 'potm', 'ppam', 'ppsm', 'sldm',
+  'jnlp', 'library-ms', 'searchconnector-ms', 'pyw', 'py', 'rb', 'pl',
 };
 
 bool isRiskyFile(String path) {

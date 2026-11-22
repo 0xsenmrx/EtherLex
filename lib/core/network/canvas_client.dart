@@ -77,6 +77,22 @@ String? parseNextLink(String? header) {
   return m?.group(1);
 }
 
+/// True when [uri] is the same origin as [base]: https, same host, same port.
+/// The Canvas token is only ever sent to such addresses.
+bool isSameOrigin(Uri uri, String base) {
+  final b = Uri.tryParse(base);
+  if (b == null || uri.scheme != 'https' || b.scheme != 'https') return false;
+  return uri.host.toLowerCase() == b.host.toLowerCase() && uri.port == b.port;
+}
+
+/// Where a redirect to [location] leads, or null if it is not a safe https
+/// address. Relative locations are resolved against [from].
+Uri? redirectTarget(Uri from, String? location) {
+  if (location == null || location.isEmpty) return null;
+  final target = from.resolve(location);
+  return target.scheme == 'https' && target.host.isNotEmpty ? target : null;
+}
+
 class CanvasClient {
   CanvasClient({required String baseUrl, required String token, Dio? dio}) : _dio = dio ?? Dio() {
     _dio.options
@@ -119,7 +135,6 @@ class CanvasClient {
     int maxPages = 50,
   }) async {
     final out = <Map<String, dynamic>>[];
-    final host = Uri.parse(_dio.options.baseUrl).host;
 
     Future<Response<dynamic>> get(String url, Map<String, dynamic>? q) async {
       try {
@@ -148,7 +163,7 @@ class CanvasClient {
     final lastPage = parseLastPage(link);
     final nextUri = next == null ? null : Uri.tryParse(next);
     if (nextUri != null &&
-        nextUri.host == host &&
+        isSameOrigin(nextUri, _dio.options.baseUrl) &&
         lastPage != null &&
         lastPage > 2 &&
         lastPage <= maxPages &&
@@ -166,7 +181,7 @@ class CanvasClient {
 
     while (next != null && pages++ < maxPages) {
       final u = Uri.tryParse(next);
-      if (u == null || u.host != host) break;
+      if (u == null || !isSameOrigin(u, _dio.options.baseUrl)) break;
       final r = await get(next, null);
       collect(r);
       link = r.headers.value('link');
@@ -251,10 +266,9 @@ class CanvasClient {
       await plain.download(url, savePath);
     } on DioException catch (e) {
       final code = e.response?.statusCode;
-      final sameHost = uri.host == Uri.parse(_dio.options.baseUrl).host;
-      if ((code == 401 || code == 403) && sameHost) {
+      if ((code == 401 || code == 403) && isSameOrigin(uri, _dio.options.baseUrl)) {
         try {
-          await _dio.download(url, savePath);
+          await _downloadWithToken(uri, savePath);
         } on DioException catch (e2) {
           throw mapDioError(e2);
         }
@@ -265,6 +279,33 @@ class CanvasClient {
       // A one-off client: release its connections instead of leaving them idle.
       plain.close();
     }
+  }
+
+  /// The retry with the token. Redirects are followed by hand so the token
+  /// never leaves Canvas: a hop to another origin is fetched without it.
+  Future<void> _downloadWithToken(Uri start, String savePath) async {
+    var current = start;
+    for (var hop = 0; hop < 5; hop++) {
+      final own = isSameOrigin(current, _dio.options.baseUrl);
+      final dio = own ? _dio : Dio(BaseOptions(connectTimeout: const Duration(seconds: 15)));
+      try {
+        final r = await dio.downloadUri(
+          current,
+          savePath,
+          options: Options(followRedirects: false, validateStatus: (s) => s != null && s < 400),
+        );
+        final code = r.statusCode ?? 200;
+        if (code < 300) return;
+        final next = redirectTarget(current, r.headers.value('location'));
+        if (next == null) {
+          throw const CanvasException(CanvasErrorKind.unexpected, 'This file has no safe download link.');
+        }
+        current = next;
+      } finally {
+        if (!own) dio.close();
+      }
+    }
+    throw const CanvasException(CanvasErrorKind.unexpected, 'Too many redirects while downloading.');
   }
 
   Future<Map<String, dynamic>> fetchFileJson(int fileId) async {
