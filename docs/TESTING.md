@@ -236,6 +236,9 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 7. Download the installer from the GitHub release on a PC that has never run EtherLex, and open it.
 - [ ] **Expect** "Windows protected your PC"; More info, then Run anyway installs it (as the README says). `Get-FileHash` matches the `.sha256` file on the release page.
 
+8. With the installed EtherLex open (minimise it), start it again from the Start menu.
+- [ ] **Expect** no second window: the open one comes back to the front. A `flutter run` build can still run next to the installed app.
+
 ## 14. Look and feel (redesign) [DONE]
 
 1. Avatar menu → Theme: Light, Dark, Match Windows; and the sun/moon button in the title bar.
@@ -348,7 +351,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 44a. Download a Word file from Files and open it from the toast; then put a `.html` file in a course (or use one that exists) and press Open in its preview.
 - [x] **Expect** Word opens the document in Protected View ("Enable Editing" bar). The .html asks "Open this web page?" first; Cancel does nothing. A `.exe` or `.appref-ms` is only shown in its folder. In Explorer, the downloaded file's Properties shows "This file came from another computer".
 44b. Settings > AI assistant > OpenAI-compatible: type `http://example.com/v1` in Server address, then `https://api.example.com/v1`, with a key saved; Save. Then attach something in the Assistant.
-- [ ] **Expect** the http address shows a red line under the field and Save does nothing. The https one asks "Send your API key to api.example.com?" (Cancel puts the old address back). After Use, attaching asks "Send Canvas data to OpenAI-compatible (api.example.com)?" again, even if you allowed the old server. Anthropic and DeepSeek permissions are unchanged.
+- [x] **Expect** the http address shows a red line under the field and Save does nothing. The https one asks "Send your API key to api.example.com?" (Cancel puts the old address back). After Use, attaching asks "Send Canvas data to OpenAI-compatible (api.example.com)?" again, even if you allowed the old server. Anthropic and DeepSeek permissions are unchanged.
 44. Settings > About > Diagnostics > Copy, then paste into Notepad.
 - [x] **Expect** a toast "Diagnostics copied" and a few lines: version, Windows, Dart, mode, look, AI service chosen, notifications, update check. No token, key, name, Canvas address or course names.
 45. Settings > About > Feedback > Send feedback.
