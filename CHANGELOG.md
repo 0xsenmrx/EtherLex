@@ -36,6 +36,8 @@
 - Starting EtherLex while it is already open now brings the open window forward instead of starting a second copy that could overwrite its data.
 - Settings > AI assistant > Save now says that it saved.
 - The collapsed sidebar no longer overflows in a short window: its page buttons scroll when they do not fit.
+- Odd text from Canvas (a link with an impossibly long file number, or a character code that does not exist, in an announcement, a discussion post or a message) no longer stops Activity from updating; an item EtherLex cannot read is left out instead of failing the whole feed. Word and PowerPoint files with such codes open too.
+- Turning in a submission confirms the upload only with Canvas itself (https, same host and port), like every other request that carries your token.
 - Moving through Files with J/K or the arrows redraws only the two rows involved, not the whole list (smoother in big folders).
 - Copy diagnostics names the AI service only when a key is saved for it.
 - Clicking an empty part of a page no longer makes Windows play its "ding" (it did since 0.2.0).

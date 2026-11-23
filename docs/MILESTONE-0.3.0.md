@@ -9,7 +9,7 @@
 - M3 AI chat: done (#8 to #12, PRs #23 to #31), including proposals with Apply/Undo and permissioned lookups.
 - M2 themes: five accent palettes done (#7, PR #33). Extras (background pattern, density) moved to the audit issues.
 - M4: SmartScreen notes and feedback/diagnostics done (#15, #16, PR #32). Other schools (#13, #14) stay in the backlog: EtherLex targets SJTU for now.
-- Next: the pre-release audit issues (milestone 0.3.0), then the review skills, README (#17) and the release (#18).
+- Pre-release audit issues done (#34 to #62 in 0.3.0; Narrator support #60 dropped). Review skills run (codebase-review, code-security-skills): fixes in the review PR. README (#17) and release (#18) close the milestone.
 
 ## What the code already has (so we don't rebuild it)
 

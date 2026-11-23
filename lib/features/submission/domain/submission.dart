@@ -64,7 +64,8 @@ List<AttachmentRef> parseAttachments(String html, {String? host}) {
     if (hit == null) continue;
     final link = Uri.tryParse(endpoint ?? href ?? '');
     if (host != null && link != null && link.hasAuthority && link.host != host) continue;
-    final id = int.parse(hit.group(1)!);
+    final id = int.tryParse(hit.group(1)!);
+    if (id == null) continue; // too long to be a real id
     var name = attr('title') ?? htmlToText(m.group(2)!, maxLength: 200);
     if (name.isEmpty) name = 'File $id';
     found.putIfAbsent(id, () => AttachmentRef(id, name));

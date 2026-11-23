@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import '../../../core/utils/char_code.dart';
+
 /// A run of text inside a paragraph.
 class DocRun {
   const DocRun(this.text, {this.bold = false, this.italic = false});
@@ -25,8 +27,8 @@ String _unescape(String s) => s
     .replaceAll('&gt;', '>')
     .replaceAll('&quot;', '"')
     .replaceAll('&apos;', "'")
-    .replaceAllMapped(RegExp(r'&#x([0-9a-fA-F]+);'), (m) => String.fromCharCode(int.parse(m.group(1)!, radix: 16)))
-    .replaceAllMapped(RegExp(r'&#(\d+);'), (m) => String.fromCharCode(int.parse(m.group(1)!)))
+    .replaceAllMapped(RegExp(r'&#x([0-9a-fA-F]+);'), (m) => charFromCode(int.tryParse(m.group(1)!, radix: 16)))
+    .replaceAllMapped(RegExp(r'&#(\d+);'), (m) => charFromCode(int.tryParse(m.group(1)!)))
     .replaceAll('&amp;', '&');
 
 /// Text of a Word document.xml: paragraphs, headings, bullets, bold/italic.

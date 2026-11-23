@@ -395,7 +395,8 @@ class CanvasClient {
         // 3. Some servers answer with a redirect that must be confirmed.
         final location = up.headers.value('location');
         final target = location == null ? null : Uri.parse(uploadUrl).resolve(location);
-        if (target == null || target.host != Uri.parse(_dio.options.baseUrl).host) {
+        // The token goes along, so only to Canvas itself: https, same host and port.
+        if (target == null || !isSameOrigin(target, _dio.options.baseUrl)) {
           throw const CanvasException(CanvasErrorKind.unexpected, 'Upload could not be confirmed.');
         }
         Response<dynamic> confirm;

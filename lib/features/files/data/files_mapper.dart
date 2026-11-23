@@ -18,12 +18,14 @@ FileEntry? parseFile(Map<String, dynamic> j, {required int courseId}) {
   if (name is! String || name.isEmpty) return null;
   final updated = j['modified_at'] ?? j['updated_at'];
   final url = j['url'];
+  final size = j['size'];
+  final mime = j['content-type'] ?? j['mime_class'];
   return FileEntry(
     id: id.toInt(),
     folderId: folderId.toInt(),
     name: name,
-    size: (j['size'] as num?)?.toInt() ?? 0,
-    mime: (j['content-type'] ?? j['mime_class'] ?? '') as String,
+    size: size is num ? size.toInt() : 0,
+    mime: mime is String ? mime : '',
     updatedAt: updated is String ? DateTime.tryParse(updated)?.toLocal() : null,
     url: url is String && url.isNotEmpty ? url : null,
     courseId: courseId,
