@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:etherlex/core/storage/settings_store.dart';
 import 'package:etherlex/features/chat/data/chat_store.dart';
 import 'package:etherlex/features/chat/domain/chat_backend.dart';
 import 'package:etherlex/features/chat/domain/chat_models.dart';
+import 'package:etherlex/features/chat/domain/chat_retention.dart';
 import 'package:etherlex/features/chat/domain/context_item.dart';
 import 'package:etherlex/features/chat/presentation/ai_providers.dart';
 import 'package:etherlex/features/chat/presentation/chat_controller.dart';
+import 'package:etherlex/features/settings/presentation/settings_store_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -63,6 +66,7 @@ void main() {
     final c = ProviderContainer(overrides: [
       chatStoreProvider.overrideWithValue(store()),
       chatBackendProvider.overrideWithValue(() async => backend),
+      settingsStoreProvider.overrideWithValue(FileSettingsStore(file: File('${dir.path}/settings.json'))),
     ]);
     addTearDown(c.dispose);
     c.listen(chatControllerProvider, (_, _) {});
@@ -246,5 +250,52 @@ void main() {
     final s = second.container.read(chatControllerProvider);
     expect(s.loaded, isTrue);
     expect(s.conversations.single.title, 'remember me');
+  });
+
+  group('keep conversations (#52)', () {
+    test('"until I close" keeps the chat on screen but writes nothing', () async {
+      final t = start(ScriptBackend((_) => pieces(['ok'])));
+      await t.controller.whenLoaded();
+      t.container.read(chatRetentionProvider.notifier).set(ChatRetention.session);
+      await t.controller.send('First question');
+      expect(t.container.read(chatControllerProvider).conversations, hasLength(1));
+      expect(await store().read(), isEmpty);
+    });
+
+    test('delete all empties the screen and the file', () async {
+      final t = start(ScriptBackend((_) => pieces(['ok'])));
+      await t.controller.whenLoaded();
+      await t.controller.send('One');
+      t.controller.newChat();
+      await t.controller.send('Two');
+      expect(await store().read(), hasLength(2));
+      await t.controller.deleteAll();
+      final s = t.container.read(chatControllerProvider);
+      expect(s.conversations, isEmpty);
+      expect(s.current, isNull);
+      expect(await store().read(), isEmpty);
+    });
+
+    test('switching to 30 days removes old chats from the file', () async {
+      final now = DateTime.now();
+      ChatConversation chat(String id, int daysAgo) => ChatConversation(
+            id: id,
+            title: id,
+            createdAt: now.subtract(Duration(days: daysAgo)),
+            updatedAt: now.subtract(Duration(days: daysAgo)),
+          );
+      await store().write([chat('new', 1), chat('old', 45)]);
+      final t = start(ScriptBackend((_) => pieces(['ok'])));
+      await t.controller.whenLoaded();
+      expect(t.container.read(chatControllerProvider).conversations, hasLength(2));
+      t.container.read(chatRetentionProvider.notifier).set(ChatRetention.month);
+      await until(() => t.container.read(chatControllerProvider).conversations.length == 1);
+      var saved = await store().read();
+      for (var i = 0; i < 200 && saved.length != 1; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        saved = await store().read();
+      }
+      expect([for (final c in saved) c.id], ['new']);
+    });
   });
 }

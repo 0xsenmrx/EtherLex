@@ -320,6 +320,17 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 4. Ctrl+/ and read the list.
 - [x] **Expect** every line does what it says (R: mark done or not done; Ctrl+N; F5 on its own line).
 
+## 14i. Keep conversations
+
+1. Settings > Assistant with some saved chats: choose **Until I close**.
+- [x] **Expect** it asks first and says how many chats will be gone when you close; Cancel keeps Always.
+2. Confirm, ask the assistant something, then close and reopen EtherLex.
+- [x] **Expect** the chat stays in the list while EtherLex is open, and is gone after reopening.
+3. Choose **Always**, have two chats, then Settings > Assistant > **Delete all conversations...**
+- [x] **Expect** it asks "Delete 2 conversations?"; Cancel keeps them, Delete all empties the Assistant and shows "Conversations deleted". Reset to defaults on the Assistant section never deletes chats.
+4. Search Settings for "history".
+- [x] **Expect** both rows are found.
+
 ## 14h. No ding on empty clicks
 
 1. Click empty spots: the page header between the title and refresh, the gap next to the sidebar, the empty area under a short list, the sign-in screen, empty space in Settings.

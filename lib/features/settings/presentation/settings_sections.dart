@@ -23,7 +23,9 @@ import '../../assignments/presentation/assignments_providers.dart';
 import '../../auth/domain/auth_provider.dart';
 import '../../auth/presentation/sign_out.dart';
 import '../../chat/presentation/ai_providers.dart';
+import '../../chat/domain/chat_retention.dart';
 import '../../chat/presentation/ai_settings_section.dart';
+import '../../chat/presentation/chat_controller.dart';
 import '../../files/domain/download_prefs.dart';
 import '../../files/domain/offline_usage.dart';
 import '../../files/presentation/files_providers.dart';
@@ -293,6 +295,25 @@ List<SettingsItem> buildSettingsItems(BuildContext context, WidgetRef ref, {bool
         ),
         child: const AiSettingsSection(),
       ),
+    ),
+
+    SettingsItem(
+      ai,
+      const SettingsSearchText(
+        title: 'Keep conversations',
+        description: 'How long chats with the assistant stay on this computer',
+        keywords: ['chat', 'history', 'delete', 'privacy', 'retention', 'conversations', 'keep'],
+      ),
+      (q) => _ChatRetentionRow(query: q),
+    ),
+    SettingsItem(
+      ai,
+      const SettingsSearchText(
+        title: 'Delete all conversations',
+        description: 'Removes every chat of this account from this computer',
+        keywords: ['chat', 'history', 'delete', 'clear', 'privacy', 'conversations'],
+      ),
+      (q) => _DeleteChatsRow(query: q),
     ),
 
     // Files & downloads
@@ -702,6 +723,82 @@ class _DownloadSwitch extends ConsumerWidget {
         value: value(prefs),
         onChanged: (on) => ref.read(downloadPrefsProvider.notifier).update((p) => change(p, on)),
       ),
+    );
+  }
+}
+
+/// Settings > Assistant: how long chats are kept.
+class _ChatRetentionRow extends ConsumerWidget {
+  const _ChatRetentionRow({required this.query});
+  final String query;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final r = ref.watch(chatRetentionProvider);
+    // A stricter choice deletes saved chats, so it says how many first.
+    Future<void> choose(ChatRetention next) async {
+      final all = ref.read(chatControllerProvider).conversations;
+      final lost = all.length - chatsToSave(all, next, DateTime.now()).length;
+      if (lost > 0) {
+        final chats = '$lost conversation${lost == 1 ? '' : 's'}';
+        final ok = await confirmAction(
+          context,
+          title: next == ChatRetention.session ? 'Stop saving conversations?' : 'Delete old conversations?',
+          message: next == ChatRetention.session
+              ? '$chats saved on this computer will be gone when you close EtherLex. Until then you can still read them.'
+              : '$chats not used for 30 days will be deleted now.',
+          confirmLabel: next == ChatRetention.session ? 'Stop saving' : 'Delete',
+          destructive: true,
+        );
+        if (!ok || !context.mounted) return;
+      }
+      ref.read(chatRetentionProvider.notifier).set(next);
+    }
+
+    return SettingsRow(
+      title: 'Keep conversations',
+      description: switch (r) {
+        ChatRetention.always => 'Chats stay on this computer until you delete them',
+        ChatRetention.month => 'Chats not used for 30 days are deleted',
+        ChatRetention.session => 'Nothing is saved: chats are gone when you close EtherLex',
+      },
+      query: query,
+      trailing: ESegmented(
+        labels: const ['Always', '30 days', 'Until I close'],
+        selected: r.index,
+        onChanged: (i) => choose(ChatRetention.values[i]),
+      ),
+    );
+  }
+}
+
+/// Settings > Assistant: delete every conversation, after asking.
+class _DeleteChatsRow extends ConsumerWidget {
+  const _DeleteChatsRow({required this.query});
+  final String query;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final count = ref.watch(chatControllerProvider.select((s) => s.conversations.length));
+    Future<void> deleteAll() async {
+      final ok = await confirmAction(
+        context,
+        title: 'Delete $count conversation${count == 1 ? '' : 's'}?',
+        message: 'Every chat of this account is removed from this computer. This cannot be undone. '
+            'Your API key, permissions and grade plans are not touched.',
+        confirmLabel: 'Delete all',
+        destructive: true,
+      );
+      if (!ok) return;
+      await ref.read(chatControllerProvider.notifier).deleteAll();
+      ref.read(toastProvider.notifier).show('Conversations deleted');
+    }
+
+    return SettingsRow(
+      title: 'Delete all conversations',
+      description: count == 0 ? 'No conversations saved' : '$count saved for this account',
+      query: query,
+      trailing: count == 0 ? null : EButton(label: 'Delete all...', kind: EButtonKind.ghost, onTap: deleteAll),
     );
   }
 }
