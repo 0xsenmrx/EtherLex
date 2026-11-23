@@ -8,6 +8,7 @@ import '../../../design_system/ether/detail_pane.dart';
 import '../../../design_system/ether/icons.dart';
 import '../../../design_system/ether/list.dart';
 import '../../assignments/presentation/assignments_providers.dart';
+import '../../settings/presentation/view_prefs_provider.dart';
 import '../domain/activity_feed.dart';
 import '../domain/activity_item.dart';
 import 'activity_dialog.dart';
@@ -32,7 +33,13 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
   final SmoothScrollController _scroll = SmoothScrollController();
   final ValueNotifier<String?> _cursor = ValueNotifier<String?>(null);
   final FocusNode _focus = FocusNode();
-  int _filter = 0;
+  // The kind filter, remembered per account (by kind name, so a new filter
+  // order never shows the wrong one).
+  int get _filter {
+    final kind = ref.read(viewPrefsProvider).activityKind;
+    final i = _filters.indexWhere((f) => f.$2?.name == kind);
+    return i < 0 ? 0 : i;
+  }
   bool _wide = true;
 
   List<ActivityEntry> _feed = const [];
@@ -56,7 +63,7 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
   }
 
   void _setFilter(int i) {
-    setState(() => _filter = i);
+    ref.read(viewPrefsProvider.notifier).update((p) => p.copyWith(activityKind: () => _filters[i].$2?.name));
     _scrollToTop();
   }
 
@@ -139,6 +146,7 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(viewPrefsProvider); // rebuild when the filter changes
     final async = ref.watch(activityProvider);
     final sync = ref.watch(activitySyncProvider);
     final courses = ref.watch(coursesByIdProvider);

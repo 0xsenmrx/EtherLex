@@ -281,6 +281,15 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 3. Open the avatar menu.
 - [x] **Expect** your name and Canvas, Account settings (opens Settings on Account) and Sign out only.
 
+## 14d. Pages remember how you left them
+
+1. Assignments: Starred, unfold "Done earlier". Activity: Grades filter. Grades: unfold "No grades yet". Files: open a course and a folder inside it. Go to another page and back to each. In Files, change folder twice more with a page switch in between.
+- [x] **Expect** each page is exactly as you left it.
+2. Restart EtherLex and visit the same pages.
+- [x] **Expect** the same again; Files opens straight in that folder (a folder that no longer exists shows the course root instead). Calendar opens on this week.
+3. Sign in with the other account (or sample data).
+- [x] **Expect** that account has its own choices (the defaults the first time).
+
 ## 15. AI assistant (needs your own API key)
 
 1. Sample mode: open **Assistant** (Alt+6) and send "hello".

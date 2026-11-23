@@ -10,6 +10,8 @@ import '../../../design_system/ether/detail_pane.dart';
 import '../../../design_system/ether/icons.dart';
 import '../../../design_system/ether/list.dart';
 import '../../courses/domain/course.dart';
+import '../../settings/domain/view_prefs.dart';
+import '../../settings/presentation/view_prefs_provider.dart';
 import '../../submission/presentation/submission_providers.dart';
 import '../domain/assignment.dart';
 import '../domain/timeline.dart';
@@ -46,10 +48,12 @@ class _AssignmentsPageState extends ConsumerState<AssignmentsPage> {
   List<TimelineEntry> _entries = const [];
   List<double> _offsets = const [0];
   List<int> _itemIndexes = const [];
-  bool _showEarlier = false;
+  // All or Starred, and "Done earlier" unfolded: remembered per account.
+  ViewPrefs get _prefs => ref.read(viewPrefsProvider);
+  bool get _showEarlier => _prefs.assignmentsShowDone;
 
   /// 0 = everything, 1 = starred only.
-  int _view = 0;
+  int get _view => _prefs.assignmentsStarredOnly ? 1 : 0;
 
   /// Wide enough for the details pane (else details open in a dialog).
   bool _wide = true;
@@ -169,16 +173,19 @@ class _AssignmentsPageState extends ConsumerState<AssignmentsPage> {
 
   void _setView(int v) {
     if (v == _view) return;
-    setState(() {
-      _view = v;
-      // Starred done work is worth seeing, so open the folded group there.
-      _showEarlier = v == 1;
-    });
+    // Starred done work is worth seeing, so open the folded group there.
+    ref.read(viewPrefsProvider.notifier).update(
+          (p) => p.copyWith(assignmentsStarredOnly: v == 1, assignmentsShowDone: v == 1),
+        );
     _scrollToTop();
   }
 
+  void _toggleEarlier() =>
+      ref.read(viewPrefsProvider.notifier).update((p) => p.copyWith(assignmentsShowDone: !p.assignmentsShowDone));
+
   @override
   Widget build(BuildContext context) {
+    ref.watch(viewPrefsProvider); // rebuild when All/Starred or the fold changes
     final async = ref.watch(assignmentsProvider);
     final courses = ref.watch(coursesByIdProvider);
     final actions = ref.read(assignmentActionsProvider);
@@ -372,7 +379,7 @@ class _AssignmentsPageState extends ConsumerState<AssignmentsPage> {
                               label: 'Done earlier',
                               count: count,
                               expanded: _showEarlier,
-                              onTap: () => setState(() => _showEarlier = !_showEarlier),
+                              onTap: _toggleEarlier,
                             )
                           : EGroupHeader(label: bucket.label, count: count),
                       ItemEntry(:final assignment) => HoverPrefetch(

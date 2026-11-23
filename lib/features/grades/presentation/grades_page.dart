@@ -17,6 +17,7 @@ import '../../../design_system/ether/list.dart';
 import '../../../design_system/theme/course_palette.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../../assignments/presentation/assignments_providers.dart';
+import '../../settings/presentation/view_prefs_provider.dart';
 import '../../courses/domain/course.dart';
 import '../domain/grade_calc.dart';
 import '../domain/grades.dart';
@@ -80,7 +81,8 @@ class _GradesPageState extends ConsumerState<GradesPage> {
   final FocusNode _focus = FocusNode();
   final SmoothScrollController _scroll = SmoothScrollController();
   final ValueNotifier<int?> _cursor = ValueNotifier<int?>(null);
-  bool _showUngraded = false;
+  // "No grades yet" unfolded: remembered per account.
+  bool get _showUngraded => ref.read(viewPrefsProvider).gradesShowUngraded;
   bool _wide = true;
   List<_Entry> _entries = const [];
 
@@ -157,6 +159,7 @@ class _GradesPageState extends ConsumerState<GradesPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(viewPrefsProvider); // rebuild when the fold changes
     final sync = ref.watch(gradesSyncProvider);
     final grades = ref.watch(courseGradesProvider);
     final courses = ref.watch(coursesByIdProvider);
@@ -255,7 +258,9 @@ class _GradesPageState extends ConsumerState<GradesPage> {
                                                   label: label,
                                                   count: count,
                                                   expanded: _showUngraded || graded.isEmpty,
-                                                  onTap: () => setState(() => _showUngraded = !_showUngraded),
+                                                  onTap: () => ref.read(viewPrefsProvider.notifier).update(
+                                                        (p) => p.copyWith(gradesShowUngraded: !p.gradesShowUngraded),
+                                                      ),
                                                 )
                                               : EGroupHeader(label: label, count: count),
                                           _Row(:final course) => _CourseRow(
