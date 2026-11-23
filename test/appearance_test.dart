@@ -45,6 +45,14 @@ void main() {
     expect(a == const Appearance(), isFalse);
   });
 
+  test('the collapsed sidebar is remembered; reset keeps it', () {
+    expect(const Appearance().sidebarCollapsed, isFalse);
+    const a = Appearance(sidebarCollapsed: true);
+    expect(Appearance.fromJson(a.toJson()), a);
+    expect(Appearance.fromJson({'sidebarCollapsed': 'yes'}).sidebarCollapsed, isFalse);
+    expect(a == const Appearance(), isFalse);
+  });
+
   test('unknown or broken values fall back to defaults', () {
     expect(Appearance.fromJson({'theme': 'purple', 'typeface': 3}), const Appearance());
     expect(Appearance.fromJson('nonsense'), const Appearance());

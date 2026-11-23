@@ -7,12 +7,16 @@ import '../../design_system/ether/tap.dart';
 import '../../design_system/theme/ether_theme.dart';
 import 'course_section.dart';
 import 'nav.dart';
+import 'nav_tools.dart';
 
 /// Wide-window navigation: flat on the canvas, no panel behind it.
 class Sidebar extends StatelessWidget {
-  const Sidebar({super.key, required this.location});
+  const Sidebar({super.key, required this.location, required this.onCollapse});
 
   final String location;
+
+  /// Switches to the icon rail (Ctrl+B).
+  final VoidCallback onCollapse;
 
   static const double width = 236;
   static const double itemHeight = 36;
@@ -62,6 +66,11 @@ class Sidebar extends StatelessWidget {
             ),
             const SizedBox(height: 28),
             const Expanded(child: CourseSection()),
+            Container(
+              padding: const EdgeInsets.only(top: 8),
+              decoration: BoxDecoration(border: Border(top: BorderSide(color: c.line))),
+              child: NavTools(vertical: false, onToggleSidebar: onCollapse),
+            ),
           ],
         ),
       ),

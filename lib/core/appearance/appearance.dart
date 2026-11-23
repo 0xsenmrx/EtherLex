@@ -39,12 +39,16 @@ class Appearance {
     this.typeface = TypefaceChoice.handwritten,
     this.palette = PaletteChoice.violet,
     this.background = BackgroundPattern.dots,
+    this.sidebarCollapsed = false,
   });
 
   final ThemeChoice theme;
   final TypefaceChoice typeface;
   final PaletteChoice palette;
   final BackgroundPattern background;
+
+  /// The icon rail even in a wide window (Ctrl+B).
+  final bool sidebarCollapsed;
 
   bool get handwritten => typeface == TypefaceChoice.handwritten;
 
@@ -53,12 +57,14 @@ class Appearance {
     TypefaceChoice? typeface,
     PaletteChoice? palette,
     BackgroundPattern? background,
+    bool? sidebarCollapsed,
   }) =>
       Appearance(
         theme: theme ?? this.theme,
         typeface: typeface ?? this.typeface,
         palette: palette ?? this.palette,
         background: background ?? this.background,
+        sidebarCollapsed: sidebarCollapsed ?? this.sidebarCollapsed,
       );
 
   Map<String, Object> toJson() => {
@@ -66,6 +72,7 @@ class Appearance {
         'typeface': typeface.name,
         'palette': palette.name,
         'background': background.name,
+        'sidebarCollapsed': sidebarCollapsed,
       };
 
   static Appearance fromJson(Object? json) {
@@ -82,6 +89,7 @@ class Appearance {
       typeface: pick(TypefaceChoice.values, json['typeface'], TypefaceChoice.handwritten),
       palette: pick(PaletteChoice.values, json['palette'], PaletteChoice.violet),
       background: pick(BackgroundPattern.values, json['background'], BackgroundPattern.dots),
+      sidebarCollapsed: json['sidebarCollapsed'] == true,
     );
   }
 
@@ -91,10 +99,11 @@ class Appearance {
       other.theme == theme &&
       other.typeface == typeface &&
       other.palette == palette &&
-      other.background == background;
+      other.background == background &&
+      other.sidebarCollapsed == sidebarCollapsed;
 
   @override
-  int get hashCode => Object.hash(theme, typeface, palette, background);
+  int get hashCode => Object.hash(theme, typeface, palette, background, sidebarCollapsed);
 }
 
 /// `%APPDATA%/EtherLex/appearance.json`.
@@ -134,8 +143,11 @@ class AppearanceNotifier extends Notifier<Appearance> {
 
   void setBackground(BackgroundPattern b) => _set(state.copyWith(background: b));
 
+  void toggleSidebar() => _set(state.copyWith(sidebarCollapsed: !state.sidebarCollapsed));
+
   /// Settings > Appearance > Reset: Match Windows, handwritten, violet, dots.
-  void reset() => _set(const Appearance());
+  /// The sidebar stays as it is (it is a layout choice, not a look).
+  void reset() => _set(Appearance(sidebarCollapsed: state.sidebarCollapsed));
 
   /// Switch to the opposite of what is on screen now.
   void toggleBrightness(Brightness current) =>

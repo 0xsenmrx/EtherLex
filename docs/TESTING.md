@@ -272,6 +272,15 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 6. Settings > Appearance: click each Theme card, both Font cards, each Background card (Dots, Grid, Plain), in light and dark. Then Ctrl+K, type "grid" and "accent blue". Open the avatar menu. Open Settings > Assistant in a narrow window.
 - [x] **Expect** the chosen card has an accent border; the font cards show a sample in their own font; the background changes at once everywhere (sign-in screen too) and survives a restart. Ctrl+K offers "Background: Grid" and "Accent colour: Blue". The avatar menu has no theme or font items any more. The AI service switcher never overflows (it shrinks to fit).
 
+## 14c. Sidebar tools and collapse
+
+1. Wide window: look at the bottom of the sidebar; hover each tool, then click Settings, Shortcuts, Help and the sun/moon.
+- [x] **Expect** a hairline and a row of icons: Settings, Keyboard shortcuts, Help and feedback on the left; theme and collapse on the right. Tooltips name them with their shortcut. Help opens Settings on Help & About. The title bar no longer has the sun/moon.
+2. Press Ctrl+B (or the collapse button), then restart EtherLex, then Ctrl+B again.
+- [x] **Expect** the icon rail in the wide window, with a small second pill at the bottom (Settings, theme, expand); it survives a restart; Ctrl+B brings the sidebar back. In a narrow window the rail's pill has no expand button.
+3. Open the avatar menu.
+- [x] **Expect** your name and Canvas, Account settings (opens Settings on Account) and Sign out only.
+
 ## 15. AI assistant (needs your own API key)
 
 1. Sample mode: open **Assistant** (Alt+6) and send "hello".

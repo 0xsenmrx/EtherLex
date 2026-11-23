@@ -1,7 +1,5 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
 
-import '../../core/appearance/appearance.dart';
 import '../../design_system/ether/controls.dart';
 import '../../design_system/ether/icons.dart';
 import '../../design_system/theme/ether_theme.dart';
@@ -9,7 +7,8 @@ import '../app_info.dart';
 import '../window/window_chrome.dart';
 import 'account_menu.dart';
 
-/// The title bar: brand, search, theme, account. Empty space drags the
+/// The title bar: brand, search, account. (Theme and Settings live in the
+/// tools under the navigation.) Empty space drags the
 /// window; the window buttons are drawn above it by the app frame.
 class TopBar extends StatelessWidget {
   const TopBar({super.key, required this.onSearch, required this.compact});
@@ -44,8 +43,6 @@ class TopBar extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 16),
-                const _ThemeToggle(),
-                const SizedBox(width: 10),
                 const AccountMenu(),
                 const SizedBox(width: 6),
               ],
@@ -79,21 +76,6 @@ class _Brand extends StatelessWidget {
           ],
         ],
       ),
-    );
-  }
-}
-
-class _ThemeToggle extends ConsumerWidget {
-  const _ThemeToggle();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final brightness = Theme.of(context).brightness;
-    final dark = brightness == Brightness.dark;
-    return EIconButton(
-      icon: dark ? EIcons.sun : EIcons.moon,
-      tooltip: dark ? 'Light theme' : 'Dark theme',
-      onTap: () => ref.read(appearanceProvider.notifier).toggleBrightness(brightness),
     );
   }
 }

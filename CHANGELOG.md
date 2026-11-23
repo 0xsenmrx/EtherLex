@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### New
+- The sidebar has a row of tools at the bottom: Settings, keyboard shortcuts, help and feedback, the light/dark switch, and a button (or Ctrl+B) to collapse it to the icon rail, which is remembered. The avatar menu now only holds your account and Sign out.
 - **New Settings**: a wide window with a sidebar of sections (Account, Appearance, Notifications, Courses, Assistant, Files & downloads, Updates, Keyboard shortcuts, Help & About) and a search box that finds any setting by its name, its description or related words ("dark", "key", "update"). Each section that has choices can be reset to its defaults, which never touches your token, keys or data. Ctrl+, opens the section you used last.
 - **Assistant** (Alt+6): ask an AI about your courses with your own API key: Anthropic, DeepSeek, or any OpenAI-compatible service (including a model running on your own computer). Answers stream in with full Markdown, highlighted code and copy buttons. Conversations are saved per account.
 - Attach assignments, grades, announcements, course files and pictures, or files from your computer. Long files show how much of them is sent, and can be sent whole.
