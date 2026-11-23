@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:material_ui/material_ui.dart' show InputBorder, InputDecoration, SelectableText, TextField;
+import 'package:material_ui/material_ui.dart' show InputBorder, InputDecoration, SelectableText, TextField, Tooltip;
 
 import '../../../core/motion/smooth_scroll.dart';
 import '../../../core/network/canvas_exception.dart';
@@ -236,7 +236,10 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           subtitle: settings.model.isEmpty ? settings.provider.label : '${settings.provider.label} · ${settings.model}',
           actions: [
             EIconButton(icon: EIcons.history, tooltip: 'History', onTap: () => _showHistory(context)),
-            EButton(label: 'New chat', icon: EIcons.plus, onTap: messages.isEmpty ? null : controller.newChat),
+            Tooltip(
+              message: 'New chat  Ctrl+N',
+              child: EButton(label: 'New chat', icon: EIcons.plus, onTap: messages.isEmpty ? null : controller.newChat),
+            ),
           ],
         ),
         Expanded(

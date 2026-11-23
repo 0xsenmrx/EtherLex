@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart' show Tooltip;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/motion/smooth_scroll.dart';
@@ -144,9 +145,9 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
               actions: [
                 ESyncButton(state: sync, onRefresh: _refresh),
                 const SizedBox(width: 6),
-                EIconButton(icon: EIcons.chevronLeft, tooltip: 'Previous week', onTap: () => _shift(-1)),
-                EButton(label: 'Today', onTap: _today),
-                EIconButton(icon: EIcons.chevronRight, tooltip: 'Next week', onTap: () => _shift(1)),
+                EIconButton(icon: EIcons.chevronLeft, tooltip: 'Previous week  ←', onTap: () => _shift(-1)),
+                Tooltip(message: 'This week  T', child: EButton(label: 'Today', onTap: _today)),
+                EIconButton(icon: EIcons.chevronRight, tooltip: 'Next week  →', onTap: () => _shift(1)),
               ],
             ),
             Expanded(

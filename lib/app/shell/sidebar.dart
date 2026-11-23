@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart' show Tooltip;
 import 'package:go_router/go_router.dart';
 
 import '../../core/motion/spring_value.dart';
@@ -59,7 +60,10 @@ class Sidebar extends StatelessWidget {
                       left: 0,
                       right: 0,
                       height: itemHeight,
-                      child: _NavRow(destination: kDestinations[i], selected: i == selected),
+                      child: Tooltip(
+                        message: 'Alt+${i + 1}',
+                        child: _NavRow(destination: kDestinations[i], selected: i == selected),
+                      ),
                     ),
                 ],
               ),
