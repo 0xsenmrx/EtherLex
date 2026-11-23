@@ -24,7 +24,14 @@ abstract interface class FilesRepository {
   /// course was never opened), without any network. For searching files.
   Future<CourseFiles?> savedListing(int courseId);
 
-  /// Size of everything saved for offline use, and removing it.
-  int offlineBytes();
+  /// Bytes saved for offline use, per Canvas file id (read off the UI thread).
+  Future<Map<int, int>> offlineSizes();
+
+  /// Removes some saved copies, or all of them.
+  void removeOffline(Set<int> fileIds);
   void clearOffline();
+
+  /// The most kept for offline use; a lower limit removes the files opened
+  /// longest ago.
+  void setOfflineLimit(int bytes);
 }

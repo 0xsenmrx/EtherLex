@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### New
+- Offline files: removing them asks first and says how much, Settings > Files & downloads shows the space per course with a Clear for each, and you can keep up to 1, 3, 5 or 10 GB (lowering it removes the files opened longest ago). The size is counted in the background, so a big offline folder no longer stalls the window.
 - Empty pages now offer a next step: Refresh, Show everything, Show all courses or Open Settings. An empty Assistant shows three example questions you can click to fill the message box (nothing is sent until you press Enter), and says how attaching and Apply work.
 - Keyboard: Ctrl+N starts a new chat from anywhere, Ctrl+R and F5 refresh Files too, and tooltips show the shortcut (Alt+1 to Alt+6 on the sidebar, Refresh, the week arrows, New chat). The shortcut list is corrected (R marks done or not done).
 - Ctrl+K finds much more: course files (from the listings saved on this computer, so nothing is fetched while you type; Enter opens Files on that file), your conversations with the assistant (by title or by anything written in them; Enter opens the conversation at that message), and any setting (it opens Settings with the search filled in). Type a course name to open its files.
