@@ -59,6 +59,15 @@ LRESULT
 FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
                               WPARAM const wparam,
                               LPARAM const lparam) noexcept {
+  const LRESULT result = HandleMessage(hwnd, message, wparam, lparam);
+  LogWindowMessage("window", message, wparam, lparam, result);
+  return result;
+}
+
+LRESULT
+FlutterWindow::HandleMessage(HWND hwnd, UINT const message,
+                             WPARAM const wparam,
+                             LPARAM const lparam) noexcept {
   // Alt+<key> shortcuts must not make Windows play its menu beep.
   // Alt+Space still opens the system menu.
   if (message == WM_MENUCHAR) {

@@ -17,6 +17,8 @@ import '../../../design_system/ether/list.dart';
 import '../../../design_system/theme/course_palette.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../../assignments/presentation/assignments_providers.dart';
+import '../../settings/domain/settings_search.dart';
+import '../../settings/presentation/settings_dialog.dart';
 import '../../settings/presentation/view_prefs_provider.dart';
 import '../../courses/domain/course.dart';
 import '../domain/grade_calc.dart';
@@ -188,10 +190,15 @@ class _GradesPageState extends ConsumerState<GradesPage> {
           ? EErrorState(message: sync.error!, onRetry: _refresh)
           : const ESkeletonList(rowHeight: _rowExtent);
     } else if (list.isEmpty) {
-      body = const EEmptyState(
+      body = EEmptyState(
         icon: EIcons.grades,
         title: 'No courses here',
-        message: 'Choose other courses in the sidebar, or show them all.',
+        message: filter.isNotEmpty
+            ? 'Choose other courses in the sidebar, or show them all.'
+            : 'Every course is turned off. Turn some back on in Settings.',
+        action: filter.isNotEmpty
+            ? EButton(label: 'Show all courses', onTap: ref.read(courseFilterProvider.notifier).clear)
+            : EButton(label: 'Open Settings', onTap: () => showSettings(context, section: SettingsSection.courses)),
       );
     } else {
       body = const SizedBox.shrink(); // the list is shown instead

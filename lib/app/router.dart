@@ -17,10 +17,16 @@ import 'shell/app_shell.dart';
 
 final SpringCurve _slideCurve = SpringCurve(Springs.smooth);
 
+/// Every page stands on a transparent floor that takes taps. Without it, a
+/// click on empty space (header gaps, margins) falls through to the route's
+/// modal barrier, and a barrier that cannot be dismissed plays the system
+/// alert sound: the Windows "ding" on empty clicks.
+Widget _floor(Widget child) => ColoredBox(color: const Color(0x00000000), child: child);
+
 CustomTransitionPage<void> _page(GoRouterState state, Widget child) {
   return CustomTransitionPage<void>(
     key: state.pageKey,
-    child: child,
+    child: _floor(child),
     transitionDuration: const Duration(milliseconds: 360),
     reverseTransitionDuration: const Duration(milliseconds: 160),
     transitionsBuilder: (context, animation, secondary, child) {
@@ -65,7 +71,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/splash',
         pageBuilder: (context, state) => NoTransitionPage<void>(
           key: state.pageKey,
-          child: const _Splash(),
+          child: _floor(const _Splash()),
         ),
       ),
       GoRoute(
@@ -74,7 +80,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       ShellRoute(
         builder: (context, state, child) =>
-            AppShell(location: state.matchedLocation, child: child),
+            _floor(AppShell(location: state.matchedLocation, child: child)),
         routes: [
           GoRoute(
             path: '/assignments',

@@ -513,7 +513,12 @@ class _CourseListState extends ConsumerState<_CourseList> with _RowCursor<_Cours
     final hidden = [for (final x in base) if (hiddenIds.contains(x.id)) x];
 
     if (shown.isEmpty && hidden.isEmpty) {
-      return const EEmptyState(icon: EIcons.files, title: 'No courses yet');
+      return EEmptyState(
+        icon: EIcons.files,
+        title: 'No courses yet',
+        message: 'Your courses appear here after the first sync with Canvas.',
+        action: EButton(label: 'Refresh', icon: EIcons.refresh, onTap: () => ref.read(syncProvider.notifier).refresh()),
+      );
     }
 
     _RowSpec courseRow(Course course, {required bool isHidden}) => (
@@ -681,7 +686,11 @@ class _FileListState extends State<_FileList> with _RowCursor<_FileList> {
     final files = widget.files;
     final hidden = widget.hiddenFolders;
     if (folders.isEmpty && files.isEmpty && hidden.isEmpty) {
-      return const EEmptyState(icon: EIcons.folderClosed, title: 'This folder is empty');
+      return const EEmptyState(
+        icon: EIcons.folderClosed,
+        title: 'This folder is empty',
+        message: 'Canvas shows nothing here. Some teachers add files later; Backspace goes up a folder.',
+      );
     }
     final now = DateTime.now();
 

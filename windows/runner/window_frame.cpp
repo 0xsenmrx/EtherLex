@@ -4,6 +4,7 @@
 #include <windowsx.h>
 
 #include <cstdint>
+#include <cstdio>
 #include <variant>
 
 namespace {
@@ -33,6 +34,52 @@ double ToDouble(const flutter::EncodableValue& value) {
 
 }  // namespace
 
+bool DiagMessagesEnabled() {
+  static const bool enabled = [] {
+    wchar_t value[8] = {};
+    const DWORD length =
+        GetEnvironmentVariableW(L"ETHERLEX_DIAG_MESSAGES", value, 8);
+    return length > 0 && length < 8 && value[0] == L'1';
+  }();
+  return enabled;
+}
+
+void LogWindowMessage(const char* who, UINT message, WPARAM wparam,
+                      LPARAM lparam, LRESULT result) {
+  if (!DiagMessagesEnabled()) return;
+  static ULONGLONG last_press = 0;
+  const ULONGLONG now = GetTickCount64();
+  // Mouse presses in any form: buttons, pointer messages, activation.
+  if (message == WM_LBUTTONDOWN || message == WM_RBUTTONDOWN ||
+      message == WM_NCLBUTTONDOWN || message == 0x0246 /* WM_POINTERDOWN */ ||
+      message == WM_MOUSEACTIVATE || message == WM_PARENTNOTIFY) {
+    last_press = now;
+  }
+  if (last_press == 0 || now - last_press > 500) return;
+  // Not interesting and very frequent.
+  if (message == WM_PAINT || message == WM_TIMER || message == WM_MOUSEMOVE ||
+      message == WM_NCMOUSEMOVE || message == 0x0245 /* WM_POINTERUPDATE */ ||
+      message == WM_ERASEBKGND) {
+    return;
+  }
+  wchar_t path[MAX_PATH * 2] = {};
+  const DWORD length =
+      GetModuleFileNameW(nullptr, path, static_cast<DWORD>(_countof(path)));
+  if (length == 0) return;
+  wchar_t* slash = wcsrchr(path, L'\\');
+  if (slash == nullptr) return;
+  wcscpy_s(slash + 1, _countof(path) - static_cast<size_t>(slash + 1 - path),
+           L"etherlex-messages.log");
+  FILE* file = nullptr;
+  if (_wfopen_s(&file, path, L"a") != 0 || file == nullptr) return;
+  fprintf(file, "%llu %-7s msg=0x%04X w=0x%llX l=0x%llX -> 0x%llX\n",
+          static_cast<unsigned long long>(now), who, message,
+          static_cast<unsigned long long>(wparam),
+          static_cast<unsigned long long>(lparam),
+          static_cast<unsigned long long>(result));
+  fclose(file);
+}
+
 WindowFrame::~WindowFrame() { Detach(); }
 
 // static
@@ -58,7 +105,7 @@ void WindowFrame::Attach(HWND window, HWND content,
         HandleCall(call, std::move(result));
       });
 
-  if (CustomFrameEnabled() && content_ != nullptr) {
+  if ((CustomFrameEnabled() || DiagMessagesEnabled()) && content_ != nullptr) {
     // The Flutter view covers the whole client area, so it receives
     // WM_NCHITTEST first. It must step aside (HTTRANSPARENT) on the top resize
     // edge and the maximise button so the frame window can answer.
@@ -82,11 +129,20 @@ void WindowFrame::Detach() {
 // static
 LRESULT CALLBACK WindowFrame::ContentProc(HWND hwnd, UINT message,
                                           WPARAM wparam, LPARAM lparam) {
+  const LRESULT result = ContentProcImpl(hwnd, message, wparam, lparam);
+  LogWindowMessage("content", message, wparam, lparam, result);
+  return result;
+}
+
+// static
+LRESULT WindowFrame::ContentProcImpl(HWND hwnd, UINT message, WPARAM wparam,
+                                     LPARAM lparam) {
   WindowFrame* frame = g_frame;
   if (frame == nullptr || frame->content_proc_ == nullptr) {
     return DefWindowProc(hwnd, message, wparam, lparam);
   }
-  if (message == WM_NCHITTEST && frame->window_ != nullptr) {
+  if (message == WM_NCHITTEST && frame->window_ != nullptr &&
+      CustomFrameEnabled()) {
     POINT point{GET_X_LPARAM(lparam), GET_Y_LPARAM(lparam)};
     ScreenToClient(frame->window_, &point);
     if (frame->HitTestClient(frame->window_, point) != HTCLIENT) {

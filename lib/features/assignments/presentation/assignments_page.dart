@@ -352,7 +352,7 @@ class _AssignmentsPageState extends ConsumerState<AssignmentsPage> {
                 label: 'Show all courses',
                 onTap: ref.read(courseFilterProvider.notifier).clear,
               )
-            : null,
+            : EButton(label: 'Refresh', icon: EIcons.refresh, onTap: _refresh),
       );
     }
     return Padding(

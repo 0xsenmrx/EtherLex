@@ -21,6 +21,13 @@
 //
 // Set the environment variable ETHERLEX_NATIVE_FRAME=1 to keep the native
 // caption, for comparisons.
+// ETHERLEX_DIAG_MESSAGES=1 (environment variable): writes the window
+// messages that arrive within half a second of each mouse press to
+// etherlex-messages.log next to the program. For chasing the Windows "ding"
+// on clicks; off by default and never in normal use.
+bool DiagMessagesEnabled();
+void LogWindowMessage(const char* who, UINT message, WPARAM wparam, LPARAM lparam, LRESULT result);
+
 class WindowFrame {
  public:
   WindowFrame() = default;
@@ -47,6 +54,8 @@ class WindowFrame {
 
   static LRESULT CALLBACK ContentProc(HWND hwnd, UINT message, WPARAM wparam,
                                       LPARAM lparam);
+  static LRESULT ContentProcImpl(HWND hwnd, UINT message, WPARAM wparam,
+                                 LPARAM lparam);
 
   // Hit test for a point in client coordinates: HTTOP/HTTOPLEFT/HTTOPRIGHT on
   // the top resize edge, HTMAXBUTTON on the maximise button, else HTCLIENT.

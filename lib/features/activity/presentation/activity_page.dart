@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/motion/smooth_scroll.dart';
 import '../../../design_system/ether/breakpoint.dart';
+import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/detail_pane.dart';
 import '../../../design_system/ether/icons.dart';
 import '../../../design_system/ether/list.dart';
@@ -180,7 +181,16 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
       body = EEmptyState(
         icon: EIcons.inbox,
         title: kind == null ? 'No recent activity' : 'Nothing here yet',
-        message: 'Announcements, grades and discussions from your courses show up here.',
+        message: kind != null
+            ? 'Nothing of this kind in your courses lately.'
+            : courseFilter.isNotEmpty
+                ? 'Nothing from these courses lately. Choose others in the sidebar, or show them all.'
+                : 'Announcements, grades and discussions from your courses show up here.',
+        action: kind != null
+            ? EButton(label: 'Show everything', onTap: () => _setFilter(0))
+            : courseFilter.isNotEmpty
+                ? EButton(label: 'Show all courses', onTap: ref.read(courseFilterProvider.notifier).clear)
+                : EButton(label: 'Refresh', icon: EIcons.refresh, onTap: _refresh),
       );
     } else {
       body = ListView.builder(

@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### New
+- Empty pages now offer a next step: Refresh, Show everything, Show all courses or Open Settings. An empty Assistant shows three example questions you can click to fill the message box (nothing is sent until you press Enter), and says how attaching and Apply work.
 - Keyboard: Ctrl+N starts a new chat from anywhere, Ctrl+R and F5 refresh Files too, and tooltips show the shortcut (Alt+1 to Alt+6 on the sidebar, Refresh, the week arrows, New chat). The shortcut list is corrected (R marks done or not done).
 - Ctrl+K finds much more: course files (from the listings saved on this computer, so nothing is fetched while you type; Enter opens Files on that file), your conversations with the assistant (by title or by anything written in them; Enter opens the conversation at that message), and any setting (it opens Settings with the search filled in). Type a course name to open its files.
 - EtherLex remembers how you left each page, per account: All or Starred and the open "Done earlier" group in Assignments, the Activity filter, the open "No grades yet" group in Grades, and the course and folder you had open in Files. The Calendar still opens on this week.
@@ -29,6 +30,7 @@
 - Starting EtherLex while it is already open now brings the open window forward instead of starting a second copy that could overwrite its data.
 - Settings > AI assistant > Save now says that it saved.
 - Copy diagnostics names the AI service only when a key is saved for it.
+- Clicking an empty part of a page no longer makes Windows play its "ding" (it did since 0.2.0).
 - Pictures in a chat say why they could not load; the message box text is aligned with the send button.
 
 ## 0.2.2
