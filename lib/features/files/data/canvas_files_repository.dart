@@ -80,12 +80,11 @@ class CanvasFilesRepository implements FilesRepository {
   Future<CourseFiles?> savedListing(int courseId) async => _cache.loadIndex(courseId);
 
   @override
-  Future<String> download(FileEntry file) async {
+  Future<String> saveCopy(FileEntry file, String path) async {
     // Through the cache: a file you download is then also available offline.
     final saved = await localPath(file);
-    final dir = Directory(downloadsDirPath())..createSync(recursive: true);
-    final path = uniquePath(dir.path, sanitizeFileName(file.name));
-    File(saved).copySync(path);
+    await File(path).parent.create(recursive: true);
+    await File(saved).copy(path); // async: large files must not freeze the window
     await markFromInternet(path);
     return path;
   }

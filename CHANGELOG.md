@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### New
+- Choose where downloads go: Settings > Files & downloads has the folder (Change, Reset), "Ask where to save each time" and "A folder for each course". By default EtherLex now uses the Downloads folder Windows really uses, also when you moved it to another drive or to OneDrive.
 - Offline files: removing them asks first and says how much, Settings > Files & downloads shows the space per course with a Clear for each, and you can keep up to 1, 3, 5 or 10 GB (lowering it removes the files opened longest ago). The size is counted in the background, so a big offline folder no longer stalls the window.
 - Empty pages now offer a next step: Refresh, Show everything, Show all courses or Open Settings. An empty Assistant shows three example questions you can click to fill the message box (nothing is sent until you press Enter), and says how attaching and Apply work.
 - Keyboard: Ctrl+N starts a new chat from anywhere, Ctrl+R and F5 refresh Files too, and tooltips show the shortcut (Alt+1 to Alt+6 on the sidebar, Refresh, the week arrows, New chat). The shortcut list is corrected (R marks done or not done).

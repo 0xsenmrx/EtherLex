@@ -4,8 +4,9 @@ abstract interface class FilesRepository {
   /// Throws CanvasException with a user-safe message.
   Future<CourseFiles> load(int courseId);
 
-  /// Saves the file into the Downloads folder and returns its path.
-  Future<String> download(FileEntry file);
+  /// Saves a copy of [file] at [path] (where the student downloads it),
+  /// marked as coming from the internet, and returns [path].
+  Future<String> saveCopy(FileEntry file, String path);
 
   /// One file by id (null if it is locked or unreadable).
   Future<FileEntry?> fileInfo(int courseId, int fileId);

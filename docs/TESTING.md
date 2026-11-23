@@ -173,6 +173,9 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 8b. Settings > Files & downloads after opening files in two courses.
 - [x] **Expect** the total, "Keep up to" (3 GB chosen), and Space per course with the two courses biggest first, each with a size, a file count and Clear. Clear (per course, and Clear all here and on the Files course list) asks first with the size; Cancel keeps everything. Choosing 1 GB with more than 1 GB saved removes the oldest files at once; the choice survives a restart and is per account.
 
+8c. Settings > Files & downloads: look at Downloads folder, then Change... to another folder, download a file; turn on "A folder for each course", download; turn on "Ask where to save each time", download (try Cancel too); Reset; try choosing `%APPDATA%\EtherLex` as the folder.
+- [x] **Expect** the default is your real Windows Downloads folder (also if you moved it). Each download lands where the setting says, the toast names the folder, Open/Show works. Course folders get the course name. The Save dialog suggests the file name; Cancel saves nothing. Reset brings the Windows folder back. EtherLex's own folder is refused with a message. The preview's Save button follows the same rules.
+
 ## 9. Notifications [DONE]
 
 1. Toggle notifications (avatar menu, Settings, or Ctrl+K, then "notifications").
@@ -267,7 +270,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 2. Type "dark", then "key", then "update", then "refresh", then a course name, then "zzz".
 - [x] **Expect** results grouped by section with the words marked; the controls work right in the results. "refresh" finds the shortcut; "zzz" says nothing matches. Enter jumps to the first result's section. Clicking a group title opens that section.
 3. Appearance > Reset to defaults (after changing theme, accent and font); also Courses, Notifications, Assistant, Updates.
-- [x] **Expect** a question saying what will be reset, then a toast. The Assistant reset keeps your key, server address and permission. Sections without choices (Account, Files, Shortcuts, About) have no Reset.
+- [x] **Expect** a question saying what will be reset, then a toast. The Assistant reset keeps your key, server address and permission. Sections without choices (Account, Shortcuts, About) have no Reset.
 4. Close and press Ctrl+, again; in the Assistant with no key, press "Open settings".
 - [x] **Expect** it opens on the section you used last; "Open settings" opens Assistant directly.
 5. Make the window narrow (about 800 px).
