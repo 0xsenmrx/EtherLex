@@ -45,10 +45,53 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   /// and stops the answer that is being written from pulling the view along.
   bool _away = false;
 
+  /// One key per message on screen, so a message found with Ctrl+K can be
+  /// scrolled to; [_flash] is the one marked for a moment after that.
+  final Map<String, GlobalKey> _messageKeys = {};
+  String? _flash;
+
   @override
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
+    ref.listenManual<String?>(chatMessageFocusProvider, (_, id) {
+      if (id == null) return;
+      // Providers must not change while the tree is being built.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        ref.read(chatMessageFocusProvider.notifier).clear();
+        _showMessage(id);
+      });
+    }, fireImmediately: true);
+  }
+
+  /// Scrolls to message [id] and marks it. Messages far away are not built
+  /// yet, so it first moves near it by its place in the list, then aligns it.
+  Future<void> _showMessage(String id) async {
+    for (var attempt = 0; attempt < 8; attempt++) {
+      await WidgetsBinding.instance.endOfFrame;
+      if (!mounted || !_scroll.hasClients) return;
+      final target = _messageKeys[id]?.currentContext;
+      if (target != null && target.mounted) {
+        await Scrollable.ensureVisible(
+          target,
+          alignment: 0.15,
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic,
+        );
+        if (!mounted) return;
+        setState(() => _flash = id);
+        await Future<void>.delayed(const Duration(milliseconds: 1800));
+        if (mounted && _flash == id) setState(() => _flash = null);
+        return;
+      }
+      final messages = ref.read(chatControllerProvider).current?.messages ?? const <ChatMessage>[];
+      final index = messages.indexWhere((m) => m.id == id);
+      if (index < 0) return;
+      final p = _scroll.position;
+      final share = messages.length < 2 ? 0.0 : index / (messages.length - 1);
+      _scroll.jumpTo((p.maxScrollExtent * share).clamp(0.0, p.maxScrollExtent));
+    }
   }
 
   void _onScroll() {
@@ -224,6 +267,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(maxWidth: 760),
                               child: _Bubble(
+                                key: _messageKeys.putIfAbsent(m.id, GlobalKey.new),
+                                marked: _flash == m.id,
                                 message: m,
                                 thinking: last && state.streaming && m.role == ChatRole.assistant && m.text.isEmpty,
                                 onRegenerate: last && !state.streaming && m.role == ChatRole.assistant
@@ -398,14 +443,30 @@ class _InputBar extends StatelessWidget {
 }
 
 class _Bubble extends StatelessWidget {
-  const _Bubble({required this.message, required this.thinking, this.onRegenerate});
+  const _Bubble({super.key, required this.message, required this.thinking, this.onRegenerate, this.marked = false});
 
+  /// Found with Ctrl+K: briefly ringed so the eye lands on it.
+  final bool marked;
   final ChatMessage message;
   final bool thinking;
   final VoidCallback? onRegenerate;
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOut,
+      decoration: BoxDecoration(
+        color: marked ? c.accentSoft : const Color(0x00000000),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: marked ? [BoxShadow(color: c.accent.withValues(alpha: 0.35), spreadRadius: 2)] : const [],
+      ),
+      child: _content(context),
+    );
+  }
+
+  Widget _content(BuildContext context) {
     final c = context.colors;
     final t = context.text;
     final mine = message.role == ChatRole.user;

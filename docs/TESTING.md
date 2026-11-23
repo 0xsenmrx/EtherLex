@@ -290,6 +290,19 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 3. Sign in with the other account (or sample data).
 - [x] **Expect** that account has its own choices (the defaults the first time).
 
+## 14e. Ctrl+K finds everything
+
+1. Open a course in Files once (so its listing is saved). Ctrl+K, type part of a file name from it, then Enter.
+- [x] **Expect** a Files section with the file (course on the right); Enter opens Files on its folder with the file selected. Files in hidden folders or hidden courses are not listed.
+2. Ctrl+K: type a word from one of your assistant conversations (also one that appears only in a later message or in an answer), then Enter.
+- [ ] **Expect** a Conversations section (title hits first; others say "In messages"); Enter opens the Assistant on that conversation, scrolled to the message with those words, which is ringed for a moment (also in a long chat, far from the end).
+3. Ctrl+K: type "key", then "notifications", then Enter on a result.
+- [x] **Expect** a Settings section; Enter opens Settings with the search already typed and the row marked.
+4. Ctrl+K: type a course name.
+- [x] **Expect** "<course> files" (Open in Files) besides the filter command; Enter opens Files on that course.
+5. Ctrl+F with the same words.
+- [x] **Expect** files and conversations too, but no settings or commands.
+
 ## 15. AI assistant (needs your own API key)
 
 1. Sample mode: open **Assistant** (Alt+6) and send "hello".

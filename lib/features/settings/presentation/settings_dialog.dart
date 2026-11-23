@@ -18,9 +18,12 @@ SettingsSection _lastSection = SettingsSection.account;
 
 /// Ctrl+,: every setting in sections, with search. [section] opens one
 /// directly (for example the Assistant's "Open settings").
-Future<void> showSettings(BuildContext context, {SettingsSection? section}) => showEtherDialog<void>(
+///
+/// [query] fills the search box (Ctrl+K opening a setting it found).
+Future<void> showSettings(BuildContext context, {SettingsSection? section, String? query}) =>
+    showEtherDialog<void>(
       context,
-      (_) => SettingsDialog(initial: section ?? _lastSection),
+      (_) => SettingsDialog(initial: section ?? _lastSection, query: query),
       maxWidth: 940,
       topFraction: 0.06,
     );
@@ -38,9 +41,10 @@ IconData _iconOf(SettingsSection s) => switch (s) {
     };
 
 class SettingsDialog extends ConsumerStatefulWidget {
-  const SettingsDialog({super.key, this.initial = SettingsSection.account});
+  const SettingsDialog({super.key, this.initial = SettingsSection.account, this.query});
 
   final SettingsSection initial;
+  final String? query;
 
   @override
   ConsumerState<SettingsDialog> createState() => _SettingsDialogState();
@@ -57,6 +61,11 @@ class _SettingsDialogState extends ConsumerState<SettingsDialog> {
   void initState() {
     super.initState();
     _lastSection = _section;
+    final q = widget.query;
+    if (q != null && q.trim().isNotEmpty) {
+      _search.text = q;
+      _query = q;
+    }
     _search.addListener(() {
       if (_search.text == _query) return; // caret moves notify too
       setState(() => _query = _search.text);

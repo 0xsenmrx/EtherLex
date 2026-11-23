@@ -110,3 +110,16 @@ class FileFocusNotifier extends Notifier<FileEntry?> {
 }
 
 final fileFocusProvider = NotifierProvider<FileFocusNotifier, FileEntry?>(FileFocusNotifier.new);
+
+/// A course to open in Files from elsewhere (Ctrl+K): Files shows its root.
+class FilesCourseRequestNotifier extends Notifier<int?> {
+  @override
+  int? build() => null;
+
+  void request(int courseId) => state = courseId;
+
+  void clear() => state = null;
+}
+
+final filesCourseRequestProvider =
+    NotifierProvider<FilesCourseRequestNotifier, int?>(FilesCourseRequestNotifier.new);

@@ -63,6 +63,15 @@ class _FilesPageState extends ConsumerState<FilesPage> {
         _showFile(file);
       });
     }, fireImmediately: true);
+    ref.listenManual<int?>(filesCourseRequestProvider, (_, id) {
+      if (id == null) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        ref.read(filesCourseRequestProvider.notifier).clear();
+        final course = await _courseById(id);
+        if (mounted && course != null) _goTo(course, const []);
+      });
+    }, fireImmediately: true);
     _restore();
   }
 

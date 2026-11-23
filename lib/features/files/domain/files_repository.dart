@@ -20,6 +20,10 @@ abstract interface class FilesRepository {
   /// The saved copy if there is one, without any network.
   String? cachedPath(FileEntry file);
 
+  /// The course's file listing as last saved on this computer (null if the
+  /// course was never opened), without any network. For searching files.
+  Future<CourseFiles?> savedListing(int courseId);
+
   /// Size of everything saved for offline use, and removing it.
   int offlineBytes();
   void clearOffline();

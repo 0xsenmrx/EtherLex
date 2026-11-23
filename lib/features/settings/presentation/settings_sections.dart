@@ -83,20 +83,23 @@ SettingsItem _note(SettingsSection section, String text) =>
 
 /// Every entry of the Settings dialog, in order. Built on each frame from the
 /// providers it watches, so every control shows the current value.
-List<SettingsItem> buildSettingsItems(BuildContext context, WidgetRef ref) {
+///
+/// [listen] false reads the providers once (Ctrl+K searching settings
+/// outside a build).
+List<SettingsItem> buildSettingsItems(BuildContext context, WidgetRef ref, {bool listen = true}) {
   final c = context.colors;
-  final session = ref.watch(authProvider).value;
+  final session = (listen ? ref.watch(authProvider) : ref.read(authProvider)).value;
   final sample = session == null || session.isSample;
   final host = Uri.tryParse(session?.baseUrl ?? '')?.host ?? '';
-  final appearance = ref.watch(appearanceProvider);
+  final appearance = listen ? ref.watch(appearanceProvider) : ref.read(appearanceProvider);
   final looks = ref.read(appearanceProvider.notifier);
-  final notificationsOn = ref.watch(notificationsProvider);
-  final courses = [...?ref.watch(coursesProvider).value]
+  final notificationsOn = listen ? ref.watch(notificationsProvider) : ref.read(notificationsProvider);
+  final courses = [...?(listen ? ref.watch(coursesProvider) : ref.read(coursesProvider)).value]
     ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-  final disabled = ref.watch(disabledCoursesProvider);
+  final disabled = listen ? ref.watch(disabledCoursesProvider) : ref.read(disabledCoursesProvider);
   final disabledNotifier = ref.read(disabledCoursesProvider.notifier);
-  final updateState = ref.watch(updateProvider);
-  final updatePrefs = ref.watch(updatePrefsProvider);
+  final updateState = listen ? ref.watch(updateProvider) : ref.read(updateProvider);
+  final updatePrefs = listen ? ref.watch(updatePrefsProvider) : ref.read(updatePrefsProvider);
 
   final (String updateTitle, String? updateSub) = switch (updateState.status) {
     UpdateStatus.checking => ('Checking for updates...', null),
