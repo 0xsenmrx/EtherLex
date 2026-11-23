@@ -120,7 +120,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   project.set_dart_entrypoint_arguments(std::move(command_line_arguments));
 
   FlutterWindow window(project);
-  // Open centred in the primary monitor's work area, 1360x860 when it fits.
+  // First start: centred in the primary monitor's work area, 1360x860 when it
+  // fits. Later starts move it to the remembered place below.
   RECT work{};
   SystemParametersInfo(SPI_GETWORKAREA, 0, &work, 0);
   const double scale =
@@ -141,6 +142,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                          static_cast<unsigned int>(height));
   if (!window.Create(L"EtherLex", origin, size)) {
     return EXIT_FAILURE;
+  }
+  // Reopen where it was left (fitted to a screen that still exists).
+  if (window.placement().Restore(window.GetHandle())) {
+    window.SetShowMaximized(window.placement().maximized());
   }
   window.SetQuitOnClose(true);
 

@@ -312,13 +312,47 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 ## 14f. Keyboard
 
 1. From Assignments press Ctrl+N; type something, then Ctrl+N again.
-- [ ] **Expect** the Assistant opens on a new, empty chat each time.
+- [x] **Expect** the Assistant opens on a new, empty chat each time.
 2. Files: in the course list and inside a course, press Ctrl+R and F5.
 - [x] **Expect** the refresh button spins and the list reloads.
 3. Hover a sidebar item, the refresh button, the calendar arrows and Today, and New chat.
 - [x] **Expect** tooltips with the shortcut: "Alt+1", "Refresh  Ctrl+R", "Previous week  ←", "This week  T", "New chat  Ctrl+N". In the icon rail: "Assignments  Alt+1".
 4. Ctrl+/ and read the list.
 - [x] **Expect** every line does what it says (R: mark done or not done; Ctrl+N; F5 on its own line).
+
+## 14n. Collapsed sidebar in a short window
+
+1. Collapse the sidebar (Ctrl+B) and make the window as short as it goes, also maximised on a small screen.
+- [ ] **Expect** no yellow-black stripes; the page buttons scroll with the mouse wheel when they do not fit, and Settings and the theme switch stay at the bottom.
+
+## 14m. Files cursor
+
+1. Open a folder with many files. Hold J (or the down arrow), then K; press Enter and D on a file, H on a folder.
+- [ ] **Expect** the highlight moves smoothly and the list scrolls with it; Enter opens, D downloads, H hides. Opening a file from Ctrl+K still lands with the cursor on it.
+
+## 14l. Keyboard reach and reduced motion
+
+1. Press Tab until a course in the sidebar has the focus ring, then Tab once more.
+- [x] **Expect** the eye button appears on the focused course and Tab lands on it; Enter disables the course (with Undo). Clicking a course with the mouse does not show the button.
+2. Files: move the cursor to a folder with J/K and press H; open "Hidden folders" and press H on a hidden one. Same on the course list.
+- [ ] **Expect** the folder (or course) is hidden, then shown again. H on a file does nothing.
+3. Windows Settings > Accessibility > Visual effects > Animation effects **off**. Switch back to EtherLex.
+- [ ] **Expect** pages switch without the slide, dialogs appear without the zoom, toasts and stars without the spring, loading rows do not pulse. Refresh icons still spin.
+4. Turn Animation effects back on and return to EtherLex.
+- [ ] **Expect** the motion is back.
+
+## 14j. Window remembers its place
+
+1. Move and resize the window, close it (X, Alt+F4), start EtherLex again.
+- [x] **Expect** the same size and position.
+2. Maximise, close, start again. Then click restore.
+- [x] **Expect** it opens maximised; restore goes back to the size from step 1.
+3. Minimise, close it from the taskbar (right-click > Close window), start again.
+- [x] **Expect** it opens as it was before minimising.
+4. With a second screen (optional): leave it there, close, unplug that screen (or change the layout), start again.
+- [ ] **Expect** it opens fully on the remaining screen, not off-screen. With different scaling on the two screens, the size stays the same when moving back.
+5. Delete `%APPDATA%\EtherLex\window.txt` and start.
+- [x] **Expect** the first-start size, centred.
 
 ## 14i. Keep conversations
 
