@@ -20,6 +20,7 @@ Premium, smooth, desktop-first Flutter companion for Canvas LMS. Windows first. 
   - `files/<scope>/` offline copies (LRU; the limit is per account, 1/3/5/10 GB, `offlineLimitGb` in the settings file; sizes are counted in an isolate, `offlineUsageProvider`) and `file_index/<scope>/` saved listings. All file access goes through `FilesRepository.localPath`.
   - App-wide: `appearance.json` (theme, typeface, palette, background pattern, collapsed sidebar), `updates.json` (update check).
   - One Drift database per account (`AppDatabase.forAccount`).
+- Downloads go where Settings > Files & downloads says (`downloadPrefsProvider`, `downloads` in the settings file): the folder Windows reports as Downloads (`windowsDownloadsFolder`, asked from the runner with `SHGetKnownFolderPath`), a chosen folder, a course subfolder, or a Save dialog. Never inside `%APPDATA%/EtherLex` (`isAllowedDownloadDir`). All downloads go through `downloadWithToast`.
 - Secrets: the Canvas token and the AI keys (per account and service) are in flutter_secure_storage (Windows credential store), never in the JSON files.
 
 ## Design system

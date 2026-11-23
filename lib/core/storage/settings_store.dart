@@ -31,6 +31,10 @@ abstract interface class SettingsStore {
   Future<int?> readOfflineLimitGb();
   Future<void> writeOfflineLimitGb(int gb);
 
+  /// Where downloads go (DownloadPrefs as JSON).
+  Future<Map<String, dynamic>> readDownloadPrefs();
+  Future<void> writeDownloadPrefs(Map<String, dynamic> prefs);
+
   /// How each page was left (ViewPrefs as JSON).
   Future<Map<String, dynamic>> readViewPrefs();
   Future<void> writeViewPrefs(Map<String, dynamic> prefs);
@@ -170,5 +174,16 @@ class FileSettingsStore implements SettingsStore {
   @override
   Future<void> writeOfflineLimitGb(int gb) async {
     await _update((map) => map['offlineLimitGb'] = gb);
+  }
+
+  @override
+  Future<Map<String, dynamic>> readDownloadPrefs() async {
+    final raw = (await _readMap())['downloads'];
+    return raw is Map<String, dynamic> ? raw : <String, dynamic>{};
+  }
+
+  @override
+  Future<void> writeDownloadPrefs(Map<String, dynamic> prefs) async {
+    await _update((map) => map['downloads'] = prefs);
   }
 }

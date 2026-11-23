@@ -1,11 +1,13 @@
 import 'dart:io';
 
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../../app/app_info.dart';
 import '../../../core/appearance/appearance.dart';
+import '../../../core/storage/app_dir.dart';
 import '../../../core/notify/toast.dart';
 import '../../../core/utils/format.dart';
 import '../../../core/utils/open_url.dart';
@@ -22,6 +24,7 @@ import '../../auth/domain/auth_provider.dart';
 import '../../auth/presentation/sign_out.dart';
 import '../../chat/presentation/ai_providers.dart';
 import '../../chat/presentation/ai_settings_section.dart';
+import '../../files/domain/download_prefs.dart';
 import '../../files/domain/offline_usage.dart';
 import '../../files/presentation/files_providers.dart';
 import '../../notifications/presentation/notifications_providers.dart';
@@ -296,6 +299,45 @@ List<SettingsItem> buildSettingsItems(BuildContext context, WidgetRef ref, {bool
     SettingsItem(
       files,
       const SettingsSearchText(
+        title: 'Downloads folder',
+        description: 'Where downloaded files go',
+        keywords: ['download', 'folder', 'save', 'location', 'path', 'directory'],
+      ),
+      (q) => _DownloadFolder(query: q),
+    ),
+    SettingsItem(
+      files,
+      const SettingsSearchText(
+        title: 'Ask where to save each time',
+        description: 'Show a Save dialog for every download',
+        keywords: ['download', 'ask', 'save as', 'dialog'],
+      ),
+      (q) => _DownloadSwitch(
+        query: q,
+        title: 'Ask where to save each time',
+        description: 'Show a Save dialog for every download',
+        value: (p) => p.askEachTime,
+        change: (p, on) => p.copyWith(askEachTime: on),
+      ),
+    ),
+    SettingsItem(
+      files,
+      const SettingsSearchText(
+        title: 'A folder for each course',
+        description: 'Put downloads in a subfolder named after the course',
+        keywords: ['download', 'course', 'subfolder', 'organise', 'organize'],
+      ),
+      (q) => _DownloadSwitch(
+        query: q,
+        title: 'A folder for each course',
+        description: 'Put downloads in a subfolder named after the course',
+        value: (p) => p.folderPerCourse,
+        change: (p, on) => p.copyWith(folderPerCourse: on),
+      ),
+    ),
+    SettingsItem(
+      files,
+      const SettingsSearchText(
         title: 'Offline files',
         description: 'Files you opened or saved offline, kept on this computer',
         keywords: ['cache', 'storage', 'space', 'disk', 'clear', 'offline', 'delete'],
@@ -320,8 +362,8 @@ List<SettingsItem> buildSettingsItems(BuildContext context, WidgetRef ref, {bool
       ),
       (q) => _OfflinePerCourse(query: q),
     ),
-    _note(files, 'Downloads go to your Downloads folder and are marked as coming from the internet, '
-        'so Office opens them in Protected View. Programs and scripts are only shown in their folder.'),
+    _note(files, 'Downloads are marked as coming from the internet, so Office opens them in Protected View. '
+        'Programs and scripts are only shown in their folder, and web pages ask before they open.'),
 
     // Updates
     if (UpdateService.supported) ...[
@@ -410,6 +452,14 @@ Map<SettingsSection, SettingsReset> settingsResets(WidgetRef ref) => {
         'The service back to Anthropic and every model name back to its default. '
             'Your API keys, the server address and your permissions are kept.',
         () => ref.read(aiSettingsProvider.notifier).resetChoices(),
+      ),
+      SettingsSection.files: SettingsReset(
+        'Downloads back to the Windows Downloads folder, no Save dialog, no course folders, '
+            'and keep up to 3 GB offline. Offline files already saved are kept unless they no longer fit.',
+        () {
+          ref.read(downloadPrefsProvider.notifier).update((_) => const DownloadPrefs());
+          ref.read(offlineLimitProvider.notifier).set(kDefaultOfflineLimitGb);
+        },
       ),
       if (UpdateService.supported)
         SettingsSection.updates: SettingsReset(
@@ -578,6 +628,80 @@ class _OfflinePerCourse extends ConsumerWidget {
                       }),
                   ],
                 ),
+    );
+  }
+}
+
+/// Settings > Files: the downloads folder, with Change and Reset.
+class _DownloadFolder extends ConsumerWidget {
+  const _DownloadFolder({required this.query});
+  final String query;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final prefs = ref.watch(downloadPrefsProvider);
+    final windows = ref.watch(windowsDownloadsProvider).value;
+    final shown = prefs.folder ?? windows ?? 'Your Downloads folder';
+
+    Future<void> change() async {
+      final picked = await getDirectoryPath(initialDirectory: prefs.folder ?? windows, confirmButtonText: 'Use this folder');
+      if (picked == null) return;
+      if (!isAllowedDownloadDir(picked, appData: appDataPath())) {
+        ref.read(toastProvider.notifier).show("That folder belongs to EtherLex itself. Choose another one.");
+        return;
+      }
+      ref.read(downloadPrefsProvider.notifier).update((p) => p.copyWith(folder: () => picked));
+    }
+
+    return SettingsRow(
+      title: 'Downloads folder',
+      description: prefs.folder == null ? '$shown (the Windows Downloads folder)' : shown,
+      query: query,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (prefs.folder != null) ...[
+            EButton(
+              label: 'Reset',
+              kind: EButtonKind.ghost,
+              onTap: () => ref.read(downloadPrefsProvider.notifier).update((p) => p.copyWith(folder: () => null)),
+            ),
+            const SizedBox(width: 6),
+          ],
+          EButton(label: 'Change...', kind: EButtonKind.ghost, onTap: change),
+        ],
+      ),
+    );
+  }
+}
+
+/// Settings > Files: one on/off choice about downloads.
+class _DownloadSwitch extends ConsumerWidget {
+  const _DownloadSwitch({
+    required this.query,
+    required this.title,
+    required this.description,
+    required this.value,
+    required this.change,
+  });
+
+  final String query;
+  final String title;
+  final String description;
+  final bool Function(DownloadPrefs p) value;
+  final DownloadPrefs Function(DownloadPrefs p, bool on) change;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final prefs = ref.watch(downloadPrefsProvider);
+    return SettingsRow(
+      title: title,
+      description: description,
+      query: query,
+      trailing: ESwitch(
+        value: value(prefs),
+        onChanged: (on) => ref.read(downloadPrefsProvider.notifier).update((p) => change(p, on)),
+      ),
     );
   }
 }

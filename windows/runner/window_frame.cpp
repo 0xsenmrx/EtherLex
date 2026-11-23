@@ -1,10 +1,12 @@
 #include "window_frame.h"
 
 #include <flutter/standard_method_codec.h>
+#include <shlobj.h>
 #include <windowsx.h>
 
 #include <cstdint>
 #include <cstdio>
+#include <string>
 #include <variant>
 
 namespace {
@@ -317,6 +319,32 @@ void WindowFrame::HandleCall(
   } else if (method == "close") {
     PostMessage(hwnd, WM_CLOSE, 0, 0);
     result->Success();
+  } else if (method == "downloadsFolder") {
+    // Where Windows keeps Downloads (the user may have moved it to another
+    // drive or OneDrive). Null when Windows cannot say.
+    PWSTR path = nullptr;
+    if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Downloads, KF_FLAG_DEFAULT,
+                                       nullptr, &path)) &&
+        path != nullptr) {
+      const int size = WideCharToMultiByte(CP_UTF8, 0, path, -1, nullptr, 0,
+                                           nullptr, nullptr);
+      std::string utf8;
+      if (size > 1) {
+        utf8.resize(static_cast<size_t>(size));
+        WideCharToMultiByte(CP_UTF8, 0, path, -1, utf8.data(), size, nullptr,
+                            nullptr);
+        utf8.resize(static_cast<size_t>(size - 1));  // drop the terminator
+      }
+      CoTaskMemFree(path);
+      if (utf8.empty()) {
+        result->Success();
+      } else {
+        result->Success(flutter::EncodableValue(utf8));
+      }
+    } else {
+      if (path != nullptr) CoTaskMemFree(path);
+      result->Success();
+    }
   } else if (method == "showSystemMenu") {
     // Right-click on the title bar: the native window menu at the cursor.
     POINT cursor;

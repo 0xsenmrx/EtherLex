@@ -9,7 +9,9 @@ import '../data/canvas_files_repository.dart';
 import '../data/mock_files_repository.dart';
 import '../data/file_cache.dart';
 import '../domain/files_models.dart';
+import '../domain/download_prefs.dart';
 import '../domain/offline_usage.dart';
+import '../../../core/platform/known_folders.dart';
 import '../domain/files_repository.dart';
 
 final filesRepositoryProvider = Provider<FilesRepository>((ref) {
@@ -178,3 +180,35 @@ class FilesCourseRequestNotifier extends Notifier<int?> {
 
 final filesCourseRequestProvider =
     NotifierProvider<FilesCourseRequestNotifier, int?>(FilesCourseRequestNotifier.new);
+
+/// The Windows Downloads folder (asked once per run).
+final windowsDownloadsProvider = FutureProvider<String>((ref) => windowsDownloadsFolder());
+
+/// Where this account's downloads go (Settings > Files & downloads).
+class DownloadPrefsNotifier extends Notifier<DownloadPrefs> {
+  bool _changed = false;
+
+  @override
+  DownloadPrefs build() {
+    _changed = false;
+    _load(ref.watch(settingsStoreProvider));
+    return const DownloadPrefs();
+  }
+
+  Future<void> _load(SettingsStore store) async {
+    try {
+      final saved = DownloadPrefs.fromJson(await store.readDownloadPrefs());
+      if (ref.mounted && !_changed && identical(store, ref.read(settingsStoreProvider))) state = saved;
+    } catch (_) {}
+  }
+
+  void update(DownloadPrefs Function(DownloadPrefs p) change) {
+    final next = change(state);
+    if (next == state) return;
+    _changed = true;
+    state = next;
+    ref.read(settingsStoreProvider).writeDownloadPrefs(next.toJson()).catchError((Object _) {});
+  }
+}
+
+final downloadPrefsProvider = NotifierProvider<DownloadPrefsNotifier, DownloadPrefs>(DownloadPrefsNotifier.new);

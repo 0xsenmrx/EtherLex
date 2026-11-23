@@ -9,14 +9,13 @@ import 'package:pdfrx/pdfrx.dart';
 
 import '../../../core/network/canvas_exception.dart';
 import '../../../core/ui/open_with_care.dart';
-import '../../../core/notify/toast.dart';
 import '../../../core/utils/format.dart';
-import '../../../core/utils/open_path.dart';
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/dialog.dart';
 import '../../../design_system/ether/icons.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../../files/domain/files_models.dart';
+import '../../files/presentation/file_actions.dart';
 import '../../files/presentation/file_row.dart';
 import '../../files/presentation/files_providers.dart';
 import '../data/doc_text.dart';
@@ -84,23 +83,8 @@ class _FilePreviewDialogState extends ConsumerState<FilePreviewDialog> {
   String _errorText(Object e) =>
       e is CanvasException ? e.message : 'Could not load this file. Please try again.';
 
-  Future<void> _saveToDownloads() async {
-    final toast = ref.read(toastProvider.notifier);
-    try {
-      final cached = await _path;
-      final dir = Directory(downloadsDirPath())..createSync(recursive: true);
-      final target = uniquePath(dir.path, sanitizeFileName(widget.file.name));
-      await File(cached).copy(target); // async: large files must not freeze the UI
-      await markFromInternet(target);
-      toast.show(
-        'Saved to Downloads',
-        actionLabel: 'Show',
-        onAction: () => revealInFolder(target),
-      );
-    } catch (_) {
-      toast.show('Could not save the file.');
-    }
-  }
+  /// Same as downloading from the list: where Settings > Files says.
+  Future<void> _saveToDownloads() => downloadWithToast(ref, widget.file);
 
   @override
   Widget build(BuildContext context) {
