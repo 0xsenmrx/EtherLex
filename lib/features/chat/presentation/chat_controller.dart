@@ -2,12 +2,15 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/storage/settings_store.dart';
 import '../../assignments/presentation/assignments_providers.dart';
 import '../../auth/domain/auth_provider.dart';
 import '../../courses/domain/course.dart';
+import '../../settings/presentation/settings_store_provider.dart';
 import '../data/chat_store.dart';
 import '../domain/chat_backend.dart';
 import '../domain/chat_models.dart';
+import '../domain/chat_retention.dart';
 import '../domain/chat_prompt.dart';
 import '../domain/context_item.dart';
 import 'ai_consent.dart';
@@ -70,6 +73,36 @@ class ChatState {
       );
 }
 
+/// How long this account keeps its conversations (Settings > Assistant).
+class ChatRetentionNotifier extends Notifier<ChatRetention> {
+  bool _changed = false;
+
+  @override
+  ChatRetention build() {
+    _changed = false;
+    _load(ref.watch(settingsStoreProvider));
+    return ChatRetention.always;
+  }
+
+  Future<void> _load(SettingsStore store) async {
+    try {
+      final name = await store.readChatRetention();
+      if (ref.mounted && !_changed && identical(store, ref.read(settingsStoreProvider))) {
+        state = ChatRetention.fromName(name);
+      }
+    } catch (_) {}
+  }
+
+  void set(ChatRetention r) {
+    if (r == state) return;
+    _changed = true;
+    state = r;
+    ref.read(settingsStoreProvider).writeChatRetention(r.name).catchError((Object _) {});
+  }
+}
+
+final chatRetentionProvider = NotifierProvider<ChatRetentionNotifier, ChatRetention>(ChatRetentionNotifier.new);
+
 class ChatController extends Notifier<ChatState> {
   StreamSubscription<String>? _sub;
   Completer<void>? _running;
@@ -85,6 +118,20 @@ class ChatController extends Notifier<ChatState> {
       if (running != null && !running.isCompleted) running.complete();
     });
     _loading = _load(store);
+    // A stricter choice applies at once: old chats leave the screen and the file.
+    ref.listen<ChatRetention>(chatRetentionProvider, (_, r) {
+      // Before the chats are read, saving would write an empty list over them;
+      // _load reads the retention itself.
+      if (!state.loaded) return;
+      final shown = chatsToShow(state.conversations, r, DateTime.now());
+      if (shown.length != state.conversations.length) {
+        state = state.copyWith(conversations: shown);
+        if (state.currentId != null && _find(state.currentId!) == null) {
+          state = state.withCurrent(null).withError(null);
+        }
+      }
+      _save(store);
+    });
     return const ChatState();
   }
 
@@ -93,7 +140,10 @@ class ChatController extends Notifier<ChatState> {
   Future<void> _load(ChatStore store) async {
     final all = await store.read();
     if (_stale(store)) return;
-    state = ChatState(conversations: all, loaded: true);
+    final shown = chatsToShow(all, ref.read(chatRetentionProvider), DateTime.now());
+    state = ChatState(conversations: shown, loaded: true);
+    // Chats past 30 days leave the file too, not only the screen.
+    if (shown.length != all.length) await _save(store);
   }
 
   /// Completes when the saved conversations have been read.
@@ -101,7 +151,7 @@ class ChatController extends Notifier<ChatState> {
 
   Future<void> _save(ChatStore store) async {
     try {
-      await store.write(state.conversations);
+      await store.write(chatsToSave(state.conversations, ref.read(chatRetentionProvider), DateTime.now()));
     } catch (_) {
       // Chats are a convenience; a full disk must not break the conversation.
     }
@@ -130,6 +180,14 @@ class ChatController extends Notifier<ChatState> {
     final store = ref.read(chatStoreProvider);
     state = state.copyWith(conversations: [...state.conversations.where((c) => c.id != id)]);
     if (id == state.currentId) state = state.withCurrent(null).withError(null);
+    await _save(store);
+  }
+
+  /// Settings > Assistant > Delete all conversations (asked first there).
+  Future<void> deleteAll() async {
+    stop();
+    final store = ref.read(chatStoreProvider);
+    state = state.copyWith(conversations: const []).withCurrent(null).withError(null);
     await _save(store);
   }
 
