@@ -15,6 +15,7 @@ import '../../../design_system/ether/tap.dart';
 import '../../../design_system/theme/course_palette.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../../assignments/presentation/assignments_providers.dart';
+import '../../settings/presentation/view_prefs_provider.dart';
 import '../../courses/domain/course.dart';
 import '../data/file_cache.dart';
 import '../domain/files_models.dart';
@@ -62,6 +63,40 @@ class _FilesPageState extends ConsumerState<FilesPage> {
         _showFile(file);
       });
     }, fireImmediately: true);
+    _restore();
+  }
+
+  /// Opens the course and folder this account had open last time, unless a
+  /// file link or a click already chose something.
+  Future<void> _restore() async {
+    await ref.read(viewPrefsProvider.notifier).ready;
+    if (!mounted) return;
+    // The current choice, not the one first read from disk: leaving Files and
+    // coming back in the same session must show where the student left it.
+    final prefs = ref.read(viewPrefsProvider);
+    final id = prefs.filesCourseId;
+    if (!mounted || _course != null || _touched || id == null) return;
+    final course = await _courseById(id);
+    if (!mounted || _course != null || _touched || course == null) return;
+    setState(() {
+      _course = course;
+      _path = prefs.filesFolderPath;
+    });
+  }
+
+  /// The student (or a link) moved since the page opened: no restoring then.
+  bool _touched = false;
+
+  /// Goes to [course] and [path] and remembers it for next time.
+  void _goTo(Course? course, List<int> path) {
+    _touched = true;
+    setState(() {
+      _course = course;
+      _path = path;
+    });
+    ref.read(viewPrefsProvider.notifier).update(
+          (p) => p.copyWith(filesCourseId: () => course?.id, filesFolderPath: course == null ? const [] : path),
+        );
   }
 
   Future<Course?> _courseById(int id) async {
@@ -92,9 +127,8 @@ class _FilesPageState extends ConsumerState<FilesPage> {
       // The course page shows the error with its retry button.
     }
     if (!mounted) return;
+    _goTo(course, path);
     setState(() {
-      _course = course;
-      _path = path;
       _revealId = entry.id;
       _revealTick++;
     });
@@ -107,13 +141,11 @@ class _FilesPageState extends ConsumerState<FilesPage> {
   }
 
   void _up() {
-    setState(() {
-      if (_path.isNotEmpty) {
-        _path = _path.sublist(0, _path.length - 1);
-      } else {
-        _course = null;
-      }
-    });
+    if (_path.isNotEmpty) {
+      _goTo(_course, _path.sublist(0, _path.length - 1));
+    } else {
+      _goTo(null, const []);
+    }
   }
 
   String _errorText(Object e) {
@@ -136,10 +168,7 @@ class _FilesPageState extends ConsumerState<FilesPage> {
     if (course == null) {
       body = _CourseList(
         key: const ValueKey('courses'),
-        onOpen: (c) => setState(() {
-          _course = c;
-          _path = const [];
-        }),
+        onOpen: (c) => _goTo(c, const []),
       );
     } else {
       body = filesAsync!.when(
@@ -162,7 +191,7 @@ class _FilesPageState extends ConsumerState<FilesPage> {
             hiddenFolders: [for (final f in v.folders) if (hiddenIds.contains(f.id)) f],
             showHidden: _showHidden,
             onToggleShowHidden: () => setState(() => _showHidden = !_showHidden),
-            onOpenFolder: (f) => setState(() => _path = [..._path, f.id]),
+            onOpenFolder: (f) => _goTo(course, [..._path, f.id]),
             isOffline: (f) => ref.read(filesRepositoryProvider).cachedPath(f) != null,
             onOpen: (f) => openFile(context, ref, f),
             onDownload: (f) => downloadWithToast(ref, f),
@@ -237,14 +266,9 @@ class _FilesPageState extends ConsumerState<FilesPage> {
                 child: _Breadcrumb(
                   course: course,
                   crumbs: view?.breadcrumb ?? const [],
-                  onRoot: () => setState(() {
-                    _course = null;
-                    _path = const [];
-                  }),
-                  onCourse: () => setState(() => _path = const []),
-                  onCrumb: (i) => setState(
-                    () => _path = [for (final c in view!.breadcrumb.take(i + 1)) c.id],
-                  ),
+                  onRoot: () => _goTo(null, const []),
+                  onCourse: () => _goTo(course, const []),
+                  onCrumb: (i) => _goTo(course, [for (final c in view!.breadcrumb.take(i + 1)) c.id]),
                 ),
               ),
             Expanded(child: body),
