@@ -240,7 +240,7 @@ List<ChatBlock> _parse(List<String> lines) {
   final first = _item.firstMatch(lines[start])!;
   final baseIndent = first.group(1)!.length;
   final ordered = _digit.hasMatch(first.group(2)!);
-  final startNumber = ordered ? int.parse(first.group(2)!.replaceAll(RegExp(r'\D'), '')) : 1;
+  final startNumber = ordered ? int.tryParse(first.group(2)!.replaceAll(RegExp(r'\D'), '')) ?? 1 : 1;
   final items = <ListItem>[];
 
   var i = start;

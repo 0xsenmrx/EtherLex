@@ -1,3 +1,4 @@
+import 'char_code.dart';
 import 'file_link_markup.dart';
 
 /// Canvas messages are HTML. This keeps the readable text and paragraph breaks.
@@ -14,6 +15,8 @@ String htmlToText(
   String? origin,
   bool fileLinks = false,
 }) {
+  // The marker characters are ours: text from Canvas must not forge a link.
+  html = stripFileLinkChars(html);
   if (links) html = _inlineLinks(html, origin, fileLinks);
   var s = html
       .replaceAll(RegExp(r'<script[\s\S]*?</script>|<style[\s\S]*?</style>', caseSensitive: false), '')
@@ -27,8 +30,7 @@ String htmlToText(
       .replaceAll('&quot;', '"')
       .replaceAll('&apos;', "'")
       .replaceAllMapped(RegExp(r'&#(\d+);'), (m) {
-    final code = int.tryParse(m.group(1)!);
-    return code == null ? '' : String.fromCharCode(code);
+    return charFromCode(int.tryParse(m.group(1)!));
   }).replaceAll('&amp;', '&');
   s = s
       .replaceAll(RegExp(r'[ \t ]+'), ' ')
@@ -48,11 +50,13 @@ String _inlineLinks(String html, String? origin, bool fileLinks) {
       if (href.startsWith('/') && !href.startsWith('//') && origin != null) href = '$origin$href';
       final isWeb = href.startsWith('https://') || href.startsWith('http://');
       final file = RegExp(r'/files/(\d+)').firstMatch(href);
-      if (fileLinks && file != null && origin != null && href.startsWith('$origin/') && !inner.contains('<img')) {
+      // An id too long to be real (or to fit an int) is no file link.
+      final fileId = file == null ? null : int.tryParse(file.group(1)!);
+      if (fileLinks && fileId != null && origin != null && href.startsWith('$origin/') && !inner.contains('<img')) {
         final course = RegExp(r'/courses/(\d+)/').firstMatch(href)?.group(1);
         return fileLinkMarker(
           courseId: int.tryParse(course ?? '') ?? 0,
-          fileId: int.parse(file.group(1)!),
+          fileId: fileId,
           name: inner.replaceAll(RegExp(r'<[^>]*>'), '').replaceAll('&nbsp;', ' '),
         );
       }

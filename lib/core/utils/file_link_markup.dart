@@ -8,12 +8,17 @@ const String _open = '';
 const String _sep = '';
 const String _close = '';
 
-final RegExp fileLinkPattern = RegExp('$_open(\\d+):(\\d+)$_sep([^$_close]*)$_close');
+// At most 18 digits, so the ids always fit an int (int.parse cannot throw).
+final RegExp fileLinkPattern = RegExp('$_open(\\d{1,18}):(\\d{1,18})$_sep([^$_close]*)$_close');
 
 /// An unfinished marker at the very end (text that was cut in the middle).
 final RegExp _cutMarker = RegExp('$_open[^$_close]*\$');
 
 String _clean(String s) => s.replaceAll(RegExp('[$_open$_sep$_close]'), '');
+
+/// [text] without the marker characters, for text that comes from outside
+/// (Canvas), so it cannot forge a file link.
+String stripFileLinkChars(String text) => _clean(text);
 
 /// The marker for one file link; [name] is what the reader sees.
 String fileLinkMarker({required int courseId, required int fileId, required String name}) {

@@ -67,7 +67,7 @@ class CachedActivityRepository implements ActivityRepository {
           ? Future<List<Map<String, dynamic>>?>.value(null)
           : _try(_client.fetchAnnouncementsJson(courseIds)),
     ]);
-    final stream = [for (final j in results[0]!) ?parseActivity(j, host: host)];
+    final stream = [for (final j in results[0]!) ?_orSkip(() => parseActivity(j, host: host))];
     final graded = results[1];
     final announcements = results[2];
 
@@ -76,8 +76,8 @@ class CachedActivityRepository implements ActivityRepository {
         if (!(i.kind == ActivityKind.grade && graded != null) &&
             !(i.kind == ActivityKind.announcement && announcements != null))
           i,
-      if (graded != null) for (final j in graded) ?parseGraded(j, baseUrl: _client.baseUrl),
-      if (announcements != null) for (final j in announcements) ?parseAnnouncement(j, host: host),
+      if (graded != null) for (final j in graded) ?_orSkip(() => parseGraded(j, baseUrl: _client.baseUrl)),
+      if (announcements != null) for (final j in announcements) ?_orSkip(() => parseAnnouncement(j, host: host)),
     ];
 
     await _db.transaction(() async {
@@ -112,4 +112,14 @@ class CachedActivityRepository implements ActivityRepository {
 
   @override
   void dispose() {}
+}
+
+/// One odd item from Canvas (anyone can write a discussion post or send a
+/// message) must not stop the whole feed from updating: it is left out.
+T? _orSkip<T>(T? Function() parse) {
+  try {
+    return parse();
+  } catch (_) {
+    return null;
+  }
 }
