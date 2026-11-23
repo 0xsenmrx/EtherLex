@@ -69,4 +69,6 @@ abstract final class EIcons {
   static const IconData info = LucideIcons.info;
   static const IconData storage = LucideIcons.hardDrive;
   static const IconData reset = LucideIcons.rotateCcw;
+  static const IconData collapse = LucideIcons.panelLeftClose;
+  static const IconData expand = LucideIcons.panelLeftOpen;
 }

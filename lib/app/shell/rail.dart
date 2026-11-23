@@ -9,12 +9,16 @@ import '../../design_system/theme/course_palette.dart';
 import '../../design_system/theme/ether_theme.dart';
 import '../../features/assignments/presentation/assignments_providers.dart';
 import 'nav.dart';
+import 'nav_tools.dart';
 
 /// Narrow-window navigation: a floating icon rail, courses in a popover.
 class NavRail extends StatelessWidget {
-  const NavRail({super.key, required this.location});
+  const NavRail({super.key, required this.location, this.onExpand});
 
   final String location;
+
+  /// Back to the full sidebar; null when the window is too narrow for it.
+  final VoidCallback? onExpand;
 
   static const double width = 76;
 
@@ -22,41 +26,55 @@ class NavRail extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.colors;
     final selected = destinationIndexFor(location);
+    final pill = BoxDecoration(
+      color: c.surface,
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(color: c.line),
+      boxShadow: [BoxShadow(color: c.shadow, blurRadius: 12, offset: const Offset(0, 4))],
+    );
     return SizedBox(
       width: width,
-      child: Center(
-        child: Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: c.surface,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: c.line),
-            boxShadow: [BoxShadow(color: c.shadow, blurRadius: 12, offset: const Offset(0, 4))],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (var i = 0; i < kDestinations.length; i++)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: EIconButton(
-                    icon: kDestinations[i].icon,
-                    tooltip: kDestinations[i].label,
-                    size: 40,
-                    iconSize: 18,
-                    bordered: false,
-                    selected: i == selected,
-                    onTap: () => context.go(kDestinations[i].path),
-                  ),
+      child: Column(
+        children: [
+          Expanded(
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: pill,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (var i = 0; i < kDestinations.length; i++)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: EIconButton(
+                          icon: kDestinations[i].icon,
+                          tooltip: kDestinations[i].label,
+                          size: 40,
+                          iconSize: 18,
+                          bordered: false,
+                          selected: i == selected,
+                          onTap: () => context.go(kDestinations[i].path),
+                        ),
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: SizedBox(width: 24, child: Container(height: 1, color: c.line)),
+                    ),
+                    const _CoursesButton(),
+                  ],
                 ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: SizedBox(width: 24, child: Container(height: 1, color: c.line)),
               ),
-              const _CoursesButton(),
-            ],
+            ),
           ),
-        ),
+          // Settings, theme and (in a wide window) back to the sidebar.
+          Container(
+            margin: const EdgeInsets.only(top: 8, bottom: 12),
+            padding: const EdgeInsets.all(6),
+            decoration: pill,
+            child: NavTools(vertical: true, compactSet: true, onToggleSidebar: onExpand),
+          ),
+        ],
       ),
     );
   }

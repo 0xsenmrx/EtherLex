@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
-import '../../core/notify/toast.dart';
 import '../../core/utils/initials.dart';
 import '../../design_system/ether/icons.dart';
 import '../../design_system/ether/menu.dart';
@@ -9,12 +8,11 @@ import '../../design_system/ether/tap.dart';
 import '../../design_system/theme/ether_theme.dart';
 import '../../features/auth/domain/auth_provider.dart';
 import '../../features/auth/presentation/sign_out.dart';
-import '../../features/notifications/presentation/notifications_providers.dart';
-import '../../features/palette/presentation/shortcuts_dialog.dart';
+import '../../features/settings/domain/settings_search.dart';
 import '../../features/settings/presentation/settings_dialog.dart';
 
-/// Avatar in the top bar: account, notifications, Settings, shortcuts and
-/// sign out. The look lives in Settings > Appearance (and the sun/moon button).
+/// Avatar in the top bar: who is signed in, account settings, sign out.
+/// Everything else is in the tools under the navigation and in Settings.
 class AccountMenu extends ConsumerWidget {
   const AccountMenu({super.key});
 
@@ -25,7 +23,6 @@ class AccountMenu extends ConsumerWidget {
     final session = ref.watch(authProvider).value;
     final name = session?.userName ?? '';
     final isSample = session?.isSample ?? true;
-    final notificationsOn = ref.watch(notificationsProvider);
     final item = etherMenuItemStyle(c, t);
 
     Future<void> signOut() async {
@@ -51,29 +48,9 @@ class AccountMenu extends ConsumerWidget {
         const EMenuDivider(),
         MenuItemButton(
           style: item,
-          closeOnActivate: false,
-          leadingIcon: Icon(notificationsOn ? EIcons.bell : EIcons.bellOff),
-          trailingIcon: Text(notificationsOn ? 'On' : 'Off', style: t.metaMuted),
-          onPressed: () {
-            ref.read(notificationsProvider.notifier).toggle();
-            ref.read(toastProvider.notifier).show(
-                  notificationsOn ? 'Notifications off' : 'Notifications on',
-                );
-          },
-          child: const Text('Notifications'),
-        ),
-        const EMenuDivider(),
-        MenuItemButton(
-          style: item,
-          leadingIcon: const Icon(EIcons.settings),
-          onPressed: () => showSettings(context),
-          child: const Text('Settings'),
-        ),
-        MenuItemButton(
-          style: item,
-          leadingIcon: const Icon(EIcons.keyboard),
-          onPressed: () => showShortcuts(context),
-          child: const Text('Keyboard shortcuts'),
+          leadingIcon: const Icon(EIcons.account),
+          onPressed: () => showSettings(context, section: SettingsSection.account),
+          child: const Text('Account settings'),
         ),
         const EMenuDivider(),
         MenuItemButton(

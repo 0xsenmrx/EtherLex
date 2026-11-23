@@ -25,7 +25,8 @@ class AppShell extends ConsumerWidget {
   final String location;
   final Widget child;
 
-  /// Below this width the sidebar becomes the floating icon rail.
+  /// Below this width the sidebar becomes the floating icon rail (and Ctrl+B
+  /// can switch to the rail at any width).
   static const double wideBreakpoint = 1080;
 
   @override
@@ -35,6 +36,8 @@ class AppShell extends ConsumerWidget {
     // Looks for a new release shortly after start (see Settings > Updates).
     ref.watch(updateStartupProvider);
     final rejected = ref.watch(tokenRejectedProvider);
+    final collapsed = ref.watch(appearanceProvider.select((a) => a.sidebarCollapsed));
+    void toggleSidebar() => ref.read(appearanceProvider.notifier).toggleSidebar();
     ref.listen(updateProvider, (prev, next) {
       final info = next.info;
       if (info == null || !next.announce || next.status != UpdateStatus.available) return;
@@ -53,6 +56,7 @@ class AppShell extends ConsumerWidget {
             showCommandPalette(context, searchOnly: true),
         const SingleActivator(LogicalKeyboardKey.comma, control: true): () => showSettings(context),
         const SingleActivator(LogicalKeyboardKey.slash, control: true): () => showShortcuts(context),
+        const SingleActivator(LogicalKeyboardKey.keyB, control: true): toggleSidebar,
         const SingleActivator(LogicalKeyboardKey.digit1, alt: true): () => context.go('/assignments'),
         const SingleActivator(LogicalKeyboardKey.digit2, alt: true): () => context.go('/activity'),
         const SingleActivator(LogicalKeyboardKey.digit3, alt: true): () => context.go('/calendar'),
@@ -64,7 +68,10 @@ class AppShell extends ConsumerWidget {
         pattern: ref.watch(appearanceProvider.select((a) => a.background)),
         child: BreakpointBuilder<bool>(
           mode: (box) => box.maxWidth >= wideBreakpoint,
-          builder: (context, wide) {
+          builder: (context, roomy) {
+            // Roomy: the window has space for the sidebar. Collapsed: the
+            // student chose the rail anyway (Ctrl+B).
+            final wide = roomy && !collapsed;
             return Column(
               children: [
                 TopBar(compact: !wide, onSearch: () => showCommandPalette(context)),
@@ -74,7 +81,9 @@ class AppShell extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       RepaintBoundary(
-                        child: wide ? Sidebar(location: location) : NavRail(location: location),
+                        child: wide
+                            ? Sidebar(location: location, onCollapse: toggleSidebar)
+                            : NavRail(location: location, onExpand: roomy ? toggleSidebar : null),
                       ),
                       Expanded(
                         child: Padding(

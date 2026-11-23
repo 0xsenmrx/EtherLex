@@ -22,6 +22,7 @@ const List<ShortcutInfo> kShortcuts = [
   ShortcutInfo('Everywhere', ['Alt', '6'], 'Go to Assistant'),
   ShortcutInfo('Everywhere', ['Ctrl', ','], 'Settings'),
   ShortcutInfo('Everywhere', ['Ctrl', '/'], 'Keyboard shortcuts'),
+  ShortcutInfo('Everywhere', ['Ctrl', 'B'], 'Collapse or expand the sidebar'),
   ShortcutInfo('Everywhere', ['Ctrl', 'R'], 'Refresh this page (also F5)'),
   ShortcutInfo('Everywhere', ['F9'], 'Show frame times'),
   ShortcutInfo('Everywhere', ['Esc'], 'Close a dialog, clear the selection'),
