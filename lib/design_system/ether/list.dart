@@ -489,8 +489,15 @@ class _ESkeletonListState extends State<ESkeletonList> with SingleTickerProvider
           height: h,
           decoration: BoxDecoration(color: c.selected, borderRadius: BorderRadius.circular(6)),
         );
+    // No breathing when Windows' animation effects are off.
+    final still = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    if (still && _c.isAnimating) {
+      _c.stop();
+    } else if (!still && !_c.isAnimating) {
+      _c.repeat(reverse: true);
+    }
     return FadeTransition(
-      opacity: _c,
+      opacity: still ? const AlwaysStoppedAnimation<double>(0.7) : _c,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
         child: Column(

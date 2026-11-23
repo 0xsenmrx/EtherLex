@@ -89,6 +89,16 @@ class _SpringValueState extends State<SpringValue> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     final controller = _controller;
+    // Windows' "Animation effects" off (or Flutter's disableAnimations): no
+    // spring, the value is simply at its target.
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+      if (controller != null && controller.isAnimating) controller.stop();
+      return AnimatedBuilder(
+        animation: const AlwaysStoppedAnimation<double>(0),
+        child: widget.child,
+        builder: (context, child) => widget.builder(context, widget.target, child),
+      );
+    }
     // Always an AnimatedBuilder, so the subtree keeps its place (and state)
     // when the controller appears.
     return AnimatedBuilder(

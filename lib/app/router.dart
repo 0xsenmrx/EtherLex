@@ -30,6 +30,8 @@ CustomTransitionPage<void> _page(GoRouterState state, Widget child) {
     transitionDuration: const Duration(milliseconds: 360),
     reverseTransitionDuration: const Duration(milliseconds: 160),
     transitionsBuilder: (context, animation, secondary, child) {
+      // Animation effects off in Windows: pages switch at once.
+      if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) return child;
       final fadeIn = CurvedAnimation(parent: animation, curve: Curves.easeOut);
       final slide = CurvedAnimation(parent: animation, curve: _slideCurve);
       final fadeOut = Tween<double>(begin: 1, end: 0).animate(

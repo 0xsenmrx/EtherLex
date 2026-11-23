@@ -319,6 +319,14 @@ void WindowFrame::HandleCall(
   } else if (method == "close") {
     PostMessage(hwnd, WM_CLOSE, 0, 0);
     result->Success();
+  } else if (method == "animationsEnabled") {
+    // Settings > Accessibility > Visual effects > Animation effects. Flutter
+    // does not pass this on to MediaQuery on Windows.
+    BOOL on = TRUE;
+    if (!SystemParametersInfoW(SPI_GETCLIENTAREAANIMATION, 0, &on, 0)) {
+      on = TRUE;
+    }
+    result->Success(flutter::EncodableValue(on != FALSE));
   } else if (method == "downloadsFolder") {
     // Where Windows keeps Downloads (the user may have moved it to another
     // drive or OneDrive). Null when Windows cannot say.
