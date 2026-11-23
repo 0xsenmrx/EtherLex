@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/motion/spring_value.dart';
 import '../core/motion/springs.dart';
+import '../core/platform/system_motion.dart';
 import '../design_system/theme/ether_theme.dart';
 import '../features/activity/presentation/activity_page.dart';
 import '../features/assignments/presentation/assignments_page.dart';
@@ -27,11 +28,17 @@ CustomTransitionPage<void> _page(GoRouterState state, Widget child) {
   return CustomTransitionPage<void>(
     key: state.pageKey,
     child: _floor(child),
-    transitionDuration: const Duration(milliseconds: 360),
-    reverseTransitionDuration: const Duration(milliseconds: 160),
+    // Animation effects off: no transition at all, so the old page is gone
+    // at once instead of staying under the new one while it "fades".
+    transitionDuration: animationsOff ? Duration.zero : const Duration(milliseconds: 360),
+    reverseTransitionDuration: animationsOff ? Duration.zero : const Duration(milliseconds: 160),
     transitionsBuilder: (context, animation, secondary, child) {
       // Animation effects off in Windows: pages switch at once.
-      if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) return child;
+      // (If the setting changed after this page was made, its durations are
+      // still the old ones: show only a finished page, never two at once.)
+      if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+        return FadeTransition(opacity: animation.drive(CurveTween(curve: const Threshold(1))), child: child);
+      }
       final fadeIn = CurvedAnimation(parent: animation, curve: Curves.easeOut);
       final slide = CurvedAnimation(parent: animation, curve: _slideCurve);
       final fadeOut = Tween<double>(begin: 1, end: 0).animate(

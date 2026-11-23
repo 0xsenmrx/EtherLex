@@ -263,7 +263,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 7. Keyboard only: Tab through the title bar and dialogs.
 - [x] **Expect** a violet focus ring on whatever has focus (never after a mouse click).
 
-## 14b. Settings window
+## 14b. Settings window [DONE]
 
 1. Ctrl+, then click through every section in the sidebar.
 - [x] **Expect** a wide window with the sections on the left and rounded rows on the right (title, one line under it, control on the right). Every setting from before is somewhere. The search box has the cursor.
@@ -278,7 +278,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 6. Settings > Appearance: click each Theme card, both Font cards, each Background card (Dots, Grid, Plain), in light and dark. Then Ctrl+K, type "grid" and "accent blue". Open the avatar menu. Open Settings > Assistant in a narrow window.
 - [x] **Expect** the chosen card has an accent border; the font cards show a sample in their own font; the background changes at once everywhere (sign-in screen too) and survives a restart. Ctrl+K offers "Background: Grid" and "Accent colour: Blue". The avatar menu has no theme or font items any more. The AI service switcher never overflows (it shrinks to fit).
 
-## 14c. Sidebar tools and collapse
+## 14c. Sidebar tools and collapse [DONE]
 
 1. Wide window: look at the bottom of the sidebar; hover each tool, then click Settings, Shortcuts, Help and the sun/moon.
 - [x] **Expect** a hairline and a row of icons: Settings, Keyboard shortcuts, Help and feedback on the left; theme and collapse on the right. Tooltips name them with their shortcut. Help opens Settings on Help & About. The title bar no longer has the sun/moon.
@@ -287,7 +287,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 3. Open the avatar menu.
 - [x] **Expect** your name and Canvas, Account settings (opens Settings on Account) and Sign out only.
 
-## 14d. Pages remember how you left them
+## 14d. Pages remember how you left them [DONE]
 
 1. Assignments: Starred, unfold "Done earlier". Activity: Grades filter. Grades: unfold "No grades yet". Files: open a course and a folder inside it. Go to another page and back to each. In Files, change folder twice more with a page switch in between.
 - [x] **Expect** each page is exactly as you left it.
@@ -296,7 +296,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 3. Sign in with the other account (or sample data).
 - [x] **Expect** that account has its own choices (the defaults the first time).
 
-## 14e. Ctrl+K finds everything
+## 14e. Ctrl+K finds everything [DONE]
 
 1. Open a course in Files once (so its listing is saved). Ctrl+K, type part of a file name from it, then Enter.
 - [x] **Expect** a Files section with the file (course on the right); Enter opens Files on its folder with the file selected. Files in hidden folders or hidden courses are not listed.
@@ -309,7 +309,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 5. Ctrl+F with the same words.
 - [x] **Expect** files and conversations too, but no settings or commands.
 
-## 14f. Keyboard
+## 14f. Keyboard [DONE]
 
 1. From Assignments press Ctrl+N; type something, then Ctrl+N again.
 - [x] **Expect** the Assistant opens on a new, empty chat each time.
@@ -320,28 +320,28 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 4. Ctrl+/ and read the list.
 - [x] **Expect** every line does what it says (R: mark done or not done; Ctrl+N; F5 on its own line).
 
-## 14n. Collapsed sidebar in a short window
+## 14n. Collapsed sidebar in a short window [DONE]
 
 1. Collapse the sidebar (Ctrl+B) and make the window as short as it goes, also maximised on a small screen.
-- [ ] **Expect** no yellow-black stripes; the page buttons scroll with the mouse wheel when they do not fit, and Settings and the theme switch stay at the bottom.
+- [x] **Expect** no yellow-black stripes; the page buttons scroll with the mouse wheel when they do not fit, and Settings and the theme switch stay at the bottom.
 
-## 14m. Files cursor
+## 14m. Files cursor [DONE]
 
 1. Open a folder with many files. Hold J (or the down arrow), then K; press Enter and D on a file, H on a folder.
-- [ ] **Expect** the highlight moves smoothly and the list scrolls with it; Enter opens, D downloads, H hides. Opening a file from Ctrl+K still lands with the cursor on it.
+- [x] **Expect** the highlight moves smoothly and the list scrolls with it; Enter opens, D downloads, H hides. Opening a file from Ctrl+K still lands with the cursor on it.
 
-## 14l. Keyboard reach and reduced motion
+## 14l. Keyboard reach and reduced motion [DONE]
 
 1. Press Tab until a course in the sidebar has the focus ring, then Tab once more.
 - [x] **Expect** the eye button appears on the focused course and Tab lands on it; Enter disables the course (with Undo). Clicking a course with the mouse does not show the button.
 2. Files: move the cursor to a folder with J/K and press H; open "Hidden folders" and press H on a hidden one. Same on the course list.
-- [ ] **Expect** the folder (or course) is hidden, then shown again. H on a file does nothing.
+- [x] **Expect** the folder (or course) is hidden, then shown again. H on a file does nothing.
 3. Windows Settings > Accessibility > Visual effects > Animation effects **off**. Switch back to EtherLex.
-- [ ] **Expect** pages switch without the slide, dialogs appear without the zoom, toasts and stars without the spring, loading rows do not pulse. Refresh icons still spin.
+- [x] **Expect** pages switch at once (never two pages on top of each other), dialogs appear and close at once, the calendar week and the Copy/Copied labels swap without fading, toasts and stars without the spring, loading rows do not pulse. Refresh icons still spin.
 4. Turn Animation effects back on and return to EtherLex.
-- [ ] **Expect** the motion is back.
+- [x] **Expect** the motion is back.
 
-## 14j. Window remembers its place
+## 14j. Window remembers its place [DONE EXCEPT OPTIONAL]
 
 1. Move and resize the window, close it (X, Alt+F4), start EtherLex again.
 - [x] **Expect** the same size and position.
@@ -354,7 +354,7 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 5. Delete `%APPDATA%\EtherLex\window.txt` and start.
 - [x] **Expect** the first-start size, centred.
 
-## 14i. Keep conversations
+## 14i. Keep conversations [DONE]
 
 1. Settings > Assistant with some saved chats: choose **Until I close**.
 - [x] **Expect** it asks first and says how many chats will be gone when you close; Cancel keeps Always.
@@ -365,19 +365,19 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 4. Search Settings for "history".
 - [x] **Expect** both rows are found.
 
-## 14h. No ding on empty clicks
+## 14h. No ding on empty clicks [DONE]
 
 1. Click empty spots: the page header between the title and refresh, the gap next to the sidebar, the empty area under a short list, the sign-in screen, empty space in Settings.
 - [x] **Expect** silence everywhere. Buttons, rows, title bar dragging and double-click, and closing dialogs by clicking outside still work.
 
-## 14g. Empty states
+## 14g. Empty states [DONE]
 
 1. Assistant with a key and no messages: click each example.
 - [x] **Expect** it fills the message box (cursor at the end), nothing is sent or attached. The text under the title explains the paperclip, the permission and Apply.
 2. Activity with a kind filter that has nothing; with a course filter that has nothing. Grades with every course turned off (Settings > Courses). Assignments with nothing due.
 - [x] **Expect** "Show everything", "Show all courses", "Open Settings" (on Courses) and "Refresh" respectively, and each does what it says.
 
-## 15. AI assistant (needs your own API key)
+## 15. AI assistant (needs your own API key) [IMAGE ONLY REMAINING]
 
 1. Sample mode: open **Assistant** (Alt+6) and send "hello".
 - [x] **Expect** your message on the right, "Thinking..." and then a canned answer that appears piece by piece. Copy puts the answer on the clipboard; "Answer again" replaces it.

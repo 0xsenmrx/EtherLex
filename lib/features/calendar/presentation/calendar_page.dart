@@ -175,7 +175,10 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                           ),
                   );
                   return AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 220),
+                    // Animation effects off: the new week replaces the old at once.
+                    duration: (MediaQuery.maybeDisableAnimationsOf(context) ?? false)
+                        ? Duration.zero
+                        : const Duration(milliseconds: 220),
                     switchInCurve: Curves.easeOutCubic,
                     switchOutCurve: Curves.easeInCubic,
                     layoutBuilder: (current, previous) => Stack(

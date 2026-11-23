@@ -22,7 +22,7 @@
 - Settings > Assistant: **Keep conversations** Always, 30 days, or Until I close EtherLex (nothing is written to disk; chats stay on screen until you close), per account, and **Delete all conversations** (asks first, with the count). Resetting the Assistant section does not touch your chats.
 - EtherLex opens where you left it: same size and position, maximised if it was. If that screen is no longer connected it opens on the nearest one, fitted inside it.
 - Keyboard: Tab from a course in the sidebar reaches its Disable button, and H in Files hides or shows the selected folder or course (those buttons only appear on hover).
-- With Windows' "Animation effects" off (Settings > Accessibility > Visual effects), EtherLex stops its springs, page slides, the dialog zoom and the loading pulse.
+- With Windows' "Animation effects" off (Settings > Accessibility > Visual effects), EtherLex has no transitions at all: pages and dialogs switch at once, nothing fades or springs, loading rows do not pulse.
 - The README explains the "Windows protected your PC" warning on first install and how to check the installer's SHA-256.
 
 ### Fixed and safer

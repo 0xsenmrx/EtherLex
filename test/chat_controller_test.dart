@@ -290,11 +290,8 @@ void main() {
       expect(t.container.read(chatControllerProvider).conversations, hasLength(2));
       t.container.read(chatRetentionProvider.notifier).set(ChatRetention.month);
       await until(() => t.container.read(chatControllerProvider).conversations.length == 1);
-      var saved = await store().read();
-      for (var i = 0; i < 200 && saved.length != 1; i++) {
-        await Future<void>.delayed(const Duration(milliseconds: 10));
-        saved = await store().read();
-      }
+      // The save was queued when the setting changed; a read waits for it.
+      final saved = await store().read();
       expect([for (final c in saved) c.id], ['new']);
     });
   });
