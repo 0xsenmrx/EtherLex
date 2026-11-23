@@ -82,7 +82,9 @@ class ESyncButton extends StatelessWidget {
           ),
           const SizedBox(width: 10),
         ],
-        ETap(
+        Tooltip(
+          message: 'Refresh  Ctrl+R',
+          child: ETap(
           onTap: state.loading ? null : onRefresh,
           pressedScale: 0.92,
           builder: (context, s) => AnimatedContainer(
@@ -99,6 +101,7 @@ class ESyncButton extends StatelessWidget {
               spinning: state.loading,
               child: Icon(EIcons.refresh, size: 16, color: s.hovered ? c.textPrimary : c.textSecondary),
             ),
+          ),
           ),
         ),
       ],

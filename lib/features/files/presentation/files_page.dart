@@ -149,6 +149,16 @@ class _FilesPageState extends ConsumerState<FilesPage> {
     super.dispose();
   }
 
+  /// Ctrl+R / F5: the open course's listing again, or the course list.
+  void _refresh() {
+    final course = _course;
+    if (course != null) {
+      ref.invalidate(courseFilesProvider(course.id));
+    } else {
+      ref.read(syncProvider.notifier).refresh();
+    }
+  }
+
   void _up() {
     if (_path.isNotEmpty) {
       _goTo(_course, _path.sublist(0, _path.length - 1));
@@ -238,6 +248,8 @@ class _FilesPageState extends ConsumerState<FilesPage> {
         const SingleActivator(LogicalKeyboardKey.arrowLeft, alt: true): () {
           if (_course != null) _up();
         },
+        const SingleActivator(LogicalKeyboardKey.keyR, control: true): _refresh,
+        const SingleActivator(LogicalKeyboardKey.f5): _refresh,
       },
       child: Focus(
         autofocus: true,

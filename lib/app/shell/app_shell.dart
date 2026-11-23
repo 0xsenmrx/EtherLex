@@ -7,6 +7,7 @@ import '../../core/appearance/appearance.dart';
 import '../../core/notify/toast.dart';
 import '../../design_system/ether/breakpoint.dart';
 import '../../design_system/ether/dot_grid.dart';
+import '../../features/chat/presentation/chat_controller.dart';
 import '../../features/notifications/presentation/notifications_providers.dart';
 import '../../features/palette/presentation/command_palette.dart';
 import '../../features/palette/presentation/shortcuts_dialog.dart';
@@ -57,6 +58,10 @@ class AppShell extends ConsumerWidget {
         const SingleActivator(LogicalKeyboardKey.comma, control: true): () => showSettings(context),
         const SingleActivator(LogicalKeyboardKey.slash, control: true): () => showShortcuts(context),
         const SingleActivator(LogicalKeyboardKey.keyB, control: true): toggleSidebar,
+        const SingleActivator(LogicalKeyboardKey.keyN, control: true): () {
+          ref.read(chatControllerProvider.notifier).newChat();
+          context.go('/chat');
+        },
         const SingleActivator(LogicalKeyboardKey.digit1, alt: true): () => context.go('/assignments'),
         const SingleActivator(LogicalKeyboardKey.digit2, alt: true): () => context.go('/activity'),
         const SingleActivator(LogicalKeyboardKey.digit3, alt: true): () => context.go('/calendar'),

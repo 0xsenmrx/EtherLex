@@ -10,10 +10,11 @@ class ShortcutInfo {
   final String description;
 }
 
-/// Every shortcut in the app. Keep in sync with the CallbackShortcuts.
+/// Every shortcut in the app. Keep in sync with the CallbackShortcuts:
+/// `test/shortcuts_bound_test.dart` checks each one is bound somewhere.
 const List<ShortcutInfo> kShortcuts = [
   ShortcutInfo('Everywhere', ['Ctrl', 'K'], 'Command palette: search and actions'),
-  ShortcutInfo('Everywhere', ['Ctrl', 'F'], 'Search assignments and announcements'),
+  ShortcutInfo('Everywhere', ['Ctrl', 'F'], 'Search assignments, announcements, files and chats'),
   ShortcutInfo('Everywhere', ['Alt', '1'], 'Go to Assignments'),
   ShortcutInfo('Everywhere', ['Alt', '2'], 'Go to Activity'),
   ShortcutInfo('Everywhere', ['Alt', '3'], 'Go to Calendar'),
@@ -23,14 +24,18 @@ const List<ShortcutInfo> kShortcuts = [
   ShortcutInfo('Everywhere', ['Ctrl', ','], 'Settings'),
   ShortcutInfo('Everywhere', ['Ctrl', '/'], 'Keyboard shortcuts'),
   ShortcutInfo('Everywhere', ['Ctrl', 'B'], 'Collapse or expand the sidebar'),
-  ShortcutInfo('Everywhere', ['Ctrl', 'R'], 'Refresh this page (also F5)'),
+  ShortcutInfo('Everywhere', ['Ctrl', 'R'], 'Refresh this page from Canvas'),
+  ShortcutInfo('Everywhere', ['F5'], 'Refresh this page from Canvas'),
+  ShortcutInfo('Everywhere', ['Ctrl', 'N'], 'New chat with the assistant'),
   ShortcutInfo('Everywhere', ['F9'], 'Show frame times'),
   ShortcutInfo('Everywhere', ['Esc'], 'Close a dialog, clear the selection'),
-  ShortcutInfo('Lists', ['J'], 'Next item (also ↓)'),
-  ShortcutInfo('Lists', ['K'], 'Previous item (also ↑)'),
+  ShortcutInfo('Lists', ['J'], 'Next item'),
+  ShortcutInfo('Lists', ['↓'], 'Next item'),
+  ShortcutInfo('Lists', ['K'], 'Previous item'),
+  ShortcutInfo('Lists', ['↑'], 'Previous item'),
   ShortcutInfo('Lists', ['Enter'], 'Open the selected item'),
   ShortcutInfo('Assignments', ['S'], 'Star or unstar'),
-  ShortcutInfo('Assignments', ['R'], 'Mark done or open'),
+  ShortcutInfo('Assignments', ['R'], 'Mark done, or not done again'),
   ShortcutInfo('Assignments', ['1', '–', '9'], 'Filter by the nth course'),
   ShortcutInfo('Assignments', ['0'], 'Show all courses'),
   ShortcutInfo('Assignments', ['[', ']'], 'All or starred'),
@@ -38,7 +43,9 @@ const List<ShortcutInfo> kShortcuts = [
   ShortcutInfo('Calendar', ['←', '→'], 'Previous or next week'),
   ShortcutInfo('Calendar', ['T'], 'This week'),
   ShortcutInfo('Grades', ['P'], 'Open the grade planner'),
-  ShortcutInfo('Files', ['Backspace'], 'Up one folder (also Esc, Alt+←)'),
+  ShortcutInfo('Files', ['Backspace'], 'Up one folder'),
+  ShortcutInfo('Files', ['Esc'], 'Up one folder'),
+  ShortcutInfo('Files', ['Alt', '←'], 'Up one folder'),
   ShortcutInfo('Files', ['D'], 'Download the selected file'),
 ];
 

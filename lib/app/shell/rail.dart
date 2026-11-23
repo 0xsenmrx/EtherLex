@@ -49,7 +49,7 @@ class NavRail extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 2),
                         child: EIconButton(
                           icon: kDestinations[i].icon,
-                          tooltip: kDestinations[i].label,
+                          tooltip: '${kDestinations[i].label}  Alt+${i + 1}',
                           size: 40,
                           iconSize: 18,
                           bordered: false,

@@ -3,6 +3,7 @@
 ## Unreleased
 
 ### New
+- Keyboard: Ctrl+N starts a new chat from anywhere, Ctrl+R and F5 refresh Files too, and tooltips show the shortcut (Alt+1 to Alt+6 on the sidebar, Refresh, the week arrows, New chat). The shortcut list is corrected (R marks done or not done).
 - Ctrl+K finds much more: course files (from the listings saved on this computer, so nothing is fetched while you type; Enter opens Files on that file), your conversations with the assistant (by title or by anything written in them; Enter opens the conversation at that message), and any setting (it opens Settings with the search filled in). Type a course name to open its files.
 - EtherLex remembers how you left each page, per account: All or Starred and the open "Done earlier" group in Assignments, the Activity filter, the open "No grades yet" group in Grades, and the course and folder you had open in Files. The Calendar still opens on this week.
 - The sidebar has a row of tools at the bottom: Settings, keyboard shortcuts, help and feedback, the light/dark switch, and a button (or Ctrl+B) to collapse it to the icon rail, which is remembered. The avatar menu now only holds your account and Sign out.
