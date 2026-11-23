@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/motion/smooth_scroll.dart';
 import '../../../core/network/canvas_exception.dart';
 import '../../../core/notify/toast.dart';
+import '../../../core/ui/selected_builder.dart';
 import '../../../core/ui/hover_prefetch.dart';
 import '../../../core/utils/format.dart';
 import '../../../design_system/ether/controls.dart';
@@ -391,7 +392,13 @@ class _Crumb extends StatelessWidget {
 mixin _RowCursor<T extends StatefulWidget> on State<T> {
   final FocusNode focus = FocusNode();
   final SmoothScrollController scroll = SmoothScrollController();
-  int cursor = -1;
+
+  // A notifier, not setState: moving the cursor rebuilds the two rows it
+  // leaves and enters (SelectedBuilder), like the other lists.
+  final ValueNotifier<int> _cursor = ValueNotifier<int>(-1);
+  int get cursor => _cursor.value;
+  set cursor(int value) => _cursor.value = value;
+
   List<_RowSpec> rows = const [];
   bool _focusAsked = false;
 
@@ -399,14 +406,13 @@ mixin _RowCursor<T extends StatefulWidget> on State<T> {
   void dispose() {
     focus.dispose();
     scroll.dispose();
+    _cursor.dispose();
     super.dispose();
   }
 
   void move(int delta) {
     if (rows.isEmpty) return;
-    setState(() {
-      cursor = cursor < 0 ? (delta > 0 ? 0 : rows.length - 1) : (cursor + delta).clamp(0, rows.length - 1);
-    });
+    cursor = cursor < 0 ? (delta > 0 ? 0 : rows.length - 1) : (cursor + delta).clamp(0, rows.length - 1);
     scrollToCursor();
   }
 
@@ -473,7 +479,12 @@ mixin _RowCursor<T extends StatefulWidget> on State<T> {
               padding: const EdgeInsets.only(bottom: 32),
               itemExtent: kFileRowExtent,
               itemCount: rows.length,
-              itemBuilder: (context, i) => rows[i].build(i == cursor),
+              itemBuilder: (context, i) => SelectedBuilder<int>(
+                cursor: _cursor,
+                id: i,
+                // The rows may have changed since this item was built.
+                builder: (context, selected, _) => i < rows.length ? rows[i].build(selected) : const SizedBox.shrink(),
+              ),
             ),
           ),
         ],
