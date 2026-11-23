@@ -20,6 +20,7 @@
 - Settings > Appearance shows each choice as a card you can see: Light, Dark or Match Windows; the font with a sample; and a new **Background**: dots, grid or plain. Five accent colours: violet, blue, green, rose and orange. Ctrl+K can switch them too (type "accent" or "grid"). Theme and font left the avatar menu.
 - Settings > About: **Send feedback** opens a prefilled GitHub issue that you read and edit before sending, and **Copy diagnostics** copies version, Windows and look (never a token, key, name or course).
 - Settings > Assistant: **Keep conversations** Always, 30 days, or Until I close EtherLex (nothing is written to disk; chats stay on screen until you close), per account, and **Delete all conversations** (asks first, with the count). Resetting the Assistant section does not touch your chats.
+- EtherLex opens where you left it: same size and position, maximised if it was. If that screen is no longer connected it opens on the nearest one, fitted inside it.
 - The README explains the "Windows protected your PC" warning on first install and how to check the installer's SHA-256.
 
 ### Fixed and safer

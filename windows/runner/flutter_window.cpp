@@ -77,6 +77,22 @@ FlutterWindow::HandleMessage(HWND hwnd, UINT const message,
     return 0;
   }
 
+  // Remember where the window is; save it when EtherLex closes or Windows
+  // signs out. The messages then continue as usual.
+  switch (message) {
+    case WM_WINDOWPOSCHANGED:
+      placement_.Track(hwnd);
+      break;
+    case WM_CLOSE:
+      placement_.Save(hwnd);
+      break;
+    case WM_ENDSESSION:
+      if (wparam) {
+        placement_.Save(hwnd);
+      }
+      break;
+  }
+
   // The custom title bar (caption removal, hit testing, Snap Layouts).
   if (std::optional<LRESULT> handled =
           frame_.HandleMessage(hwnd, message, wparam, lparam)) {
