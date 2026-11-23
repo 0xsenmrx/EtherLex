@@ -36,9 +36,18 @@ class NavRail extends StatelessWidget {
       width: width,
       child: Column(
         children: [
+          // Centred when it fits; in a short window the pages scroll instead of
+          // overflowing into the tools below.
           Expanded(
-            child: Center(
-              child: Container(
+            child: LayoutBuilder(
+              builder: (context, box) => ScrollConfiguration(
+                behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+                child: SingleChildScrollView(
+                  clipBehavior: Clip.none, // keep the pill's shadow
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: box.maxHeight),
+                    child: Center(
+                      child: Container(
                 padding: const EdgeInsets.all(6),
                 decoration: pill,
                 child: Column(
@@ -63,6 +72,10 @@ class NavRail extends StatelessWidget {
                     ),
                     const _CoursesButton(),
                   ],
+                ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
