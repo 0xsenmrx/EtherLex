@@ -314,6 +314,18 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 4. Ctrl+/ and read the list.
 - [x] **Expect** every line does what it says (R: mark done or not done; Ctrl+N; F5 on its own line).
 
+## 14h. No ding on empty clicks
+
+1. Click empty spots: the page header between the title and refresh, the gap next to the sidebar, the empty area under a short list, the sign-in screen, empty space in Settings.
+- [x] **Expect** silence everywhere. Buttons, rows, title bar dragging and double-click, and closing dialogs by clicking outside still work.
+
+## 14g. Empty states
+
+1. Assistant with a key and no messages: click each example.
+- [x] **Expect** it fills the message box (cursor at the end), nothing is sent or attached. The text under the title explains the paperclip, the permission and Apply.
+2. Activity with a kind filter that has nothing; with a course filter that has nothing. Grades with every course turned off (Settings > Courses). Assignments with nothing due.
+- [x] **Expect** "Show everything", "Show all courses", "Open Settings" (on Courses) and "Refresh" respectively, and each does what it says.
+
 ## 15. AI assistant (needs your own API key)
 
 1. Sample mode: open **Assistant** (Alt+6) and send "hello".

@@ -127,6 +127,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     _scroll.animateTo(_scroll.position.maxScrollExtent, duration: const Duration(milliseconds: 380), curve: Curves.easeOutCubic);
   }
 
+  /// Puts an example into the message box (never sends it), ready to edit.
+  void _useExample(String text) {
+    _input.text = text;
+    _input.selection = TextSelection.collapsed(offset: text.length);
+    _inputFocus.requestFocus();
+  }
+
   bool _sending = false;
 
   Future<void> _send() async {
@@ -251,10 +258,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                       message: 'The assistant uses your own key from ${settings.provider.label}. It stays on this computer.',
                       action: EButton(label: 'Open settings', onTap: () => showSettings(context, section: SettingsSection.assistant)),
                     )
-                  : const EEmptyState(
+                  : EEmptyState(
                       icon: EIcons.sparkles,
                       title: 'Ask anything',
-                      message: 'Explain a topic, plan your week, or draft a message.',
+                      message: 'Explain a topic, plan your week, or draft a message. Attach assignments, '
+                          'grades or files with the paperclip. The assistant asks before it looks at your '
+                          'Canvas data, and nothing changes until you press Apply.',
+                      action: _Examples(onPick: _useExample),
                     ))
               : Stack(
                   children: [
@@ -625,6 +635,56 @@ class _HistoryDialog extends ConsumerWidget {
               ),
             ),
       actions: [EButton(label: 'Close', onTap: () => Navigator.of(context).pop())],
+    );
+  }
+}
+
+/// Example questions for an empty chat. Clicking one fills the message box;
+/// nothing is attached or sent.
+class _Examples extends StatelessWidget {
+  const _Examples({required this.onPick});
+
+  final ValueChanged<String> onPick;
+
+  static const List<String> examples = [
+    "What's due this week, and what should I start first?",
+    'Make a grade plan for one of my courses from its syllabus',
+    'Explain this simply, with one small example: ',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.colors;
+    final t = context.text;
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 460),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final e in examples)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: ETap(
+                onTap: () => onPick(e),
+                pressedScale: 0.985,
+                builder: (context, s) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 120),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                  decoration: BoxDecoration(
+                    // The see-through hover tint laid on the card itself: an opaque
+                    // colour to fade to, so the canvas never shows through midway.
+                    color: s.hovered ? Color.alphaBlend(c.hover, c.surface) : c.surface,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: s.hovered ? c.lineStrong : c.line),
+                    boxShadow: focusRing(c, s.focused),
+                  ),
+                  child: Text(e, style: t.body.copyWith(color: s.hovered ? c.textPrimary : c.textSecondary)),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

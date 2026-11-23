@@ -441,7 +441,7 @@ class _ImageBlockState extends State<_ImageBlock> {
           builder: (context, s) => Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: s.hovered ? c.hover : c.sunken,
+              color: s.hovered ? Color.alphaBlend(c.hover, c.sunken) : c.sunken,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(color: c.line),
             ),
