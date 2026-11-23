@@ -18,7 +18,22 @@ class JsonFile {
   static final Map<String, Future<void>> _queues = {};
 
   /// The decoded content, or null when the file is missing or not JSON.
+  /// Waits for writes to the same path that were queued before it, so it
+  /// sees them, and never opens the file while it is being replaced
+  /// (Windows can refuse that rename while the file is open).
   Future<Object?> read() async {
+    final pending = _queues[file.path];
+    if (pending != null) {
+      try {
+        await pending;
+      } catch (_) {
+        // A failed write leaves the old file; read that.
+      }
+    }
+    return _readNow();
+  }
+
+  Future<Object?> _readNow() async {
     try {
       if (!await file.exists()) return null;
       return jsonDecode(await file.readAsString());
@@ -28,10 +43,9 @@ class JsonFile {
   }
 
   /// The content as a JSON object; empty when missing, damaged or not an object.
-  Future<Map<String, dynamic>> readMap() async {
-    final v = await read();
-    return v is Map<String, dynamic> ? v : <String, dynamic>{};
-  }
+  Future<Map<String, dynamic>> readMap() async => _asMap(await read());
+
+  static Map<String, dynamic> _asMap(Object? v) => v is Map<String, dynamic> ? v : <String, dynamic>{};
 
   /// Replaces the file with [json] (encoded now, written after earlier writes).
   Future<void> write(Object? json) {
@@ -42,7 +56,8 @@ class JsonFile {
   /// Reads the object, lets [change] edit it, and writes it back, queued like
   /// [write] so two updates cannot each drop the other's change.
   Future<void> update(void Function(Map<String, dynamic> map) change) => _enqueue(() async {
-        final map = await readMap();
+        // Already in the queue: read directly (waiting would wait for itself).
+        final map = _asMap(await _readNow());
         change(map);
         await writeFileAtomically(file, jsonEncode(map));
       });

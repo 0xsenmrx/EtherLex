@@ -33,6 +33,22 @@ void main() {
     expect(await f.read(), {'x': 1});
   });
 
+  test('a read waits for a write queued before it, even from another object', () async {
+    final a = JsonFile(file('w.json'));
+    final b = JsonFile(file('w.json'));
+    await a.write({'n': 1});
+    final writing = a.write({'n': 2}); // not awaited
+    expect(await b.read(), {'n': 2});
+    await writing;
+  });
+
+  test('update still works (it reads inside the queue)', () async {
+    final f = JsonFile(file('u.json'));
+    await f.write({'a': 1});
+    await f.update((m) => m['b'] = 2);
+    expect(await f.read(), {'a': 1, 'b': 2});
+  });
+
   test('updates from two objects on the same file both land', () async {
     final a = JsonFile(file('s.json'));
     final b = JsonFile(file('s.json'));

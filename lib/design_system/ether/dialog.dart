@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:material_ui/material_ui.dart' show Material, MaterialType;
 
+import '../../core/platform/system_motion.dart';
 import '../theme/ether_theme.dart';
 import 'controls.dart';
 
@@ -14,12 +15,14 @@ Future<T?> showEtherDialog<T>(
   double? topFraction,
 }) {
   final c = context.colors;
+  final still = (MediaQuery.maybeDisableAnimationsOf(context) ?? false) || animationsOff;
   return showGeneralDialog<T>(
     context: context,
     barrierDismissible: true,
     barrierLabel: 'Close',
     barrierColor: c.scrim,
-    transitionDuration: const Duration(milliseconds: 180),
+    // Animation effects off: the dialog appears and goes at once.
+    transitionDuration: still ? Duration.zero : const Duration(milliseconds: 180),
     pageBuilder: (context, _, _) =>
         _Frame(maxWidth: maxWidth, topFraction: topFraction, child: builder(context)),
     transitionBuilder: (context, animation, _, child) {
@@ -28,10 +31,7 @@ Future<T?> showEtherDialog<T>(
         curve: Curves.easeOutCubic,
         reverseCurve: Curves.easeInCubic,
       );
-      // Animation effects off in Windows: a plain fade, no zoom.
-      if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
-        return FadeTransition(opacity: curved, child: child);
-      }
+      if (still) return child;
       return FadeTransition(
         opacity: curved,
         child: ScaleTransition(

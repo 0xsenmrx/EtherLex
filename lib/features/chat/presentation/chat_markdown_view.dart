@@ -385,7 +385,9 @@ class _CodeBlockViewState extends State<_CodeBlockView> {
                           curve: Curves.easeOutCubic,
                           alignment: Alignment.centerLeft,
                           child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 180),
+                            duration: (MediaQuery.maybeDisableAnimationsOf(context) ?? false)
+                                ? Duration.zero
+                                : const Duration(milliseconds: 180),
                             child: Text(_copied ? 'Copied' : 'Copy', key: ValueKey<bool>(_copied), style: t.metaMuted),
                           ),
                         ),
