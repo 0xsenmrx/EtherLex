@@ -27,6 +27,10 @@ abstract interface class SettingsStore {
   Future<Set<String>> readAiConsent();
   Future<void> writeAiConsent(Set<String> providers);
 
+  /// The offline limit in GB (null: never chosen).
+  Future<int?> readOfflineLimitGb();
+  Future<void> writeOfflineLimitGb(int gb);
+
   /// How each page was left (ViewPrefs as JSON).
   Future<Map<String, dynamic>> readViewPrefs();
   Future<void> writeViewPrefs(Map<String, dynamic> prefs);
@@ -155,5 +159,16 @@ class FileSettingsStore implements SettingsStore {
   @override
   Future<void> writeViewPrefs(Map<String, dynamic> prefs) async {
     await _update((map) => map['viewPrefs'] = prefs);
+  }
+
+  @override
+  Future<int?> readOfflineLimitGb() async {
+    final raw = (await _readMap())['offlineLimitGb'];
+    return raw is num ? raw.toInt() : null;
+  }
+
+  @override
+  Future<void> writeOfflineLimitGb(int gb) async {
+    await _update((map) => map['offlineLimitGb'] = gb);
   }
 }

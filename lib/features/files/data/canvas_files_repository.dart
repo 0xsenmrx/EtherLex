@@ -44,7 +44,13 @@ class CanvasFilesRepository implements FilesRepository {
   String? cachedPath(FileEntry file) => _cache.lookup(file);
 
   @override
-  int offlineBytes() => _cache.sizeBytes();
+  Future<Map<int, int>> offlineSizes() => _cache.sizesByFileId();
+
+  @override
+  void removeOffline(Set<int> fileIds) => _cache.removeFiles(fileIds);
+
+  @override
+  void setOfflineLimit(int bytes) => _cache.setLimit(bytes);
 
   @override
   void clearOffline() => _cache.clear();

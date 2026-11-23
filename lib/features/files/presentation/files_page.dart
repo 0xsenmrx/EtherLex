@@ -8,6 +8,7 @@ import '../../../core/notify/toast.dart';
 import '../../../core/ui/hover_prefetch.dart';
 import '../../../core/utils/format.dart';
 import '../../../design_system/ether/controls.dart';
+import '../../../design_system/ether/dialog.dart';
 import '../../../design_system/ether/icons.dart';
 import '../../../design_system/theme/fixed_colors.dart';
 import '../../../design_system/ether/list.dart';
@@ -483,17 +484,6 @@ class _CourseList extends ConsumerStatefulWidget {
 class _CourseListState extends ConsumerState<_CourseList> with _RowCursor<_CourseList> {
   bool _showHidden = false;
 
-  // Size of the offline folder: a directory walk, so once per cache change.
-  int _bytes = 0;
-  int _bytesRevision = -1;
-
-  int _offlineBytes() {
-    if (_bytesRevision != fileCacheRevision.value) {
-      _bytesRevision = fileCacheRevision.value;
-      _bytes = ref.read(filesRepositoryProvider).offlineBytes();
-    }
-    return _bytes;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -552,13 +542,23 @@ class _CourseListState extends ConsumerState<_CourseList> with _RowCursor<_Cours
           download: null,
         );
 
-    return ValueListenableBuilder<int>(
-      valueListenable: fileCacheRevision,
-      builder: (context, _, _) {
-        final bytes = _offlineBytes();
-        void clearOffline() {
+    // Counted off the UI thread, again after every save or removal.
+    final bytes = ref.watch(offlineUsageProvider).value?.total ?? 0;
+    return Builder(
+      builder: (context) {
+        // Asks first; the per-course view is in Settings > Files & downloads.
+        Future<void> clearOffline() async {
+          final ok = await confirmAction(
+            context,
+            title: 'Remove ${formatBytes(bytes)} of offline files?',
+            message: 'They stay on Canvas and are saved again when you open them. '
+                'Settings > Files & downloads shows the space per course.',
+            confirmLabel: 'Remove',
+            destructive: true,
+          );
+          if (!ok) return;
           ref.read(filesRepositoryProvider).clearOffline();
-          ref.read(toastProvider.notifier).show('Offline files cleared');
+          ref.read(toastProvider.notifier).show('Offline files removed');
         }
 
         void toggleHidden() => setState(() => _showHidden = !_showHidden);

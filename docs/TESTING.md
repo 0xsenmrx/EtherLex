@@ -170,6 +170,9 @@ Shortcuts used: **Ctrl+K** command palette, **Ctrl+F** search only, **Alt+1..6**
 13. Update check: replace a file on Canvas (new upload with the same name), then refresh and open it.
 - [x] **Expect** the new content opens, and only one copy of that file remains in the cache folder.
 
+8b. Settings > Files & downloads after opening files in two courses.
+- [x] **Expect** the total, "Keep up to" (3 GB chosen), and Space per course with the two courses biggest first, each with a size, a file count and Clear. Clear (per course, and Clear all here and on the Files course list) asks first with the size; Cancel keeps everything. Choosing 1 GB with more than 1 GB saved removes the oldest files at once; the choice survives a restart and is per account.
+
 ## 9. Notifications [DONE]
 
 1. Toggle notifications (avatar menu, Settings, or Ctrl+K, then "notifications").

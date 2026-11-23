@@ -10,7 +10,9 @@ import '../../../core/notify/toast.dart';
 import '../../../core/utils/format.dart';
 import '../../../core/utils/open_url.dart';
 import '../../../design_system/ether/controls.dart';
+import '../../../design_system/ether/dialog.dart';
 import '../../../design_system/ether/dot_grid.dart';
+import '../../../design_system/ether/list.dart' show ESegmented;
 import '../../../design_system/ether/icons.dart';
 import '../../../design_system/ether/option_cards.dart';
 import '../../../design_system/theme/course_palette.dart';
@@ -20,7 +22,7 @@ import '../../auth/domain/auth_provider.dart';
 import '../../auth/presentation/sign_out.dart';
 import '../../chat/presentation/ai_providers.dart';
 import '../../chat/presentation/ai_settings_section.dart';
-import '../../files/data/file_cache.dart';
+import '../../files/domain/offline_usage.dart';
 import '../../files/presentation/files_providers.dart';
 import '../../notifications/presentation/notifications_providers.dart';
 import '../../palette/domain/shortcuts.dart';
@@ -295,27 +297,28 @@ List<SettingsItem> buildSettingsItems(BuildContext context, WidgetRef ref, {bool
       files,
       const SettingsSearchText(
         title: 'Offline files',
-        description: 'Files you opened or saved offline, up to 3 GB',
-        keywords: ['cache', 'storage', 'space', 'disk', 'clear', 'offline'],
+        description: 'Files you opened or saved offline, kept on this computer',
+        keywords: ['cache', 'storage', 'space', 'disk', 'clear', 'offline', 'delete'],
       ),
-      (q) => ValueListenableBuilder<int>(
-        valueListenable: fileCacheRevision,
-        builder: (context, _, _) {
-          final bytes = ref.read(filesRepositoryProvider).offlineBytes();
-          return SettingsRow(
-            title: bytes == 0 ? 'Offline files: nothing saved' : 'Offline files: ${formatBytes(bytes)}',
-            description: 'Files you opened or saved offline, up to 3 GB',
-            query: q,
-            trailing: bytes == 0
-                ? null
-                : EButton(
-                    label: 'Clear',
-                    kind: EButtonKind.ghost,
-                    onTap: () => ref.read(filesRepositoryProvider).clearOffline(),
-                  ),
-          );
-        },
+      (q) => _OfflineTotal(query: q),
+    ),
+    SettingsItem(
+      files,
+      const SettingsSearchText(
+        title: 'Keep up to',
+        description: 'Lowering it removes the files you opened longest ago',
+        keywords: ['limit', 'offline', 'space', 'gb', 'storage', 'cache', 'size'],
       ),
+      (q) => _OfflineLimit(query: q),
+    ),
+    SettingsItem(
+      files,
+      const SettingsSearchText(
+        title: 'Space per course',
+        description: 'Which courses use the offline space; clear one at a time',
+        keywords: ['offline', 'course', 'storage', 'space', 'clear'],
+      ),
+      (q) => _OfflinePerCourse(query: q),
     ),
     _note(files, 'Downloads go to your Downloads folder and are marked as coming from the internet, '
         'so Office opens them in Protected View. Programs and scripts are only shown in their folder.'),
@@ -451,6 +454,130 @@ class _PatternSample extends StatelessWidget {
     return CustomPaint(
       painter: PatternPainter(c.canvas, c.dot, 12, MediaQuery.devicePixelRatioOf(context), pattern),
       child: const SizedBox.expand(),
+    );
+  }
+}
+
+/// Settings > Files: the offline total and "Clear all", which asks first.
+class _OfflineTotal extends ConsumerWidget {
+  const _OfflineTotal({required this.query});
+  final String query;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final usage = ref.watch(offlineUsageProvider).value;
+    final bytes = usage?.total ?? 0;
+    final limit = ref.watch(offlineLimitProvider);
+    Future<void> clearAll() async {
+      final ok = await confirmAction(
+        context,
+        title: 'Remove ${formatBytes(bytes)} of offline files?',
+        message: 'They stay on Canvas and are saved again when you open them. Grade plans, chats and settings are not touched.',
+        confirmLabel: 'Remove',
+        destructive: true,
+      );
+      if (!ok) return;
+      ref.read(filesRepositoryProvider).clearOffline();
+      ref.read(toastProvider.notifier).show('Offline files removed');
+    }
+
+    return SettingsRow(
+      title: usage == null
+          ? 'Offline files: counting...'
+          : bytes == 0
+              ? 'Offline files: nothing saved'
+              : 'Offline files: ${formatBytes(bytes)}',
+      description: 'Files you opened or saved offline, kept on this computer (up to $limit GB)',
+      query: query,
+      trailing: bytes == 0 ? null : EButton(label: 'Clear all', kind: EButtonKind.ghost, onTap: clearAll),
+    );
+  }
+}
+
+/// Settings > Files: how much may be kept.
+class _OfflineLimit extends ConsumerWidget {
+  const _OfflineLimit({required this.query});
+  final String query;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final gb = ref.watch(offlineLimitProvider);
+    return SettingsRow(
+      title: 'Keep up to',
+      description: 'Lowering it removes the files you opened longest ago',
+      query: query,
+      trailing: ESegmented(
+        labels: [for (final g in kOfflineLimitsGb) '$g GB'],
+        selected: kOfflineLimitsGb.indexOf(gb),
+        onChanged: (i) => ref.read(offlineLimitProvider.notifier).set(kOfflineLimitsGb[i]),
+      ),
+    );
+  }
+}
+
+/// Settings > Files: offline space per course, biggest first, each with Clear.
+class _OfflinePerCourse extends ConsumerWidget {
+  const _OfflinePerCourse({required this.query});
+  final String query;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.colors;
+    final t = context.text;
+    final usage = ref.watch(offlineUsageProvider).value;
+    final names = ref.watch(coursesByIdProvider);
+
+    Future<void> clear(CourseSpace space, String name) async {
+      final ok = await confirmAction(
+        context,
+        title: 'Remove ${formatBytes(space.bytes)} saved for $name?',
+        message: 'The files stay on Canvas and are saved again when you open them.',
+        confirmLabel: 'Remove',
+        destructive: true,
+      );
+      if (!ok) return;
+      ref.read(filesRepositoryProvider).removeOffline(space.fileIds);
+      ref.read(toastProvider.notifier).show('Offline files of $name removed');
+    }
+
+    final spaces = usage?.courses ?? const <CourseSpace>[];
+    return SettingsBlock(
+      title: 'Space per course',
+      description: 'Which courses use the offline space',
+      query: query,
+      child: usage == null
+          ? Text('Counting...', style: t.metaMuted)
+          : spaces.isEmpty
+              ? Text('Nothing saved yet.', style: t.metaMuted)
+              : Column(
+                  children: [
+                    for (final s in spaces)
+                      Builder(builder: (context) {
+                        final name = s.courseId == null
+                            ? 'Other files'
+                            : (names[s.courseId]?.name ?? 'A course you no longer have');
+                        return Container(
+                          height: 40,
+                          decoration: BoxDecoration(border: Border(top: BorderSide(color: c.line))),
+                          child: Row(
+                            children: [
+                              if (s.courseId != null) ...[
+                                ESwatch(CoursePalette.colorFor(s.courseId!)),
+                                const SizedBox(width: 10),
+                              ],
+                              Expanded(
+                                child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.label),
+                              ),
+                              Text('${formatBytes(s.bytes)} · ${s.fileIds.length} file${s.fileIds.length == 1 ? '' : 's'}',
+                                  style: t.meta),
+                              const SizedBox(width: 8),
+                              EButton(label: 'Clear', kind: EButtonKind.ghost, onTap: () => clear(s, name)),
+                            ],
+                          ),
+                        );
+                      }),
+                  ],
+                ),
     );
   }
 }

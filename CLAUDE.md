@@ -17,7 +17,7 @@ Premium, smooth, desktop-first Flutter companion for Canvas LMS. Windows first. 
   - `settings/<scope>.json`: courses, hidden folders, notifications, grade plans, AI consent, how each page was left (`viewPrefs`: All/Starred, folded groups, the Activity filter, the last Files folder; `viewPrefsProvider`, the calendar always opens on this week) (`FileSettingsStore.forScope`). Notifiers must `ref.watch(settingsStoreProvider)` (`features/settings/presentation/settings_store_provider.dart`) and ignore loads from a stale store.
   - Every JSON file goes through `core/storage/json_file.dart` (`JsonFile`: writes to one path are queued and atomic, damaged files read as null). File names use `cleanScope`.
   - `ai/<scope>.json`: AI service, model names, OpenAI-compatible address (`AiSettingsStore`). `chats/<scope>.json`: conversations (`ChatStore`).
-  - `files/<scope>/` offline copies (LRU, 3 GB) and `file_index/<scope>/` saved listings. All file access goes through `FilesRepository.localPath`.
+  - `files/<scope>/` offline copies (LRU; the limit is per account, 1/3/5/10 GB, `offlineLimitGb` in the settings file; sizes are counted in an isolate, `offlineUsageProvider`) and `file_index/<scope>/` saved listings. All file access goes through `FilesRepository.localPath`.
   - App-wide: `appearance.json` (theme, typeface, palette, background pattern, collapsed sidebar), `updates.json` (update check).
   - One Drift database per account (`AppDatabase.forAccount`).
 - Secrets: the Canvas token and the AI keys (per account and service) are in flutter_secure_storage (Windows credential store), never in the JSON files.

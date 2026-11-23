@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:flutter/foundation.dart';
 
@@ -21,7 +22,9 @@ class FileCache {
         scope = cleanScope(scope);
 
   final String scope;
-  final int maxBytes;
+
+  /// The most kept before the least recently opened files go; see [setLimit].
+  int maxBytes;
   final String _root;
 
   static final String _sep = Platform.pathSeparator;
@@ -141,6 +144,36 @@ class FileCache {
     } catch (_) {}
   }
 
+  /// A new [maxBytes]; a lower one removes files at once (oldest first).
+  void setLimit(int bytes) {
+    if (bytes <= 0 || bytes == maxBytes) return;
+    final shrinking = bytes < maxBytes;
+    maxBytes = bytes;
+    if (shrinking) {
+      prune();
+      fileCacheRevision.value++;
+    }
+  }
+
+  /// Bytes per Canvas file id, read in a background isolate so a big cache
+  /// never stalls a frame.
+  Future<Map<int, int>> sizesByFileId() {
+    final path = _files.path;
+    return Isolate.run(() => scanCacheSizes(path));
+  }
+
+  /// Removes the saved copies of these Canvas files.
+  void removeFiles(Set<int> fileIds) {
+    if (fileIds.isEmpty) return;
+    try {
+      for (final f in _saved()) {
+        final id = cacheFileId(f.uri.pathSegments.last);
+        if (id != null && fileIds.contains(id)) f.deleteSync();
+      }
+    } catch (_) {}
+    fileCacheRevision.value++;
+  }
+
   void clear() {
     try {
       if (_files.existsSync()) _files.deleteSync(recursive: true);
@@ -168,4 +201,27 @@ class FileCache {
       return null;
     }
   }
+}
+
+/// The Canvas file id at the start of a cached file's name (`<id>_<version>_<name>`).
+int? cacheFileId(String fileName) {
+  final cut = fileName.indexOf('_');
+  return cut <= 0 ? null : int.tryParse(fileName.substring(0, cut));
+}
+
+/// Bytes per file id in the cache folder at [path] (partial downloads left
+/// out). Plain function so it can run in an isolate.
+Map<int, int> scanCacheSizes(String path) {
+  final out = <int, int>{};
+  final dir = Directory(path);
+  if (!dir.existsSync()) return out;
+  for (final e in dir.listSync()) {
+    if (e is! File || e.path.endsWith('.part')) continue;
+    final id = cacheFileId(e.uri.pathSegments.last);
+    if (id == null) continue;
+    try {
+      out[id] = (out[id] ?? 0) + e.lengthSync();
+    } catch (_) {}
+  }
+  return out;
 }
