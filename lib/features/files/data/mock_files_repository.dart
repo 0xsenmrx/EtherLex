@@ -21,6 +21,10 @@ class MockFilesRepository implements FilesRepository {
   @override
   void clearOffline() => _cache.clear();
 
+  /// Sample data: every listing is "saved".
+  @override
+  Future<CourseFiles?> savedListing(int courseId) => load(courseId);
+
   @override
   Future<CourseFiles> load(int courseId) async {
     await Future<void>.delayed(const Duration(milliseconds: 350));

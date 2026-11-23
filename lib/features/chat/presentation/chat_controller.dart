@@ -280,3 +280,15 @@ class ChatController extends Notifier<ChatState> {
 }
 
 final chatControllerProvider = NotifierProvider<ChatController, ChatState>(ChatController.new);
+
+/// A message to scroll to and mark when the Assistant shows (Ctrl+K found it).
+class ChatMessageFocusNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void request(String messageId) => state = messageId;
+
+  void clear() => state = null;
+}
+
+final chatMessageFocusProvider = NotifierProvider<ChatMessageFocusNotifier, String?>(ChatMessageFocusNotifier.new);

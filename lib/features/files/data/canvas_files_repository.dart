@@ -71,6 +71,9 @@ class CanvasFilesRepository implements FilesRepository {
   }
 
   @override
+  Future<CourseFiles?> savedListing(int courseId) async => _cache.loadIndex(courseId);
+
+  @override
   Future<String> download(FileEntry file) async {
     // Through the cache: a file you download is then also available offline.
     final saved = await localPath(file);

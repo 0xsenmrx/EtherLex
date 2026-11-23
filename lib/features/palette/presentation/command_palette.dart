@@ -20,10 +20,17 @@ import '../../assignments/presentation/assignment_dialog.dart';
 import '../../assignments/presentation/assignments_providers.dart';
 import '../../auth/domain/auth_provider.dart';
 import '../../auth/presentation/sign_out.dart';
+import '../../chat/presentation/chat_controller.dart';
+import '../../courses/domain/course.dart';
+import '../../files/domain/files_models.dart';
+import '../../files/presentation/file_row.dart' show fileVisual;
+import '../../files/presentation/files_providers.dart';
 import '../../grades/presentation/grades_providers.dart';
 import '../../notifications/presentation/notifications_providers.dart';
 import '../../search/domain/search.dart';
+import '../../settings/domain/settings_search.dart';
 import '../../settings/presentation/settings_dialog.dart';
+import '../../settings/presentation/settings_sections.dart';
 import '../domain/commands.dart';
 import 'shortcuts_dialog.dart';
 
@@ -81,6 +88,16 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
   int _selected = -1;
   bool _ready = false;
 
+  /// Every file of the listings saved on this computer (read once when the
+  /// palette opens; nothing is fetched from Canvas while typing).
+  List<(FileEntry, Course?)> _fileIndex = const [];
+
+  /// Conversations with all their text in lower case, made once per opening.
+  late final List<ChatSearchText> _chatIndex = [
+    for (final c in ref.read(chatControllerProvider).conversations)
+      (id: c.id, title: c.title, messages: [for (final m in c.messages) (id: m.id, text: m.text.toLowerCase())]),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -92,6 +109,7 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
       Future<void>.delayed(const Duration(milliseconds: 200), () {
         if (mounted && !_focus.hasFocus) _focus.requestFocus();
       });
+      _loadFiles();
       // Announcements and grades only exist locally once Activity has synced.
       final sync = ref.read(activitySyncProvider);
       if (sync.lastUpdated == null && !sync.loading) {
@@ -244,7 +262,114 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
           hint: filter.contains(course.id) ? 'Filtering' : 'Filter',
           swatch: CoursePalette.colorFor(course.id),
         ),
+      for (final course in courses)
+        cmd(
+          'course-files:${course.id}',
+          '${course.name} files',
+          'Courses',
+          EIcons.files,
+          () {
+            ref.read(filesCourseRequestProvider.notifier).request(course.id);
+            GoRouter.of(host).go('/files');
+          },
+          keywords: ['files', 'folder', 'open', 'course', course.code],
+          hint: 'Open in Files',
+        ),
     ];
+  }
+
+  /// Reads the saved file listings of the courses that are on and shown in
+  /// Files, leaving out hidden folders, as Files itself does.
+  Future<void> _loadFiles() async {
+    final repo = ref.read(filesRepositoryProvider);
+    final skipCourses = {...ref.read(disabledCoursesProvider), ...ref.read(hiddenFileCoursesProvider)};
+    final hiddenFolders = ref.read(hiddenFoldersProvider);
+    final courses = [
+      for (final c in ref.read(coursesProvider).value ?? const <Course>[])
+        if (!skipCourses.contains(c.id)) c,
+    ];
+    final lists = await Future.wait([
+      for (final c in courses)
+        repo.savedListing(c.id).then<CourseFiles?>((v) => v, onError: (Object _) => null),
+    ]);
+    if (!mounted) return;
+    _fileIndex = [
+      for (var i = 0; i < courses.length; i++)
+        if (lists[i] case final data?)
+          for (final f in filesUnder(data, null, skip: hiddenFolders)) (f, courses[i]),
+    ];
+    if (_text.text.trim().isNotEmpty) _recompute();
+  }
+
+  /// Files, conversations and (not for Ctrl+F) settings that match [q].
+  List<_Entry> _moreHits(String q) {
+    final host = widget.host;
+    final out = <_Entry>[];
+
+    final files = searchFiles(q, _fileIndex);
+    if (files.isNotEmpty) {
+      out.add(const _SectionEntry('Files'));
+      for (final h in files) {
+        out.add(_CommandEntry(
+          PaletteCommand(id: 'file:${h.file.id}', title: h.file.name, section: 'Files', hint: h.course?.shortLabel),
+          fileVisual(h.file.name).icon,
+          null,
+          () {
+            _close();
+            ref.read(fileFocusProvider.notifier).request(h.file);
+            GoRouter.of(host).go('/files');
+          },
+        ));
+      }
+    }
+
+    final chats = {for (final c in ref.read(chatControllerProvider).conversations) c.id: c};
+    final matchedChats = searchConversations(q, _chatIndex);
+    if (matchedChats.isNotEmpty) {
+      out.add(const _SectionEntry('Conversations'));
+      final now = DateTime.now();
+      for (final h in matchedChats) {
+        final when = chats[h.id] == null ? '' : formatShortDate(chats[h.id]!.updatedAt, now);
+        out.add(_CommandEntry(
+          PaletteCommand(
+            id: 'chat:${h.id}',
+            title: h.title,
+            section: 'Conversations',
+            hint: h.inMessages ? 'In messages · $when' : when,
+          ),
+          EIcons.sparkles,
+          null,
+          () {
+            _close();
+            if (chats[h.id] == null) return;
+            ref.read(chatControllerProvider.notifier).select(h.id);
+            if (h.messageId case final id?) ref.read(chatMessageFocusProvider.notifier).request(id);
+            GoRouter.of(host).go('/chat');
+          },
+        ));
+      }
+    }
+
+    if (!widget.searchOnly) {
+      final items = [for (final i in buildSettingsItems(context, ref, listen: false)) if (i.searchable) i];
+      final found = matchSettings(q, [for (final i in items) i.search]).take(4);
+      if (found.isNotEmpty) {
+        out.add(const _SectionEntry('Settings'));
+        for (final i in found) {
+          final item = items[i];
+          out.add(_CommandEntry(
+            PaletteCommand(id: 'setting:$i', title: item.search.title, section: 'Settings', hint: item.section.label),
+            EIcons.settings,
+            null,
+            () {
+              _close();
+              showSettings(host, section: item.section, query: q);
+            },
+          ));
+        }
+      }
+    }
+    return out;
   }
 
   // ---- results -------------------------------------------------------------
@@ -310,6 +435,7 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
         entries.add(const _SectionEntry('Announcements and grades'));
         entries.addAll(posts.map(_HitEntry.new));
       }
+      entries.addAll(_moreHits(q));
     }
 
     _entries = entries;
@@ -432,7 +558,7 @@ class _CommandPaletteState extends ConsumerState<CommandPalette> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
             child: Text(
-              q.isEmpty ? 'Type to search assignments and announcements.' : 'No matches for “$q”.',
+              q.isEmpty ? 'Type to search assignments, announcements, files, chats and settings.' : 'No matches for “$q”.',
               textAlign: TextAlign.center,
               style: t.bodySecondary,
             ),
