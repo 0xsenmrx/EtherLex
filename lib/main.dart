@@ -9,6 +9,7 @@ import 'app/router.dart';
 import 'app/window/window_chrome.dart';
 import 'core/appearance/appearance.dart';
 import 'core/diag.dart';
+import 'core/platform/system_motion.dart';
 import 'design_system/components/toast_host.dart';
 import 'design_system/theme/ether_theme.dart';
 
@@ -35,6 +36,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final appearance = await AppearanceStore().read();
   unawaited(WindowControl.instance.attach());
+  watchSystemAnimations();
   runApp(
     ProviderScope(
       overrides: [initialAppearanceProvider.overrideWithValue(appearance)],
@@ -62,7 +64,21 @@ class EtherLexApp extends ConsumerWidget {
       },
       themeAnimationDuration: const Duration(milliseconds: 220),
       routerConfig: ref.watch(routerProvider),
-      builder: (context, child) => CallbackShortcuts(
+      // Windows' "Animation effects" off turns off springs, slides and pulses.
+      builder: (context, child) => ValueListenableBuilder<bool>(
+        valueListenable: systemAnimationsOff,
+        builder: (context, off, _) {
+          final media = MediaQuery.of(context);
+          return MediaQuery(
+            data: off && !media.disableAnimations ? media.copyWith(disableAnimations: true) : media,
+            child: _shell(ref, child),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _shell(WidgetRef ref, Widget? child) => CallbackShortcuts(
         bindings: {
           const SingleActivator(LogicalKeyboardKey.f9): ref.read(perfOverlayProvider.notifier).toggle,
         },
@@ -79,7 +95,5 @@ class EtherLexApp extends ConsumerWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
+      );
 }

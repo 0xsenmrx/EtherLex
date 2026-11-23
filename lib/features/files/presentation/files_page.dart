@@ -32,6 +32,10 @@ typedef _RowSpec = ({
   Widget Function(bool selected) build,
   VoidCallback open,
   VoidCallback? download,
+
+  /// H: hide or show the selected folder or course (its eye button appears
+  /// on hover only).
+  VoidCallback? hide,
 });
 
 class FilesPage extends ConsumerStatefulWidget {
@@ -383,7 +387,7 @@ class _Crumb extends StatelessWidget {
 }
 
 /// Keyboard cursor over fixed-height rows: J/K or arrows move, Enter opens,
-/// D downloads the selected file.
+/// D downloads the selected file, H hides or shows the selected folder.
 mixin _RowCursor<T extends StatefulWidget> on State<T> {
   final FocusNode focus = FocusNode();
   final SmoothScrollController scroll = SmoothScrollController();
@@ -448,6 +452,9 @@ mixin _RowCursor<T extends StatefulWidget> on State<T> {
           const SingleActivator(LogicalKeyboardKey.keyD): () {
             if (cursor >= 0 && cursor < rows.length) rows[cursor].download?.call();
           },
+          const SingleActivator(LogicalKeyboardKey.keyH): () {
+            if (cursor >= 0 && cursor < rows.length) rows[cursor].hide?.call();
+          },
         },
         child: Focus(focusNode: focus, child: child),
       );
@@ -511,7 +518,21 @@ class _CourseListState extends ConsumerState<_CourseList> with _RowCursor<_Cours
       );
     }
 
-    _RowSpec courseRow(Course course, {required bool isHidden}) => (
+    _RowSpec courseRow(Course course, {required bool isHidden}) {
+      void toggleHidden() {
+        if (isHidden) {
+          hiddenNotifier.show(course.id);
+        } else {
+          hiddenNotifier.hide(course.id);
+          ref.read(toastProvider.notifier).show(
+                '${course.shortLabel} hidden from Files',
+                actionLabel: 'Undo',
+                onAction: () => hiddenNotifier.show(course.id),
+              );
+        }
+      }
+
+      return (
           build: (sel) => HoverPrefetch(
                 key: ValueKey('c${course.id}-$isHidden'),
                 onPrefetch: () => ref.read(courseFilesProvider(course.id)),
@@ -524,23 +545,14 @@ class _CourseListState extends ConsumerState<_CourseList> with _RowCursor<_Cours
                   hidden: isHidden,
                   selected: sel,
                   onTap: () => widget.onOpen(course),
-                  onToggleHidden: () {
-                    if (isHidden) {
-                      hiddenNotifier.show(course.id);
-                    } else {
-                      hiddenNotifier.hide(course.id);
-                      ref.read(toastProvider.notifier).show(
-                            '${course.shortLabel} hidden from Files',
-                            actionLabel: 'Undo',
-                            onAction: () => hiddenNotifier.show(course.id),
-                          );
-                    }
-                  },
+                  onToggleHidden: toggleHidden,
                 ),
               ),
           open: () => widget.onOpen(course),
           download: null,
+          hide: toggleHidden,
         );
+    }
 
     // Counted off the UI thread, again after every save or removal.
     final bytes = ref.watch(offlineUsageProvider).value?.total ?? 0;
@@ -578,6 +590,7 @@ class _CourseListState extends ConsumerState<_CourseList> with _RowCursor<_Cours
                   ),
               open: toggleHidden,
               download: null,
+              hide: null,
             ),
           if (_showHidden)
             for (final x in hidden) courseRow(x, isHidden: true),
@@ -595,6 +608,7 @@ class _CourseListState extends ConsumerState<_CourseList> with _RowCursor<_Cours
                   ),
               open: clearOffline,
               download: null,
+              hide: null,
             ),
         ];
         return withKeys(
@@ -713,6 +727,7 @@ class _FileListState extends State<_FileList> with _RowCursor<_FileList> {
                   ),
               open: () => widget.onOpenFolder(f),
               download: null,
+              hide: () => widget.onHide(f),
             ),
           for (final file in files)
             (
@@ -733,6 +748,7 @@ class _FileListState extends State<_FileList> with _RowCursor<_FileList> {
               },
               open: () => widget.onOpen(file),
               download: () => widget.onDownload(file),
+              hide: null,
             ),
           if (hidden.isNotEmpty)
             (
@@ -748,6 +764,7 @@ class _FileListState extends State<_FileList> with _RowCursor<_FileList> {
                   ),
               open: widget.onToggleShowHidden,
               download: null,
+              hide: null,
             ),
           if (widget.showHidden)
             for (final f in hidden)
@@ -766,6 +783,7 @@ class _FileListState extends State<_FileList> with _RowCursor<_FileList> {
                     ),
                 open: () => widget.onOpenFolder(f),
                 download: null,
+                hide: () => widget.onRestore(f),
               ),
         ];
         return withKeys(

@@ -28,6 +28,10 @@ Future<T?> showEtherDialog<T>(
         curve: Curves.easeOutCubic,
         reverseCurve: Curves.easeInCubic,
       );
+      // Animation effects off in Windows: a plain fade, no zoom.
+      if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+        return FadeTransition(opacity: curved, child: child);
+      }
       return FadeTransition(
         opacity: curved,
         child: ScaleTransition(

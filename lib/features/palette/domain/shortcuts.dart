@@ -47,6 +47,7 @@ const List<ShortcutInfo> kShortcuts = [
   ShortcutInfo('Files', ['Esc'], 'Up one folder'),
   ShortcutInfo('Files', ['Alt', '←'], 'Up one folder'),
   ShortcutInfo('Files', ['D'], 'Download the selected file'),
+  ShortcutInfo('Files', ['H'], 'Hide or show the selected folder or course'),
 ];
 
 /// Shortcuts whose description, group or keys contain every word of [query].

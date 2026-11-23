@@ -194,7 +194,9 @@ class _DisabledFolderState extends State<_DisabledFolder> {
   }
 }
 
-class _CourseRow extends StatelessWidget {
+/// The disable/enable button shows on hover, and also while the row or the
+/// button has keyboard focus, so Tab from a course reaches it.
+class _CourseRow extends StatefulWidget {
   const _CourseRow({
     super.key,
     required this.entry,
@@ -211,13 +213,29 @@ class _CourseRow extends StatelessWidget {
   final VoidCallback onToggleDisabled;
 
   @override
+  State<_CourseRow> createState() => _CourseRowState();
+}
+
+class _CourseRowState extends State<_CourseRow> {
+  bool _focusWithin = false;
+
+  @override
   Widget build(BuildContext context) {
     final c = context.colors;
     final t = context.text;
+    final entry = widget.entry;
+    final active = widget.active;
+    final disabled = widget.disabled;
+    // Only for keyboard focus: a mouse click on the row must not show it.
+    final keyboard = _focusWithin && FocusManager.instance.highlightMode == FocusHighlightMode.traditional;
     return Padding(
       padding: const EdgeInsets.only(bottom: 2),
-      child: ETap(
-        onTap: onTap,
+      child: Focus(
+        canRequestFocus: false,
+        skipTraversal: true,
+        onFocusChange: (v) => setState(() => _focusWithin = v),
+        child: ETap(
+        onTap: widget.onTap,
         pressedScale: 0.985,
         builder: (context, s) => AnimatedContainer(
           duration: const Duration(milliseconds: 120),
@@ -244,14 +262,14 @@ class _CourseRow extends StatelessWidget {
                   ),
                 ),
               ),
-              if (s.hovered)
+              if (s.hovered || keyboard)
                 EIconButton(
                   icon: disabled ? EIcons.eye : EIcons.eyeOff,
                   tooltip: disabled ? 'Enable course' : 'Disable course',
                   size: 26,
                   iconSize: 14,
                   bordered: false,
-                  onTap: onToggleDisabled,
+                  onTap: widget.onToggleDisabled,
                 )
               else if (entry.openCount > 0)
                 Padding(
@@ -261,6 +279,7 @@ class _CourseRow extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }
