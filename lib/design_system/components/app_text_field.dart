@@ -12,6 +12,7 @@ class AppTextField extends StatefulWidget {
     this.autofocus = false,
     this.onSubmitted,
     this.error,
+    this.multiline = false,
   });
 
   final TextEditingController controller;
@@ -23,6 +24,9 @@ class AppTextField extends StatefulWidget {
 
   /// Shown under the field in the danger colour, and the border turns red.
   final String? error;
+
+  /// Several lines (3 to 6 shown, Enter makes a new line) instead of one.
+  final bool multiline;
 
   @override
   State<AppTextField> createState() => _AppTextFieldState();
@@ -58,20 +62,23 @@ class _AppTextFieldState extends State<AppTextField> {
         AnimatedContainer(
           duration: const Duration(milliseconds: 140),
           curve: Curves.easeOut,
-          height: 42,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
+          height: widget.multiline ? null : 42,
+          constraints: widget.multiline ? const BoxConstraints(minHeight: 42) : null,
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: widget.multiline ? 10 : 0),
           decoration: BoxDecoration(
             color: c.sunken,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: widget.error != null ? c.danger : (_focused ? c.accent : c.line)),
             boxShadow: _focused ? [BoxShadow(color: c.accentSoft, spreadRadius: 3)] : const [],
           ),
-          alignment: Alignment.centerLeft,
+          alignment: widget.multiline ? Alignment.topLeft : Alignment.centerLeft,
           child: TextField(
             controller: widget.controller,
             focusNode: _focus,
             autofocus: widget.autofocus,
             obscureText: widget.obscure,
+            minLines: widget.multiline ? 3 : null,
+            maxLines: widget.multiline ? 6 : 1,
             style: t.body,
             cursorColor: c.accent,
             onSubmitted: (_) => widget.onSubmitted?.call(),

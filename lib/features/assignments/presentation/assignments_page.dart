@@ -17,6 +17,7 @@ import '../domain/assignment.dart';
 import '../domain/timeline.dart';
 import 'assignment_dialog.dart';
 import 'assignment_row.dart';
+import 'task_dialog.dart';
 import 'assignments_providers.dart';
 
 class AssignmentsPage extends ConsumerStatefulWidget {
@@ -261,7 +262,10 @@ class _AssignmentsPageState extends ConsumerState<AssignmentsPage> {
                 EPageHeader(
                   title: 'Assignments',
                   subtitle: subtitle,
-                  actions: [ESyncButton(state: sync, onRefresh: _refresh)],
+                  actions: [
+                    EButton(label: 'Add task', icon: EIcons.plus, onTap: () => showTaskEditor(context)),
+                    ESyncButton(state: sync, onRefresh: _refresh),
+                  ],
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(28, 0, 20, 8),
@@ -299,7 +303,11 @@ class _AssignmentsPageState extends ConsumerState<AssignmentsPage> {
                             onClose: () => _cursor.value = null,
                             child: id == null
                                 ? null
-                                : AssignmentDetail(key: ValueKey<int>(id), assignmentId: id),
+                                : AssignmentDetail(
+                                    key: ValueKey<int>(id),
+                                    assignmentId: id,
+                                    onGone: () => _cursor.value = null,
+                                  ),
                           ),
                         ),
                     ],
@@ -384,11 +392,15 @@ class _AssignmentsPageState extends ConsumerState<AssignmentsPage> {
                           : EGroupHeader(label: bucket.label, count: count),
                       ItemEntry(:final assignment) => HoverPrefetch(
                           key: ValueKey<int>(assignment.id),
-                          onPrefetch: () => ref.read(
-                            submissionInfoProvider(
-                              (courseId: assignment.courseId, assignmentId: assignment.id),
-                            ),
-                          ),
+                          onPrefetch: () {
+                            // Your own tasks are not in Canvas: nothing to fetch.
+                            if (assignment.isPersonal) return;
+                            ref.read(
+                              submissionInfoProvider(
+                                (courseId: assignment.courseId, assignmentId: assignment.id),
+                              ),
+                            );
+                          },
                           child: AssignmentRow(
                             assignment: assignment,
                             course: courses[assignment.courseId],

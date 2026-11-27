@@ -9,21 +9,36 @@ import '../../auth/domain/session_database.dart';
 import '../../settings/presentation/settings_store_provider.dart';
 import '../../courses/domain/course.dart';
 import '../data/cached_assignments_repository.dart';
+import '../data/custom_task_list.dart';
 import '../data/mock_assignments_repository.dart';
+import '../data/with_custom_tasks_repository.dart';
 import '../domain/assignment.dart';
 import '../domain/assignments_repository.dart';
+import '../domain/custom_task.dart';
 
 export '../../../core/sync/sync_state.dart';
+
+/// The tasks you added yourself, for the signed-in account (see custom_task.dart).
+final customTasksProvider = Provider<CustomTaskList>((ref) {
+  final list = CustomTaskList(ref.watch(settingsStoreProvider));
+  ref.onDispose(list.dispose);
+  return list;
+});
+
+/// The same tasks as a stream, for screens that show them.
+final customTaskListProvider = StreamProvider<List<CustomTask>>((ref) => ref.watch(customTasksProvider).watch());
 
 final assignmentsRepositoryProvider = Provider<AssignmentsRepository>((ref) {
   final session = ref.watch(authProvider.select((a) => a.value));
   final db = ref.watch(appDatabaseProvider);
-  final AssignmentsRepository repo = (session == null || session.isSample || db == null)
+  final AssignmentsRepository inner = (session == null || session.isSample || db == null)
       ? MockAssignmentsRepository()
       : CachedAssignmentsRepository(
           ref.read(canvasClientFactoryProvider)(session.baseUrl, session.token),
           db,
         );
+  // Canvas (or sample) assignments plus the tasks you added yourself.
+  final AssignmentsRepository repo = WithCustomTasksRepository(inner, ref.watch(customTasksProvider));
   ref.onDispose(repo.dispose);
   return repo;
 });

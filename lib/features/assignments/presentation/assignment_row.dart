@@ -46,6 +46,7 @@ class AssignmentRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final a = assignment;
+    final course = this.course; // a local, so a null check promotes it
     final c = context.colors;
     final t = context.text;
     final overdue = a.isOverdue(now);
@@ -100,7 +101,9 @@ class AssignmentRow extends StatelessWidget {
                               const SizedBox(width: 6),
                               Flexible(
                                 child: Text(
-                                  course?.name ?? 'Course',
+                                  a.isPersonal
+                                      ? (course == null ? 'Personal task' : '${course.name} · personal')
+                                      : (course?.name ?? 'Course'),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: t.metaMuted,

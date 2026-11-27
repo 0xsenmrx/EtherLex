@@ -4,7 +4,8 @@ import '../../courses/domain/course.dart';
 import '../../grades/domain/grades.dart';
 import 'context_item.dart';
 
-String _courseName(Map<int, Course> courses, int? id) => id == null ? 'No course' : (courses[id]?.shortLabel ?? 'Course $id');
+String _courseName(Map<int, Course> courses, int? id) =>
+    id == null ? 'No course' : (courses[id]?.shortLabel ?? (id == 0 ? 'Personal task' : 'Course $id'));
 
 /// Everything not done yet, soonest due first (no due date last).
 AssignmentsContext openAssignmentsContext(List<Assignment> all, Map<int, Course> courses) {

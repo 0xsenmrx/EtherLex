@@ -412,7 +412,10 @@ class _Chip extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: HoverPrefetch(
-        onPrefetch: () => ref.read(submissionInfoProvider((courseId: a.courseId, assignmentId: a.id))),
+        // Your own tasks are not in Canvas: nothing to fetch.
+        onPrefetch: () {
+          if (!a.isPersonal) ref.read(submissionInfoProvider((courseId: a.courseId, assignmentId: a.id)));
+        },
         child: ETap(
           focusable: false,
           onTap: onTap,
