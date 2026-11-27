@@ -44,7 +44,7 @@ void main() {
   test('fileNameOf handles both separators', () {
     expect(fileNameOf(r'C:\a\b.pdf'), 'b.pdf');
     expect(fileNameOf('/home/a/b.pdf'), 'b.pdf');
-    expect(fileNameOf(r'C:\a\folder\'), 'folder');
+    expect(fileNameOf('C:\\a\\folder\\'), 'folder');
   });
 
   test('a folder gives its files, nearest first, then its subfolders', () async {
@@ -86,6 +86,15 @@ void main() {
     final r = await collectLocal(FakeDisk(disk.tree, disk.sizes, skips: {r'C:\link'}), [r'C:\link', r'C:\missing']);
     expect(r.files, isEmpty);
     expect(r.skipped.length, 2);
+  });
+
+  test('a folder of thousands of unusable files stops after the examine limit', () async {
+    final names = [for (var i = 0; i < 50; i++) 'big/f$i.bin'];
+    final big = FakeDisk({'big': (files: names, folders: <String>[])}, {for (final n in names) n: 1});
+    final r = await collectLocal(big, ['big'], problemOf: (name, size) => 'not supported', maxExamined: 10);
+    expect(r.files, isEmpty);
+    expect(r.skipped.length, 10);
+    expect(r.notes.single, contains('Looked at 10 files'));
   });
 
   test('a folder listing itself cannot loop', () async {

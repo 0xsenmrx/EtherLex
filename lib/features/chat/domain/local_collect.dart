@@ -1,5 +1,9 @@
 import 'file_collect.dart';
 
+/// Most files looked at (size and type checked) in one folder pick, attachable or not,
+/// so a folder of tens of thousands of unsupported files cannot keep the app busy.
+const int kMaxFilesExamined = 2000;
+
 /// What a path on the computer is, for attaching.
 enum LocalKind { file, folder, skip }
 
@@ -34,7 +38,7 @@ class CollectedLocal {
 ///
 /// A folder gives its files and, breadth first, those of its subfolders, so
 /// the nearest come first. Bounded like [collectFiles]: [maxFiles] files,
-/// [maxDepth] levels, [maxFolders] folders, each folder once. [problemOf]
+/// [maxDepth] levels, [maxFolders] folders, [maxExamined] files looked at, each folder once. [problemOf]
 /// says why a file cannot be attached (null when it can); those are reported
 /// in [CollectedLocal.skipped] and do not use up the limit.
 Future<CollectedLocal> collectLocal(
@@ -44,14 +48,20 @@ Future<CollectedLocal> collectLocal(
   int maxFiles = kMaxAttachFiles,
   int maxDepth = kMaxFolderDepth,
   int maxFolders = kMaxFoldersVisited,
+  int maxExamined = kMaxFilesExamined,
 }) async {
   final out = <String>[];
   final taken = <String>{};
   final skipped = <({String path, String reason})>[];
-  var hitFiles = false, hitDepth = false, hitFolders = false;
+  var hitFiles = false, hitDepth = false, hitFolders = false, hitExamined = false;
+  var examined = 0;
 
   Future<void> offer(String path) async {
     if (taken.contains(path)) return;
+    if (++examined > maxExamined) {
+      hitExamined = true;
+      return;
+    }
     final name = fileNameOf(path);
     final why = problemOf?.call(name, await disk.sizeOf(path));
     if (why != null) {
@@ -80,7 +90,7 @@ Future<CollectedLocal> collectLocal(
 
   final visited = <String>{};
   var head = 0;
-  while (head < queue.length && !hitFiles) {
+  while (head < queue.length && !hitFiles && !hitExamined) {
     final (:path, :depth) = queue[head++];
     if (!visited.add(path)) continue;
     if (visited.length > maxFolders) {
@@ -91,9 +101,9 @@ Future<CollectedLocal> collectLocal(
     final files = [...here.files]..sort((a, b) => fileNameOf(a).toLowerCase().compareTo(fileNameOf(b).toLowerCase()));
     for (final f in files) {
       await offer(f);
-      if (hitFiles) break;
+      if (hitFiles || hitExamined) break;
     }
-    if (hitFiles) break;
+    if (hitFiles || hitExamined) break;
     final subs = [...here.folders]..sort((a, b) => fileNameOf(a).toLowerCase().compareTo(fileNameOf(b).toLowerCase()));
     if (subs.isNotEmpty && depth >= maxDepth) {
       hitDepth = true;
@@ -111,6 +121,7 @@ Future<CollectedLocal> collectLocal(
       if (hitFiles) 'Stopped at $maxFiles files. Attach the rest in a second go.',
       if (hitDepth) 'Folders more than $maxDepth levels down were left out.',
       if (hitFolders) 'Stopped after $maxFolders folders; pick a smaller folder.',
+      if (hitExamined) 'Looked at $maxExamined files and stopped; pick a smaller folder.',
     ],
   );
 }
