@@ -57,6 +57,10 @@ class SeenNotifier extends Notifier<SeenState> {
 
   void markActivity(String id) => _set(state.markActivity(id));
 
+  void markActivityUnseen(String id) => _set(state.markActivityUnseen(id));
+
+  void markCourseUnseen(int courseId) => _set(state.markCourseUnseen(courseId));
+
   void markAllActivity() {
     final items = ref.read(activityProvider).value;
     if (items != null) _set(state.markAllActivity(items));

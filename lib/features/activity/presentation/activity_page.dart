@@ -244,6 +244,10 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
           final item = _itemById(_cursor.value);
           if (item != null && !_wide) _openDialog(item);
         },
+        const SingleActivator(LogicalKeyboardKey.keyU): () {
+          final id = _cursor.value;
+          if (id != null) ref.read(seenProvider.notifier).markActivityUnseen(id);
+        },
         const SingleActivator(LogicalKeyboardKey.escape): () => _cursor.value = null,
         const SingleActivator(LogicalKeyboardKey.keyR, control: true): _refresh,
         const SingleActivator(LogicalKeyboardKey.f5): _refresh,

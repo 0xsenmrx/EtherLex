@@ -17,6 +17,8 @@ class SeenState {
     this.courseGrades,
     this.gradesBaselineAt,
     this.courseSeenAt = const {},
+    this.activityUnseen = const {},
+    this.courseUnseen = const {},
   });
 
   /// Activity made at or before this was there from the start.
@@ -33,9 +35,14 @@ class SeenState {
   /// When each course's grades were last opened.
   final Map<int, DateTime> courseSeenAt;
 
+  /// Marked unseen by hand, to find again later (whatever their age).
+  final Set<String> activityUnseen;
+  final Set<int> courseUnseen;
+
   // ---- activity
 
   bool isActivityNew(ActivityItem item) {
+    if (activityUnseen.contains(item.id)) return true;
     final base = activityBaseline;
     return base != null && item.createdAt.isAfter(base) && !activityIds.contains(item.id);
   }
@@ -50,14 +57,23 @@ class SeenState {
   }
 
   SeenState markActivity(String id) {
-    if (activityIds.contains(id)) return this;
-    return _copy(activityIds: _capped({...activityIds, id}));
+    if (activityIds.contains(id) && !activityUnseen.contains(id)) return this;
+    return _copy(activityIds: _capped({...activityIds, id}), activityUnseen: {...activityUnseen}..remove(id));
+  }
+
+  /// Marks it new again, so it stands out until it is opened.
+  SeenState markActivityUnseen(String id) {
+    if (activityUnseen.contains(id)) return this;
+    return _copy(
+      activityIds: {...activityIds}..remove(id),
+      activityUnseen: _capped({...activityUnseen, id}),
+    );
   }
 
   SeenState markAllActivity(Iterable<ActivityItem> items) {
     final fresh = [for (final i in items) if (isActivityNew(i)) i.id];
     if (fresh.isEmpty) return this;
-    return _copy(activityIds: _capped({...activityIds, ...fresh}));
+    return _copy(activityIds: _capped({...activityIds, ...fresh}), activityUnseen: {...activityUnseen}..removeAll(fresh));
   }
 
   static Set<String> _capped(Set<String> ids) =>
@@ -73,6 +89,7 @@ class SeenState {
 
   /// The course's grade changed since it was last opened.
   bool courseUpdated(CourseGrade? g) {
+    if (g != null && courseUnseen.contains(g.courseId)) return true;
     final seen = courseGrades;
     if (seen == null || g == null) return false;
     return fingerprint(g) != (seen[g.courseId] ?? '');
@@ -90,7 +107,17 @@ class SeenState {
   SeenState markCourse(int courseId, CourseGrade? g, DateTime now) {
     final seen = courseGrades;
     if (seen == null) return this;
-    return _copy(courseGrades: {...seen, courseId: fingerprint(g)}, courseSeenAt: {...courseSeenAt, courseId: now});
+    return _copy(
+      courseGrades: {...seen, courseId: fingerprint(g)},
+      courseSeenAt: {...courseSeenAt, courseId: now},
+      courseUnseen: {...courseUnseen}..remove(courseId),
+    );
+  }
+
+  /// Marks the course as having news again, so it stands out until opened.
+  SeenState markCourseUnseen(int courseId) {
+    if (courseUnseen.contains(courseId)) return this;
+    return _copy(courseUnseen: {...courseUnseen, courseId});
   }
 
   SeenState markAllCourses(Map<int, CourseGrade> grades, DateTime now) {
@@ -99,6 +126,7 @@ class SeenState {
     return _copy(
       courseGrades: {...seen, for (final g in grades.values) g.courseId: fingerprint(g)},
       courseSeenAt: {...courseSeenAt, for (final g in grades.values) g.courseId: now},
+      courseUnseen: const {},
     );
   }
 
@@ -120,6 +148,8 @@ class SeenState {
     Map<int, String>? courseGrades,
     DateTime? gradesBaselineAt,
     Map<int, DateTime>? courseSeenAt,
+    Set<String>? activityUnseen,
+    Set<int>? courseUnseen,
   }) =>
       SeenState(
         activityBaseline: activityBaseline ?? this.activityBaseline,
@@ -127,6 +157,8 @@ class SeenState {
         courseGrades: courseGrades ?? this.courseGrades,
         gradesBaselineAt: gradesBaselineAt ?? this.gradesBaselineAt,
         courseSeenAt: courseSeenAt ?? this.courseSeenAt,
+        activityUnseen: activityUnseen ?? this.activityUnseen,
+        courseUnseen: courseUnseen ?? this.courseUnseen,
       );
 
   Map<String, Object?> toJson() => {
@@ -135,6 +167,8 @@ class SeenState {
         'courseGrades': courseGrades == null ? null : {for (final e in courseGrades!.entries) '${e.key}': e.value},
         'gradesBaselineAt': gradesBaselineAt?.toUtc().toIso8601String(),
         'courseSeenAt': {for (final e in courseSeenAt.entries) '${e.key}': e.value.toUtc().toIso8601String()},
+        'activityUnseen': activityUnseen.toList(),
+        'courseUnseen': courseUnseen.toList(),
       };
 
   /// The file is untrusted: anything of the wrong type or size is skipped.
@@ -144,7 +178,11 @@ class SeenState {
     final ids = json['activityIds'];
     final grades = json['courseGrades'];
     final seenAt = json['courseSeenAt'];
+    final unseen = json['activityUnseen'];
+    final unseenCourses = json['courseUnseen'];
     return SeenState(
+      activityUnseen: unseen is List ? _capped({for (final v in unseen) if (v is String && v.isNotEmpty && v.length < 200) v}) : const {},
+      courseUnseen: unseenCourses is List ? {for (final v in unseenCourses) if (v is int) v} : const {},
       activityBaseline: date(json['activityBaseline']),
       activityIds: ids is List ? _capped({for (final v in ids) if (v is String && v.isNotEmpty && v.length < 200) v}) : const {},
       courseGrades: grades is Map

@@ -220,6 +220,10 @@ class _GradesPageState extends ConsumerState<GradesPage> {
           if (id != null && !_wide) _openDialog(id);
         },
         const SingleActivator(LogicalKeyboardKey.keyP): _openPlanner,
+        const SingleActivator(LogicalKeyboardKey.keyU): () {
+          final id = _cursor.value;
+          if (id != null) ref.read(seenProvider.notifier).markCourseUnseen(id);
+        },
         const SingleActivator(LogicalKeyboardKey.escape): () => _cursor.value = null,
         const SingleActivator(LogicalKeyboardKey.keyR, control: true): _refresh,
         const SingleActivator(LogicalKeyboardKey.f5): _refresh,
@@ -638,11 +642,22 @@ class _CourseGradeBody extends ConsumerWidget {
         const SizedBox(height: 14),
         GradeBar(now: now, fin: fin, color: color, height: 8),
         const SizedBox(height: 18),
-        EButton(
-          label: 'Open grade planner',
-          icon: EIcons.grades,
-          kind: EButtonKind.primary,
-          onTap: () => showGradePlanner(context, courseId),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            EButton(
+              label: 'Open grade planner',
+              icon: EIcons.grades,
+              kind: EButtonKind.primary,
+              onTap: () => showGradePlanner(context, courseId),
+            ),
+            EButton(
+              label: ref.watch(seenProvider.select((s) => s.courseUnseen.contains(courseId))) ? 'Marked as new' : 'Mark as new',
+              icon: EIcons.bell,
+              onTap: () => ref.read(seenProvider.notifier).markCourseUnseen(courseId),
+            ),
+          ],
         ),
         work.when(
           loading: () => const Padding(

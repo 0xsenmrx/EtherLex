@@ -48,6 +48,45 @@ void main() {
     });
   });
 
+  group('marking unseen', () {
+    test('an old item can be marked new again, and opening clears it', () {
+      final s = const SeenState().baselineActivity([old, base]);
+      expect(s.isActivityNew(old), isFalse);
+      final u = s.markActivityUnseen('old');
+      expect(u.isActivityNew(old), isTrue);
+      expect(u.newActivityCount([old, base]), 1);
+      expect(identical(u.markActivityUnseen('old'), u), isTrue);
+      expect(u.markActivity('old').isActivityNew(old), isFalse);
+    });
+
+    test('a new item opened and marked unseen is new again', () {
+      final s = const SeenState().baselineActivity([base]).markActivity('fresh');
+      expect(s.isActivityNew(fresh), isFalse);
+      expect(s.markActivityUnseen('fresh').isActivityNew(fresh), isTrue);
+    });
+
+    test('mark all clears the hand-marked ones too', () {
+      final s = const SeenState().baselineActivity([old, base]).markActivityUnseen('old');
+      expect(s.markAllActivity([old, base]).isActivityNew(old), isFalse);
+    });
+
+    test('a course can be marked as having news again', () {
+      const g = CourseGrade(courseId: 1, currentScore: 90);
+      final s = const SeenState().baselineGrades({1: g}, t0);
+      final u = s.markCourseUnseen(1);
+      expect(u.courseUpdated(g), isTrue);
+      expect(u.markCourse(1, g, t0).courseUpdated(g), isFalse);
+      expect(u.markAllCourses({1: g}, t0).courseUpdated(g), isFalse);
+    });
+
+    test('it is saved', () {
+      final s = const SeenState().baselineActivity([base]).markActivityUnseen('a').markCourseUnseen(3);
+      final back = SeenState.fromJson(s.toJson());
+      expect(back.activityUnseen, {'a'});
+      expect(back.courseUnseen, {3});
+    });
+  });
+
   group('grades', () {
     const a1 = CourseGrade(courseId: 1, currentScore: 90, currentGrade: 'A-');
     const a1Changed = CourseGrade(courseId: 1, currentScore: 85, currentGrade: 'B');
