@@ -183,22 +183,27 @@ class _ChatPageState extends ConsumerState<ChatPage> {
       _failedBuild = null;
     });
     try {
-      final item = await build();
+      final result = await build();
       if (!mounted) return;
       final provider = ref.read(aiSettingsProvider).provider;
-      if (item is ImageContext && !provider.readsImages) {
-        setState(() {
-          _loadingAttach = false;
-          _attachError = ChatException(ChatErrorKind.unexpected, _noPictures(provider));
-        });
-        return;
+      final notes = [...result.notes];
+      final items = <ContextItem>[];
+      var droppedPictures = false;
+      for (final item in result.items) {
+        if (item is ImageContext && !provider.readsImages) {
+          droppedPictures = true;
+        } else {
+          items.add(item);
+        }
       }
+      if (droppedPictures) notes.add(_noPictures(provider));
       setState(() {
         _loadingAttach = false;
-        if (item != null) {
+        for (final item in items) {
           _attached.removeWhere((a) => a.key == item.key);
           _attached.add(item);
         }
+        if (notes.isNotEmpty) _attachError = ChatException(ChatErrorKind.unexpected, notes.join(' '));
       });
       _inputFocus.requestFocus();
     } catch (e) {

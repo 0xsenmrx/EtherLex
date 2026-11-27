@@ -8,6 +8,7 @@ import 'package:material_ui/material_ui.dart' show Tooltip;
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/dialog.dart';
 import '../../../design_system/ether/icons.dart';
+import '../../../design_system/ether/list.dart' show ECheck;
 import '../../../design_system/ether/menu.dart';
 import '../../../design_system/ether/tap.dart';
 import '../../../design_system/theme/ether_theme.dart';
@@ -32,11 +33,27 @@ import '../domain/ai_settings.dart';
 import '../domain/attach_rules.dart';
 import '../domain/context_builders.dart';
 import '../domain/context_item.dart';
+import '../domain/file_collect.dart';
 import 'ai_consent.dart';
 import 'ai_providers.dart';
 
 /// Makes the item when the student picks it (some need a moment to load).
-typedef ContextBuilder = Future<ContextItem?> Function();
+/// What a pick produced: the things to attach, and words for the student about
+/// what could not be attached or was left out.
+class AttachResult {
+  const AttachResult(this.items, [this.notes = const []]);
+
+  final List<ContextItem> items;
+  final List<String> notes;
+}
+
+typedef ContextBuilder = Future<AttachResult> Function();
+
+/// A builder for one item (or none).
+ContextBuilder single(Future<ContextItem?> Function() make) => () async {
+      final item = await make();
+      return AttachResult([?item]);
+    };
 
 /// Asks, once per AI service and account, whether Canvas data may be sent to
 /// it. True when it is allowed (now or before). Sample mode has no real
@@ -113,111 +130,161 @@ class _AttachDialog extends StatelessWidget {
             if (!disabled.contains(c.id)) c,
         ];
     final courses = [...visibleCourses()]..sort((a, b) => a.shortLabel.toLowerCase().compareTo(b.shortLabel.toLowerCase()));
+
+    Future<Course?> chooseCourse(String title) => showEtherDialog<Course>(context, (_) => _CourseChooser(title, courses), maxWidth: 480);
+
     return EDialog(
       title: 'Attach from Canvas',
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          const EMenuCaption('At a glance'),
           _row(
             context,
             icon: EIcons.assignments,
             title: 'Open assignments',
             subtitle: 'Everything not done yet, with due dates',
-            build: () async => openAssignmentsContext(
-              [
-                for (final a in ref.read(assignmentsProvider).value ?? const <Assignment>[])
-                  if (!disabled.contains(a.courseId)) a,
-              ],
-              ref.read(coursesByIdProvider),
-            ),
-          ),
-          _row(
-            context,
-            icon: EIcons.grades,
-            title: 'Grades overview',
-            subtitle: 'Your current grade in each course',
-            build: () async {
-              // Grades are only fetched when the Grades page is opened; fetch them now if they were not.
-              if (ref.read(courseGradesProvider).isEmpty) await ref.read(gradesSyncProvider.notifier).refresh();
-              return gradesOverviewContext(visibleCourses(), ref.read(courseGradesProvider));
-            },
+            build: single(() async => openAssignmentsContext(
+                  [
+                    for (final a in ref.read(assignmentsProvider).value ?? const <Assignment>[])
+                      if (!disabled.contains(a.courseId)) a,
+                  ],
+                  ref.read(coursesByIdProvider),
+                )),
           ),
           _row(
             context,
             icon: EIcons.announcement,
             title: 'Recent announcements',
             subtitle: 'The latest ten',
-            build: () async => recentAnnouncementsContext(
-              [
-                for (final a in ref.read(activityProvider).value ?? const <ActivityItem>[])
-                  if (a.courseId == null || !disabled.contains(a.courseId)) a,
-              ],
-              ref.read(coursesByIdProvider),
-            ),
+            build: single(() async => recentAnnouncementsContext(
+                  [
+                    for (final a in ref.read(activityProvider).value ?? const <ActivityItem>[])
+                      if (a.courseId == null || !disabled.contains(a.courseId)) a,
+                  ],
+                  ref.read(coursesByIdProvider),
+                )),
           ),
+          _row(
+            context,
+            icon: EIcons.grades,
+            title: 'Grades overview',
+            subtitle: 'Your current grade in each course',
+            build: single(() async {
+              // Grades are only fetched when the Grades page is opened; fetch them now if they were not.
+              if (ref.read(courseGradesProvider).isEmpty) await ref.read(gradesSyncProvider.notifier).refresh();
+              return gradesOverviewContext(visibleCourses(), ref.read(courseGradesProvider));
+            }),
+          ),
+          if (courses.isNotEmpty)
+            _row(
+              context,
+              icon: EIcons.grades,
+              title: 'Grades of one course',
+              subtitle: 'Every graded item and the weights',
+              onPick: () async {
+                final course = await chooseCourse('Grades of which course?');
+                if (course == null || !context.mounted) return;
+                Navigator.of(context).pop(single(() async {
+                  final work = await ref.read(courseWorkProvider(course.id).future);
+                  return courseGradesContext(course, ref.read(courseGradesProvider)[course.id], work.items, groups: work.groups);
+                }));
+              },
+            ),
           const EMenuDivider(),
+          const EMenuCaption('Files and pictures'),
           _row(
             context,
             icon: EIcons.fileImage,
-            title: 'A file or picture from this computer',
-            subtitle: 'PDF, Word, PowerPoint, text, PNG, JPEG, GIF, WebP',
-            build: () async {
-              final picked = await openFile(
-                acceptedTypeGroups: [
-                  const XTypeGroup(label: 'Documents and pictures', extensions: [
-                    'pdf', 'docx', 'pptx', 'md', 'markdown', 'txt', 'csv', 'tex', 'png', 'jpg', 'jpeg', 'gif', 'webp',
-                  ]),
-                ],
-              );
-              if (picked == null) return null;
-              final problem = attachProblemFor(picked.name, await picked.length(), readsImages: ref.read(aiSettingsProvider).provider.readsImages);
-              if (problem != null) throw AttachException('${picked.name}: $problem.');
-              return contextForPath(picked.path, picked.name);
-            },
+            title: 'From this computer',
+            subtitle: 'PDF, Word, PowerPoint, text, pictures. Pick several at once',
+            build: () => _attachFromComputer(ref),
           ),
           _row(
             context,
             icon: EIcons.assignments,
-            title: 'Files of an assignment',
+            title: 'Of an assignment',
             subtitle: 'Handouts linked in it, and its instructions',
             onPick: () async {
               final build = await showEtherDialog<ContextBuilder>(context, (_) => _AssignmentFilesDialog(ref), maxWidth: 520);
               if (build != null && context.mounted) Navigator.of(context).pop(build);
             },
           ),
-          if (courses.isNotEmpty) ...[
-            const EMenuDivider(),
-            const EMenuCaption('A file or picture from a course'),
-            for (final course in courses)
-              _row(
-                context,
-                icon: EIcons.files,
-                title: course.shortLabel,
-                subtitle: 'Syllabus, slides, notes, pictures…',
-                onPick: () async {
-                  final build = await showEtherDialog<ContextBuilder>(context, (_) => _FilesDialog(ref, course), maxWidth: 520);
-                  if (build != null && context.mounted) Navigator.of(context).pop(build);
-                },
-              ),
-            const EMenuDivider(),
-            const EMenuCaption('Grades of one course'),
-            for (final course in courses)
-              _row(
-                context,
-                icon: EIcons.grades,
-                title: course.shortLabel,
-                subtitle: course.name == course.shortLabel ? null : course.name,
-                build: () async {
-                  final work = await ref.read(courseWorkProvider(course.id).future);
-                  return courseGradesContext(course, ref.read(courseGradesProvider)[course.id], work.items, groups: work.groups);
-                },
-              ),
-          ],
+          if (courses.isNotEmpty)
+            _row(
+              context,
+              icon: EIcons.files,
+              title: 'Of a course',
+              subtitle: 'Syllabus, slides, notes. Tick files or whole folders',
+              onPick: () async {
+                final course = await chooseCourse('Files of which course?');
+                if (course == null || !context.mounted) return;
+                final build = await showEtherDialog<ContextBuilder>(context, (_) => _FilesDialog(ref, course), maxWidth: 520);
+                if (build != null && context.mounted) Navigator.of(context).pop(build);
+              },
+            ),
         ],
       ),
       actions: [EButton(label: 'Cancel', kind: EButtonKind.ghost, onTap: () => Navigator.of(context).pop())],
     );
   }
+}
+
+/// Choose one of the courses.
+class _CourseChooser extends StatelessWidget {
+  const _CourseChooser(this.title, this.courses);
+
+  final String title;
+  final List<Course> courses;
+
+  @override
+  Widget build(BuildContext context) => EDialog(
+        title: title,
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final c in courses)
+              _pickRow(
+                context,
+                icon: EIcons.files,
+                title: c.shortLabel,
+                subtitle: c.name == c.shortLabel ? null : c.name,
+                onTap: () => Navigator.of(context).pop<Course>(c),
+              ),
+          ],
+        ),
+        actions: [EButton(label: 'Back', kind: EButtonKind.ghost, onTap: () => Navigator.of(context).pop())],
+      );
+}
+
+/// Pictures and documents picked in the system file dialog, several at once.
+Future<AttachResult> _attachFromComputer(WidgetRef ref) async {
+  final picked = await openFiles(
+    acceptedTypeGroups: [
+      const XTypeGroup(label: 'Documents and pictures', extensions: [
+        'pdf', 'docx', 'pptx', 'md', 'markdown', 'txt', 'csv', 'tex', 'png', 'jpg', 'jpeg', 'gif', 'webp',
+      ]),
+    ],
+  );
+  if (picked.isEmpty) return const AttachResult([]);
+  final readsImages = ref.read(aiSettingsProvider).provider.readsImages;
+  final items = <ContextItem>[];
+  final problems = <String>[];
+  for (final x in picked.take(kMaxAttachFiles)) {
+    final problem = attachProblemFor(x.name, await x.length(), readsImages: readsImages);
+    if (problem != null) {
+      problems.add('${x.name}: $problem.');
+      continue;
+    }
+    try {
+      items.add(await contextForPath(x.path, x.name));
+    } on AttachException catch (e) {
+      problems.add(e.message);
+    }
+  }
+  if (picked.length > kMaxAttachFiles) problems.add('Only the first $kMaxAttachFiles files were used.');
+  if (items.isEmpty && problems.isNotEmpty) throw AttachException(problems.join(' '));
+  return AttachResult(items, problems);
 }
 
 /// Reads [file] (downloading it if needed) into something to attach.
@@ -229,6 +296,33 @@ Future<ContextItem> contextForFile(WidgetRef ref, FileEntry file) async {
     throw const AttachException('Could not download that file from Canvas. Check your connection and try again.', retryable: true);
   }
   return contextForPath(path, file.name, fileId: file.id);
+}
+
+/// Reads several Canvas files. One that cannot be read is reported in the
+/// result's notes and does not stop the others; if none can be read it throws.
+Future<AttachResult> contextForFiles(
+  WidgetRef ref,
+  List<FileEntry> files, {
+  List<ContextItem> first = const [],
+  List<String> notes = const [],
+}) async {
+  final items = [...first];
+  final problems = [...notes];
+  var retryable = false;
+  for (final f in files) {
+    try {
+      items.add(await contextForFile(ref, f));
+    } on AttachException catch (e) {
+      problems.add('${f.name}: ${e.message}');
+      retryable = retryable || e.retryable;
+    } catch (_) {
+      problems.add('${f.name}: could not be read.');
+    }
+  }
+  if (items.isEmpty) {
+    throw AttachException(problems.isEmpty ? 'There was nothing to attach.' : problems.join(' '), retryable: retryable);
+  }
+  return AttachResult(items, problems);
 }
 
 /// Reads the file at [path] (named [name]) into something to attach.
@@ -256,6 +350,7 @@ Widget _pickRow(
   String? subtitle,
   String? trailing,
   bool disabled = false,
+  Widget? leading,
   VoidCallback? onTap,
 }) {
   final c = context.colors;
@@ -267,6 +362,7 @@ Widget _pickRow(
       decoration: BoxDecoration(color: s.hovered && !disabled ? c.hover : const Color(0x00000000), borderRadius: BorderRadius.circular(8)),
       child: Row(
         children: [
+          ?leading,
           Icon(icon, size: 16, color: disabled ? c.textTertiary : c.textSecondary),
           const SizedBox(width: 12),
           Expanded(
@@ -285,6 +381,38 @@ Widget _pickRow(
   );
 }
 
+/// A row that can be ticked; the whole row toggles it. A row that cannot be
+/// attached has no tick and says why.
+Widget _tickRow(
+  BuildContext context, {
+  required bool checked,
+  required VoidCallback onToggle,
+  required IconData icon,
+  required String title,
+  String? subtitle,
+  String? trailing,
+  bool disabled = false,
+}) =>
+    _pickRow(
+      context,
+      leading: disabled ? const SizedBox(width: 32, height: 32) : ECheck(checked: checked, onTap: onToggle),
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
+      trailing: trailing,
+      disabled: disabled,
+      onTap: onToggle,
+    );
+
+/// "Include subfolders" tick for the footer of a picker.
+Widget _subfoldersToggle(BuildContext context, bool on, VoidCallback onTap) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ECheck(checked: on, onTap: onTap),
+        ETap(onTap: onTap, builder: (context, _) => Text('Include subfolders', style: context.text.label)),
+      ],
+    );
+
 class _FilesDialog extends StatefulWidget {
   const _FilesDialog(this.ref, this.course);
 
@@ -297,13 +425,23 @@ class _FilesDialog extends StatefulWidget {
 
 class _FilesDialogState extends State<_FilesDialog> {
   late final Future<CourseFiles> _future = widget.ref.read(courseFilesProvider(widget.course.id).future);
+  CourseFiles? _data;
   List<int> _path = const [];
   String _query = '';
   final FocusNode _search = FocusNode();
 
+  // What is ticked; kept while moving between folders and searching.
+  final Set<int> _files = {};
+  final Set<int> _folders = {};
+  bool _sub = false;
+  String? _note;
+
   @override
   void initState() {
     super.initState();
+    _future.then<void>((d) {
+      _data = d;
+    }, onError: (Object _) {});
     // Typing starts in the search box at once (the dialog itself would otherwise hold the focus).
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _search.requestFocus();
@@ -316,22 +454,61 @@ class _FilesDialogState extends State<_FilesDialog> {
     super.dispose();
   }
 
+  bool get _readsImages => widget.ref.read(aiSettingsProvider).provider.readsImages;
+
+  void _toggleFile(FileEntry f) => setState(() {
+        _note = null;
+        if (_files.remove(f.id)) return;
+        if (_files.length >= kMaxAttachFiles) {
+          _note = 'Up to $kMaxAttachFiles files at once.';
+        } else {
+          _files.add(f.id);
+        }
+      });
+
+  void _toggleFolder(int id) => setState(() {
+        _note = null;
+        if (!_folders.remove(id)) _folders.add(id);
+      });
+
+  void _attach() {
+    final data = _data;
+    if (data == null) return;
+    final found = collectFiles(
+      data,
+      fileIds: _files,
+      folderIds: _folders,
+      includeSubfolders: _sub,
+      skipFolders: widget.ref.read(hiddenFoldersProvider),
+      problemOf: (f) => attachProblemFor(f.name, f.size, readsImages: _readsImages),
+    );
+    final notes = [
+      ...found.notes,
+      for (final s in found.skipped.take(5)) '${s.file.name}: ${s.reason}.',
+      if (found.skipped.length > 5) '${found.skipped.length - 5} more files could not be attached.',
+      if (found.files.isEmpty && found.skipped.isEmpty && _folders.isNotEmpty) 'No files were found in the folders you ticked.',
+    ];
+    Navigator.of(context).pop<ContextBuilder>(() => contextForFiles(widget.ref, found.files, notes: notes));
+  }
+
   Widget _fileRow(BuildContext context, FileEntry f, {String? where}) {
-    final problem = attachProblemFor(f.name, f.size, readsImages: widget.ref.read(aiSettingsProvider).provider.readsImages);
-    return _pickRow(
+    final problem = attachProblemFor(f.name, f.size, readsImages: _readsImages);
+    return _tickRow(
       context,
+      checked: _files.contains(f.id),
+      onToggle: () => _toggleFile(f),
       icon: previewKindFor(f.name) == PreviewKind.image ? EIcons.fileImage : EIcons.fileText,
       title: f.name,
       subtitle: problem ?? where,
       trailing: formatBytes(f.size),
       disabled: problem != null,
-      onTap: () => Navigator.of(context).pop<ContextBuilder>(() => contextForFile(widget.ref, f)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final t = context.text;
+    final picked = _files.length + _folders.length;
     return EDialog(
       title: widget.course.shortLabel,
       body: Column(
@@ -346,62 +523,75 @@ class _FilesDialogState extends State<_FilesDialog> {
             focusNode: _search,
             onChanged: (v) => setState(() => _query = v),
           ),
+          if (_note != null) Padding(padding: const EdgeInsets.only(top: 6), child: Text(_note!, style: t.meta)),
           const SizedBox(height: 8),
           FutureBuilder<CourseFiles>(
-        future: _future,
-        builder: (context, snap) {
-          if (snap.connectionState != ConnectionState.done) {
-            return Padding(padding: const EdgeInsets.all(16), child: Text('Loading files…', style: t.meta));
-          }
-          if (snap.hasError) {
-            return Padding(padding: const EdgeInsets.all(16), child: Text('Could not load the files of this course.', style: t.meta));
-          }
-          final data = snap.data!;
-          final hidden = widget.ref.read(hiddenFoldersProvider);
-          final names = {for (final f in data.folders) f.id: f.name};
-          final searching = _query.trim().isNotEmpty;
-          final view = viewFolder(data, _path.isEmpty ? null : _path.last);
-          final List<Widget> rows;
-          if (searching) {
-            final found = [
-              for (final f in filesUnder(data, null, skip: hidden))
-                if (nameMatches(f.name, _query)) f,
-            ]..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-            rows = [
-              for (final f in found.take(60)) _fileRow(context, f, where: names[f.folderId]),
-              if (found.isEmpty) Padding(padding: const EdgeInsets.all(16), child: Text('No file with that name.', style: t.meta)),
-              if (found.length > 60) Padding(padding: const EdgeInsets.all(10), child: Text('${found.length - 60} more: type more of the name.', style: t.meta)),
-            ];
-          } else {
-            rows = [
-              if (_path.isNotEmpty)
-                _pickRow(
-                  context,
-                  icon: EIcons.chevronLeft,
-                  title: 'Back',
-                  subtitle: view.breadcrumb.map((f) => f.name).join(' / '),
-                  onTap: () => setState(() => _path = _path.sublist(0, _path.length - 1)),
-                ),
-              for (final f in view.folders)
-                if (!hidden.contains(f.id)) _pickRow(context, icon: EIcons.folderClosed, title: f.name, onTap: () => setState(() => _path = [..._path, f.id])),
-              for (final f in view.files) _fileRow(context, f),
-              if (view.folders.isEmpty && view.files.isEmpty) Padding(padding: const EdgeInsets.all(16), child: Text('Nothing in this folder.', style: t.meta)),
-            ];
-          }
-          return ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 360),
-            child: SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: rows)),
-          );
-        },
+            future: _future,
+            builder: (context, snap) {
+              if (snap.connectionState != ConnectionState.done) {
+                return Padding(padding: const EdgeInsets.all(16), child: Text('Loading files…', style: t.meta));
+              }
+              if (snap.hasError) {
+                return Padding(padding: const EdgeInsets.all(16), child: Text('Could not load the files of this course.', style: t.meta));
+              }
+              final data = snap.data!;
+              final hidden = widget.ref.read(hiddenFoldersProvider);
+              final names = {for (final f in data.folders) f.id: f.name};
+              final searching = _query.trim().isNotEmpty;
+              final view = viewFolder(data, _path.isEmpty ? null : _path.last);
+              final List<Widget> rows;
+              if (searching) {
+                final found = [
+                  for (final f in filesUnder(data, null, skip: hidden))
+                    if (nameMatches(f.name, _query)) f,
+                ]..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+                rows = [
+                  for (final f in found.take(60)) _fileRow(context, f, where: names[f.folderId]),
+                  if (found.isEmpty) Padding(padding: const EdgeInsets.all(16), child: Text('No file with that name.', style: t.meta)),
+                  if (found.length > 60) Padding(padding: const EdgeInsets.all(10), child: Text('${found.length - 60} more: type more of the name.', style: t.meta)),
+                ];
+              } else {
+                rows = [
+                  if (_path.isNotEmpty)
+                    _pickRow(
+                      context,
+                      icon: EIcons.chevronLeft,
+                      title: 'Back',
+                      subtitle: view.breadcrumb.map((f) => f.name).join(' / '),
+                      onTap: () => setState(() => _path = _path.sublist(0, _path.length - 1)),
+                    ),
+                  for (final f in view.folders)
+                    if (!hidden.contains(f.id))
+                      _pickRow(
+                        context,
+                        leading: ECheck(checked: _folders.contains(f.id), onTap: () => _toggleFolder(f.id)),
+                        icon: EIcons.folderClosed,
+                        title: f.name,
+                        subtitle: 'Tick to attach the files in it, or click to open',
+                        onTap: () => setState(() => _path = [..._path, f.id]),
+                      ),
+                  for (final f in view.files) _fileRow(context, f),
+                  if (view.folders.isEmpty && view.files.isEmpty) Padding(padding: const EdgeInsets.all(16), child: Text('Nothing in this folder.', style: t.meta)),
+                ];
+              }
+              return ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 360),
+                child: SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: rows)),
+              );
+            },
           ),
         ],
       ),
-      actions: [EButton(label: 'Back', kind: EButtonKind.ghost, onTap: () => Navigator.of(context).pop())],
+      leading: [if (_folders.isNotEmpty) _subfoldersToggle(context, _sub, () => setState(() => _sub = !_sub))],
+      actions: [
+        EButton(label: 'Back', kind: EButtonKind.ghost, onTap: () => Navigator.of(context).pop()),
+        EButton(label: picked == 0 ? 'Attach' : 'Attach $picked', kind: EButtonKind.primary, onTap: picked == 0 ? null : _attach),
+      ],
     );
   }
 }
 
-/// Choose an assignment, then one of the files linked in it (or its text).
+/// Choose an assignment, then tick its instructions and the files linked in it.
 class _AssignmentFilesDialog extends StatefulWidget {
   const _AssignmentFilesDialog(this.ref);
 
@@ -416,8 +606,13 @@ typedef _AssignmentFiles = ({SubmissionInfo info, List<FileEntry> files});
 class _AssignmentFilesDialogState extends State<_AssignmentFilesDialog> {
   Assignment? _picked;
   Future<_AssignmentFiles>? _load;
+  _AssignmentFiles? _loaded;
   String _query = '';
   final FocusNode _search = FocusNode();
+
+  bool _text = false;
+  final Set<int> _files = {};
+  String? _note;
 
   @override
   void initState() {
@@ -433,16 +628,46 @@ class _AssignmentFilesDialogState extends State<_AssignmentFilesDialog> {
     super.dispose();
   }
 
+  bool get _readsImages => widget.ref.read(aiSettingsProvider).provider.readsImages;
+
   Future<_AssignmentFiles> _fetch(AssignmentRef key) async {
     final info = await widget.ref.read(submissionInfoProvider(key).future);
     final files = await widget.ref.read(attachmentsProvider(key).future);
-    return (info: info, files: files);
+    return _loaded = (info: info, files: files);
   }
 
   void _open(Assignment a) => setState(() {
         _picked = a;
+        _loaded = null;
+        _text = false;
+        _note = null;
+        _files.clear();
         _load = _fetch((courseId: a.courseId, assignmentId: a.id));
       });
+
+  void _toggleFile(FileEntry f) => setState(() {
+        _note = null;
+        if (_files.remove(f.id)) return;
+        if (_files.length >= kMaxAttachFiles) {
+          _note = 'Up to $kMaxAttachFiles files at once.';
+        } else {
+          _files.add(f.id);
+        }
+      });
+
+  void _attach(Assignment picked) {
+    final data = _loaded;
+    if (data == null) return;
+    final text = data.info.description.trim();
+    final files = [for (final f in data.files) if (_files.contains(f.id)) f];
+    Navigator.of(context).pop<ContextBuilder>(
+      () => contextForFiles(
+        widget.ref,
+        files,
+        first: [if (_text && text.isNotEmpty) FileContext(name: '${picked.title} (instructions)', content: text)],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -450,6 +675,7 @@ class _AssignmentFilesDialogState extends State<_AssignmentFilesDialog> {
     final picked = _picked;
     if (picked == null) return _list(context, t);
     final course = widget.ref.read(coursesByIdProvider)[picked.courseId];
+    final count = _files.length + (_text ? 1 : 0);
     return EDialog(
       eyebrow: course?.shortLabel,
       title: picked.title,
@@ -470,15 +696,14 @@ class _AssignmentFilesDialogState extends State<_AssignmentFilesDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (text.isNotEmpty)
-                _pickRow(
+                _tickRow(
                   context,
+                  checked: _text,
+                  onToggle: () => setState(() => _text = !_text),
                   icon: EIcons.fileText,
                   title: 'The instructions',
                   subtitle: 'The text of the assignment',
                   trailing: '${formatBytes(text.length)} of text',
-                  onTap: () => Navigator.of(context).pop<ContextBuilder>(
-                    () async => FileContext(name: '${picked.title} (instructions)', content: text),
-                  ),
                 ),
               for (final f in data.files) _fileRow(context, f),
               if (text.isEmpty && data.files.isEmpty)
@@ -491,24 +716,29 @@ class _AssignmentFilesDialogState extends State<_AssignmentFilesDialog> {
                     style: t.meta,
                   ),
                 ),
+              if (_note != null) Padding(padding: const EdgeInsets.all(10), child: Text(_note!, style: t.meta)),
             ],
           );
         },
       ),
-      actions: [EButton(label: 'Back', kind: EButtonKind.ghost, onTap: () => setState(() => _picked = null))],
+      actions: [
+        EButton(label: 'Back', kind: EButtonKind.ghost, onTap: () => setState(() => _picked = null)),
+        EButton(label: count == 0 ? 'Attach' : 'Attach $count', kind: EButtonKind.primary, onTap: count == 0 ? null : () => _attach(picked)),
+      ],
     );
   }
 
   Widget _fileRow(BuildContext context, FileEntry f) {
-    final problem = attachProblemFor(f.name, f.size, readsImages: widget.ref.read(aiSettingsProvider).provider.readsImages);
-    return _pickRow(
+    final problem = attachProblemFor(f.name, f.size, readsImages: _readsImages);
+    return _tickRow(
       context,
+      checked: _files.contains(f.id),
+      onToggle: () => _toggleFile(f),
       icon: previewKindFor(f.name) == PreviewKind.image ? EIcons.fileImage : EIcons.fileText,
       title: f.name,
       subtitle: problem,
       trailing: formatBytes(f.size),
       disabled: problem != null,
-      onTap: () => Navigator.of(context).pop<ContextBuilder>(() => contextForFile(widget.ref, f)),
     );
   }
 
