@@ -51,7 +51,8 @@ void main() {
 
     test('the search looks at the title and the course', () {
       final all = [a(1, 'Homework 3'), a(2, 'Essay', course: 2)];
-      expect(assignmentsWithFiles(all, courses, query: 'home 3').map((e) => e.id), isEmpty);
+      expect(assignmentsWithFiles(all, courses, query: 'home 3').map((e) => e.id), [1]);
+      expect(assignmentsWithFiles(all, courses, query: 'home 4').map((e) => e.id), isEmpty);
       expect(assignmentsWithFiles(all, courses, query: 'homework 3').map((e) => e.id), [1]);
       expect(assignmentsWithFiles(all, courses, query: 'ethics').map((e) => e.id), [2]);
     });
