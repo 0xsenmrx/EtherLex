@@ -35,6 +35,11 @@ void main() {
     expect(later.alerts.length, 1);
   });
 
+  test('the same assignment listed twice alerts once', () {
+    final batch = run([a(1, const Duration(hours: 5)), a(1, const Duration(hours: 5))]);
+    expect(batch.alerts.length, 1);
+  });
+
   test('closed app: only the nearest tier fires', () {
     final batch = run([a(1, const Duration(hours: 1))]);
     expect(batch.alerts.length, 1);
@@ -54,6 +59,10 @@ void main() {
     final batch = gradeAlerts(activity: items, courses: courses, disabled: {}, notified: {}, now: now);
     expect(batch.alerts.map((e) => e.key), ['grade:s1']);
     expect(gradeAlerts(activity: items, courses: courses, disabled: {}, notified: batch.keys, now: now).alerts, isEmpty);
+    // The same grade twice in one feed is one alert.
+    final twice = gradeAlerts(
+        activity: [items.first, items.first], courses: courses, disabled: {}, notified: {}, now: now);
+    expect(twice.alerts.length, 1);
   });
 
   test('condense summarises floods', () {

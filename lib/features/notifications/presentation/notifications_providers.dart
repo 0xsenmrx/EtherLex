@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../activity/presentation/activity_providers.dart';
+import '../../auth/domain/auth_provider.dart';
 import '../../../core/storage/settings_store.dart';
 import '../../assignments/presentation/assignments_providers.dart';
 import '../../settings/presentation/settings_store_provider.dart';
@@ -56,22 +57,30 @@ class NotificationsController extends Notifier<bool> {
     if (state) _check();
   }
 
+  /// The list of a provider, but only once it has loaded for the current
+  /// account. While it reloads after signing in or switching account, a
+  /// StreamProvider still holds the previous account's value (the sample data
+  /// when you come from sample mode), and that must never raise alerts.
+  List<T> _current<T>(AsyncValue<List<T>> v) => v.isLoading ? const [] : (v.value ?? const []);
+
   Future<void> _check() async {
     if (!ref.mounted || !state || !_loaded || _busy) return;
+    // Not signed in (yet): whatever the providers hold is not this account's.
+    if (ref.read(authProvider).value == null) return;
     _busy = true;
     try {
       final now = DateTime.now();
       final courses = ref.read(coursesByIdProvider);
       final disabled = ref.read(disabledCoursesProvider);
       final deadlines = deadlineAlerts(
-        assignments: ref.read(assignmentsProvider).value ?? const [],
+        assignments: _current(ref.read(assignmentsProvider)),
         courses: courses,
         disabled: disabled,
         notified: _notified,
         now: now,
       );
       final grades = gradeAlerts(
-        activity: ref.read(activityProvider).value ?? const [],
+        activity: _current(ref.read(activityProvider)),
         courses: courses,
         disabled: disabled,
         notified: _notified,
