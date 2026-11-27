@@ -39,7 +39,7 @@ class EDropOverlay extends StatelessWidget {
                 children: [
                   ClipRect(
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                      filter: ImageFilter.blur(sigmaX: 6 * k, sigmaY: 6 * k),
                       child: ColoredBox(color: c.canvas.withValues(alpha: 0.5)),
                     ),
                   ),
@@ -91,7 +91,7 @@ class _FileFan extends StatelessWidget {
               color: filled ? c.accentFill : c.surface,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: filled ? c.accentFill : c.lineStrong),
-              boxShadow: [BoxShadow(color: const Color(0x26000000), blurRadius: 18, offset: const Offset(0, 8))],
+              boxShadow: const [BoxShadow(color: Color(0x26000000), blurRadius: 18, offset: Offset(0, 8))],
             ),
             child: Center(child: Icon(icon, size: 28, color: filled ? c.onAccent : c.accent)),
           ),
