@@ -1,3 +1,4 @@
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,7 @@ import '../../../core/network/canvas_exception.dart';
 import '../../../core/utils/date_format.dart';
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/dialog.dart';
+import '../../../design_system/ether/drop_overlay.dart';
 import '../../../design_system/ether/icons.dart';
 import '../../../design_system/ether/list.dart';
 import '../../../design_system/ether/tap.dart';
@@ -19,6 +21,7 @@ import '../domain/ai_settings.dart';
 import '../domain/chat_backend.dart';
 import '../domain/chat_models.dart';
 import '../domain/context_item.dart';
+import '../domain/file_collect.dart' show kMaxAttachFiles;
 import 'ai_providers.dart';
 import 'chat_controller.dart';
 import 'chat_attach.dart';
@@ -162,6 +165,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   /// Fetching something to attach can take a moment, and can fail.
   bool _loadingAttach = false;
+
+  /// Files are being dragged over the page.
+  bool _dragging = false;
   ChatException? _attachError;
   ContextBuilder? _failedBuild;
 
@@ -174,6 +180,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final build = await pickContext(context, ref);
     if (build == null || !mounted) return;
     await _load(build);
+  }
+
+  /// Files or folders dropped on the page. Asks for the one-time permission first, like the paperclip.
+  Future<void> _dropped(List<String> paths) async {
+    if (_loadingAttach || paths.isEmpty) return;
+    if (!await ensureConsent(context, ref) || !mounted) return;
+    await _load(() => attachLocalPaths(ref, paths));
   }
 
   Future<void> _load(ContextBuilder build) async {
@@ -242,7 +255,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final messages = state.current?.messages ?? const <ChatMessage>[];
     final needsKey = !sample && !keys.contains(settings.provider) && messages.isEmpty;
 
-    return Column(
+    final body = Column(
       children: [
         EPageHeader(
           title: 'Assistant',
@@ -367,7 +380,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   if (_loadingAttach)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
-                      child: Text('Loading from Canvas…', style: context.text.meta),
+                      child: Text('Loading…', style: context.text.meta),
                     ),
                   if (_attached.isNotEmpty)
                     Padding(
@@ -396,6 +409,26 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ),
         ),
       ],
+    );
+    return DropTarget(
+      enable: !needsKey && !_loadingAttach,
+      onDragEntered: (_) => setState(() => _dragging = true),
+      onDragExited: (_) => setState(() => _dragging = false),
+      onDragDone: (d) {
+        setState(() => _dragging = false);
+        _dropped([for (final f in d.files) f.path]);
+      },
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          body,
+          EDropOverlay(
+            active: _dragging,
+            title: 'Drop to attach',
+            hint: 'Files or folders, up to $kMaxAttachFiles files at once',
+          ),
+        ],
+      ),
     );
   }
 
