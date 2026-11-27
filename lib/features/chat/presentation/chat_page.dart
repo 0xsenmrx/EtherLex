@@ -1,7 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:material_ui/material_ui.dart' show InputBorder, InputDecoration, SelectableText, TextField, Tooltip;
+import 'package:material_ui/material_ui.dart' show InputBorder, InputDecoration, SelectionArea, TextField, Tooltip;
 
 import '../../../core/motion/smooth_scroll.dart';
 import '../../../core/network/canvas_exception.dart';
@@ -269,28 +269,31 @@ class _ChatPageState extends ConsumerState<ChatPage> {
               : Stack(
                   children: [
                     Positioned.fill(
-                      child: ListView.builder(
-                        controller: _scroll,
-                        padding: const EdgeInsets.fromLTRB(28, 8, 28, 16),
-                        itemCount: messages.length,
-                        itemBuilder: (context, i) {
-                          final m = messages[i];
-                          final last = i == messages.length - 1;
-                          return Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 760),
-                              child: _Bubble(
-                                key: _messageKeys.putIfAbsent(m.id, GlobalKey.new),
-                                marked: _flash == m.id,
-                                message: m,
-                                thinking: last && state.streaming && m.role == ChatRole.assistant && m.text.isEmpty,
-                                onRegenerate: last && !state.streaming && m.role == ChatRole.assistant
-                                    ? controller.regenerate
-                                    : null,
+                      child: SelectionArea(
+                        // One selection area for the whole conversation: a selection can cross paragraphs and messages.
+                        child: ListView.builder(
+                          controller: _scroll,
+                          padding: const EdgeInsets.fromLTRB(28, 8, 28, 16),
+                          itemCount: messages.length,
+                          itemBuilder: (context, i) {
+                            final m = messages[i];
+                            final last = i == messages.length - 1;
+                            return Center(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(maxWidth: 760),
+                                child: _Bubble(
+                                  key: _messageKeys.putIfAbsent(m.id, GlobalKey.new),
+                                  marked: _flash == m.id,
+                                  message: m,
+                                  thinking: last && state.streaming && m.role == ChatRole.assistant && m.text.isEmpty,
+                                  onRegenerate: last && !state.streaming && m.role == ChatRole.assistant
+                                      ? controller.regenerate
+                                      : null,
+                                ),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       ),
                     ),
                     Positioned(
@@ -496,7 +499,7 @@ class _Bubble extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    SelectableText(message.text, style: t.body),
+                    Text(message.text, style: t.body),
                     if (message.attached.isNotEmpty) ...[
                       const SizedBox(height: 6),
                       Text('Attached: ${message.attached.join(', ')}', style: t.meta),
