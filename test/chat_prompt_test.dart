@@ -25,6 +25,17 @@ void main() {
     expect(chatSystemPrompt(DateTime(2026, 11, 20), courses: const CoursesContext(lines: [])), isNot(contains("The student's courses")));
   });
 
+  test('it tells the assistant to help with homework, including typesetting finished work', () {
+    final p = chatSystemPrompt(DateTime(2026, 11, 20));
+    expect(p, contains('Help with homework'));
+    expect(p, contains('Typst, LaTeX'));
+    expect(p, contains('Do not refuse'));
+    expect(p, contains('keep their steps and answers as they are'));
+    // The app limits stay, and are said to be about the app only.
+    expect(p, contains('not limits on what you may write'));
+    expect(p, contains('must never say that you did'));
+  });
+
   test('it tells the assistant how to ask for a course and how to show the course list', () {
     final p = chatSystemPrompt(DateTime(2026, 11, 20));
     expect(p, contains('write "?" as the course name'));

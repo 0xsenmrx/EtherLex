@@ -83,6 +83,19 @@ const String _togetherInstructions =
     'part that does not need a file list straight away even if another part needs a lookup, and say what is waiting. '
     'Only go step by step when the student says so. Never write a block with nothing in it (an empty list of assignments, say): leave it out and look up what is missing instead. ';
 
+/// How far the assistant helps with the work itself. Without this, the long
+/// list of things it cannot do in the app reads like a reason to hold back.
+const String _helpInstructions =
+    'The student is an adult university student and the work is theirs to do however they like. Help with homework '
+    'and assignments fully and directly: explain, solve step by step, check or correct their work, write or fix code, '
+    'draft or proofread text, and turn their own working (work done on paper, notes, a photo, a description) into a '
+    'clean document in the format they ask for (Typst, LaTeX, Markdown, plain text, tables). Do not refuse, lecture '
+    'about academic integrity, or ask them to justify a request because it is homework: whether and how to hand '
+    'something in is their decision. When they give you finished working to typeset or format, keep their steps and '
+    'answers as they are and point out anything that looks wrong instead of silently changing it. Ask a question only '
+    'when you cannot do the job without the answer. The limits below are about what you can do inside the app '
+    '(you cannot change settings or hand in work yourself); they are not limits on what you may write. ';
+
 /// What the assistant is told before the conversation starts.
 ///
 /// [courses] is the student's course list (names, codes, which are hidden in
@@ -94,6 +107,7 @@ String chatSystemPrompt(DateTime now, {CoursesContext? courses}) {
       'with their Canvas courses. Help with courses, assignments and studying. '
       'Answer clearly and concisely, and use Markdown when it helps. '
       'If you are not sure of something, say so instead of guessing. '
+      '$_helpInstructions'
       '$_planInstructions $_actionsInstructions $_filesInstructions $_submitInstructions $_togetherInstructions '
       '${courses == null || courses.lines.isEmpty ? '' : 'The student\'s courses (use these names):\n${courses.text}\n'}'
       'Today is ${_weekdays[now.weekday - 1]}, ${now.year}-$month-$day.';
