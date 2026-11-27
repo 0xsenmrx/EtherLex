@@ -37,15 +37,28 @@ class _SubmitSectionState extends ConsumerState<SubmitSection> {
   AssignmentRef get _key =>
       (courseId: widget.assignment.courseId, assignmentId: widget.assignment.id);
 
-  void _add(Iterable<String> paths) {
-    final added = [
-      for (final p in paths)
-        if (!_files.contains(p) && FileSystemEntity.typeSync(p) == FileSystemEntityType.file) p,
-    ];
-    if (added.isEmpty) return;
+  /// Adds dropped or picked files. A folder, or a file of a type this assignment
+  /// does not accept, is not added and the reason is shown.
+  void _add(Iterable<String> paths, SubmissionInfo info) {
+    final added = <String>[];
+    String? problem;
+    for (final p in paths) {
+      if (_files.contains(p) || added.contains(p)) continue;
+      if (FileSystemEntity.typeSync(p) != FileSystemEntityType.file) {
+        problem ??= '${fileBaseName(p)} is a folder. Folders cannot be submitted: drop the files inside it.';
+        continue;
+      }
+      final refused = validateFiles(info, [p]);
+      if (refused != null) {
+        problem ??= refused;
+        continue;
+      }
+      added.add(p);
+    }
+    if (added.isEmpty && problem == null) return;
     setState(() {
       _files.addAll(added);
-      _error = null;
+      _error = problem;
     });
   }
 
@@ -55,7 +68,7 @@ class _SubmitSectionState extends ConsumerState<SubmitSection> {
         : [XTypeGroup(label: 'Accepted files', extensions: info.allowedExtensions)];
     final picked = await openFiles(acceptedTypeGroups: groups);
     if (!mounted) return;
-    _add(picked.map((f) => f.path));
+    _add(picked.map((f) => f.path), info);
   }
 
   Future<void> _submit(SubmissionInfo info) async {
@@ -144,7 +157,7 @@ class _SubmitSectionState extends ConsumerState<SubmitSection> {
           onDragExited: (_) => setState(() => _dragging = false),
           onDragDone: (d) {
             setState(() => _dragging = false);
-            _add(d.files.map((f) => f.path));
+            _add(d.files.map((f) => f.path), info);
           },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 160),

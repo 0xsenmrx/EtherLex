@@ -1,3 +1,4 @@
+import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -162,6 +163,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
 
   /// Fetching something to attach can take a moment, and can fail.
   bool _loadingAttach = false;
+
+  /// Files are being dragged over the page.
+  bool _dragging = false;
   ChatException? _attachError;
   ContextBuilder? _failedBuild;
 
@@ -174,6 +178,13 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final build = await pickContext(context, ref);
     if (build == null || !mounted) return;
     await _load(build);
+  }
+
+  /// Files or folders dropped on the page. Asks for the one-time permission first, like the paperclip.
+  Future<void> _dropped(List<String> paths) async {
+    if (_loadingAttach || paths.isEmpty) return;
+    if (!await ensureConsent(context, ref) || !mounted) return;
+    await _load(() => attachLocalPaths(ref, paths));
   }
 
   Future<void> _load(ContextBuilder build) async {
@@ -242,7 +253,8 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final messages = state.current?.messages ?? const <ChatMessage>[];
     final needsKey = !sample && !keys.contains(settings.provider) && messages.isEmpty;
 
-    return Column(
+    final c = context.colors;
+    final body = Column(
       children: [
         EPageHeader(
           title: 'Assistant',
@@ -367,7 +379,7 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                   if (_loadingAttach)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 8),
-                      child: Text('Loading from Canvas…', style: context.text.meta),
+                      child: Text('Loading…', style: context.text.meta),
                     ),
                   if (_attached.isNotEmpty)
                     Padding(
@@ -396,6 +408,37 @@ class _ChatPageState extends ConsumerState<ChatPage> {
           ),
         ),
       ],
+    );
+    return DropTarget(
+      enable: !needsKey && !_loadingAttach,
+      onDragEntered: (_) => setState(() => _dragging = true),
+      onDragExited: (_) => setState(() => _dragging = false),
+      onDragDone: (d) {
+        setState(() => _dragging = false);
+        _dropped([for (final f in d.files) f.path]);
+      },
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          body,
+          if (_dragging)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: c.accentSoft.withValues(alpha: 0.85),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: c.accentFill, width: 2),
+                    ),
+                    child: Center(child: Text('Drop files or folders to attach them', style: context.text.label)),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 

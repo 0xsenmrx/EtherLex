@@ -33,7 +33,9 @@ import '../domain/ai_settings.dart';
 import '../domain/attach_rules.dart';
 import '../domain/context_builders.dart';
 import '../domain/context_item.dart';
+import '../data/local_disk.dart';
 import '../domain/file_collect.dart';
+import '../domain/local_collect.dart';
 import 'ai_consent.dart';
 import 'ai_providers.dart';
 
@@ -202,6 +204,13 @@ class _AttachDialog extends StatelessWidget {
           ),
           _row(
             context,
+            icon: EIcons.folderClosed,
+            title: 'A folder from this computer',
+            subtitle: 'Its files and those of its subfolders, up to $kMaxAttachFiles',
+            build: () => _attachFolderFromComputer(ref),
+          ),
+          _row(
+            context,
             icon: EIcons.assignments,
             title: 'Of an assignment',
             subtitle: 'Handouts linked in it, and its instructions',
@@ -266,24 +275,44 @@ Future<AttachResult> _attachFromComputer(WidgetRef ref) async {
       ]),
     ],
   );
-  if (picked.isEmpty) return const AttachResult([]);
+  return attachLocalPaths(ref, [for (final x in picked) x.path]);
+}
+
+/// A folder picked in the system dialog: its files and those of its subfolders, within the limits.
+Future<AttachResult> _attachFolderFromComputer(WidgetRef ref) async {
+  final dir = await getDirectoryPath();
+  if (dir == null) return const AttachResult([]);
+  return attachLocalPaths(ref, [dir]);
+}
+
+/// Reads files and folders on this computer (picked, or dropped on the chat)
+/// into things to attach. A folder gives its files and, nearest first, those of
+/// its subfolders, bounded by [collectLocal]; links and hidden folders are not
+/// entered. A file that cannot be read is reported and does not stop the others.
+Future<AttachResult> attachLocalPaths(WidgetRef ref, List<String> paths, {LocalDisk disk = const IoLocalDisk()}) async {
+  if (paths.isEmpty) return const AttachResult([]);
   final readsImages = ref.read(aiSettingsProvider).provider.readsImages;
+  final found = await collectLocal(
+    disk,
+    paths,
+    problemOf: (name, size) => attachProblemFor(name, size, readsImages: readsImages),
+  );
   final items = <ContextItem>[];
-  final problems = <String>[];
-  for (final x in picked.take(kMaxAttachFiles)) {
-    final problem = attachProblemFor(x.name, await x.length(), readsImages: readsImages);
-    if (problem != null) {
-      problems.add('${x.name}: $problem.');
-      continue;
-    }
+  final problems = [
+    ...found.notes,
+    for (final s in found.skipped.take(5)) '${fileNameOf(s.path)}: ${s.reason}.',
+    if (found.skipped.length > 5) '${found.skipped.length - 5} more could not be attached.',
+  ];
+  for (final path in found.files) {
     try {
-      items.add(await contextForPath(x.path, x.name));
+      items.add(await contextForPath(path, fileNameOf(path)));
     } on AttachException catch (e) {
       problems.add(e.message);
+    } catch (_) {
+      problems.add('${fileNameOf(path)}: could not be read.');
     }
   }
-  if (picked.length > kMaxAttachFiles) problems.add('Only the first $kMaxAttachFiles files were used.');
-  if (items.isEmpty && problems.isNotEmpty) throw AttachException(problems.join(' '));
+  if (items.isEmpty) throw AttachException(problems.isEmpty ? 'There was nothing to attach.' : problems.join(' '));
   return AttachResult(items, problems);
 }
 
