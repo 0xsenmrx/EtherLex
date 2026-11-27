@@ -65,8 +65,9 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     }, fireImmediately: true);
   }
 
-  /// Scrolls to message [id] and marks it. Messages far away are not built
-  /// yet, so it first moves near it by its place in the list, then aligns it.
+  /// Scrolls to message [id] and marks it. Every message is built, so it is
+  /// normally found at once; the loop below is a fallback that moves near it by
+  /// its place in the list first.
   Future<void> _showMessage(String id) async {
     for (var attempt = 0; attempt < 8; attempt++) {
       await WidgetsBinding.instance.endOfFrame;
@@ -271,28 +272,40 @@ class _ChatPageState extends ConsumerState<ChatPage> {
                     Positioned.fill(
                       child: SelectionArea(
                         // One selection area for the whole conversation: a selection can cross paragraphs and messages.
-                        child: ListView.builder(
+                        // Not a lazy ListView: with messages of very different heights the
+                        // scroll extent was only an estimate, so the scroll bar thumb jumped
+                        // while dragging. Every message is laid out, so the extent is exact.
+                        child: SingleChildScrollView(
                           controller: _scroll,
                           padding: const EdgeInsets.fromLTRB(28, 8, 28, 16),
-                          itemCount: messages.length,
-                          itemBuilder: (context, i) {
-                            final m = messages[i];
-                            final last = i == messages.length - 1;
-                            return Center(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 760),
-                                child: _Bubble(
-                                  key: _messageKeys.putIfAbsent(m.id, GlobalKey.new),
-                                  marked: _flash == m.id,
-                                  message: m,
-                                  thinking: last && state.streaming && m.role == ChatRole.assistant && m.text.isEmpty,
-                                  onRegenerate: last && !state.streaming && m.role == ChatRole.assistant
-                                      ? controller.regenerate
-                                      : null,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              for (var i = 0; i < messages.length; i++)
+                                RepaintBoundary(
+                                  key: ValueKey(messages[i].id),
+                                  child: Center(
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(maxWidth: 760),
+                                      child: _Bubble(
+                                        key: _messageKeys.putIfAbsent(messages[i].id, GlobalKey.new),
+                                        marked: _flash == messages[i].id,
+                                        message: messages[i],
+                                        thinking: i == messages.length - 1 &&
+                                            state.streaming &&
+                                            messages[i].role == ChatRole.assistant &&
+                                            messages[i].text.isEmpty,
+                                        onRegenerate: i == messages.length - 1 &&
+                                                !state.streaming &&
+                                                messages[i].role == ChatRole.assistant
+                                            ? controller.regenerate
+                                            : null,
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
+                            ],
+                          ),
                         ),
                       ),
                     ),
