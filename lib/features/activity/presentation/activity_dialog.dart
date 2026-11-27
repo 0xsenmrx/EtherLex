@@ -51,6 +51,7 @@ Future<void> showActivityDialog(BuildContext context, ActivityItem item, Course?
         );
       },
       maxWidth: 680,
+      selectable: true,
     );
 
 /// The whole post: text with clickable links, pictures, and a way to Canvas.

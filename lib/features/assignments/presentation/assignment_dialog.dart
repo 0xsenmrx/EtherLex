@@ -18,6 +18,7 @@ Future<void> showAssignmentDialog(BuildContext context, int id) => showEtherDial
       context,
       (_) => _AssignmentDialog(id: id),
       maxWidth: 640,
+      selectable: true,
     );
 
 class _AssignmentDialog extends StatelessWidget {

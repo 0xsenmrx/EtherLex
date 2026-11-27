@@ -11,7 +11,7 @@ import 'update_providers.dart';
 
 /// "What's new" for the available release, with the Update button.
 Future<void> showUpdateDialog(BuildContext context) =>
-    showEtherDialog<void>(context, (_) => const UpdateDialog(), maxWidth: 520);
+    showEtherDialog<void>(context, (_) => const UpdateDialog(), maxWidth: 520, selectable: true);
 
 class UpdateDialog extends ConsumerWidget {
   const UpdateDialog({super.key});

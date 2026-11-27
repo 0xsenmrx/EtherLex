@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:material_ui/material_ui.dart' show Material, MaterialType;
+import 'package:material_ui/material_ui.dart' show Material, MaterialType, SelectionArea;
 
 import '../../core/platform/system_motion.dart';
 import '../theme/ether_theme.dart';
@@ -8,11 +8,15 @@ import 'controls.dart';
 
 /// Opens [builder] in the shared dialog frame: at most 85% of the window
 /// height, Esc or a click outside closes it. No backdrop blur (too costly).
+///
+/// [selectable] makes the text in it selectable and copyable (dialogs that
+/// show something to read: a post, an assignment, a course's grades).
 Future<T?> showEtherDialog<T>(
   BuildContext context,
   WidgetBuilder builder, {
   double maxWidth = 480,
   double? topFraction,
+  bool selectable = false,
 }) {
   final c = context.colors;
   final still = (MediaQuery.maybeDisableAnimationsOf(context) ?? false) || animationsOff;
@@ -24,7 +28,7 @@ Future<T?> showEtherDialog<T>(
     // Animation effects off: the dialog appears and goes at once.
     transitionDuration: still ? Duration.zero : const Duration(milliseconds: 180),
     pageBuilder: (context, _, _) =>
-        _Frame(maxWidth: maxWidth, topFraction: topFraction, child: builder(context)),
+        _Frame(maxWidth: maxWidth, topFraction: topFraction, selectable: selectable, child: builder(context)),
     transitionBuilder: (context, animation, _, child) {
       final curved = CurvedAnimation(
         parent: animation,
@@ -44,10 +48,11 @@ Future<T?> showEtherDialog<T>(
 }
 
 class _Frame extends StatelessWidget {
-  const _Frame({required this.child, required this.maxWidth, this.topFraction});
+  const _Frame({required this.child, required this.maxWidth, this.topFraction, this.selectable = false});
 
   final Widget child;
   final double maxWidth;
+  final bool selectable;
 
   /// Pins the dialog this far down the window (as a share of its height)
   /// instead of centring it, so it does not jump when its height changes.
@@ -86,7 +91,10 @@ class _Frame extends StatelessWidget {
                   // Own layer, so hover effects and spinners inside do not
                   // repaint the large shadow around the dialog.
                   child: RepaintBoundary(
-                    child: Material(type: MaterialType.transparency, child: child),
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: selectable ? SelectionArea(child: child) : child,
+                    ),
                   ),
                 ),
               ),

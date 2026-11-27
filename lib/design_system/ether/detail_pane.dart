@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart' show SelectionArea;
 
 import '../../core/motion/spring_value.dart';
 import '../../core/motion/springs.dart';
@@ -101,7 +102,8 @@ class _Frame extends StatelessWidget {
                 child: SingleChildScrollView(
                   key: ValueKey<Object?>(identity),
                   padding: const EdgeInsets.fromLTRB(24, 22, 24, 32),
-                  child: child,
+                  // The text in a detail pane can be selected and copied.
+                  child: SelectionArea(child: child),
                 ),
               ),
               Positioned(
