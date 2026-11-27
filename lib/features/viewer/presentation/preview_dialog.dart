@@ -10,6 +10,7 @@ import 'package:pdfrx/pdfrx.dart';
 import '../../../core/network/canvas_exception.dart';
 import '../../../core/ui/open_with_care.dart';
 import '../../../core/utils/format.dart';
+import '../../../core/utils/single_flight.dart';
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/dialog.dart';
 import '../../../design_system/ether/icons.dart';
@@ -22,8 +23,14 @@ import '../data/doc_text.dart';
 import '../domain/preview_kind.dart';
 import 'markdown_view.dart';
 
-Future<void> showFilePreview(BuildContext context, FileEntry file) {
-  return showEtherDialog<void>(context, (_) => FilePreviewDialog(file: file), maxWidth: 1180);
+final _previewOnce = SingleFlight();
+
+/// Opens the preview. A second click while one is opening or open does not stack
+/// another one on top (a PDF used to open twice on a quick double click).
+Future<void> showFilePreview(BuildContext context, FileEntry file) async {
+  await _previewOnce.run(
+    () => showEtherDialog<void>(context, (_) => FilePreviewDialog(file: file), maxWidth: 1180),
+  );
 }
 
 const int _maxTextBytes = 2 * 1024 * 1024;
