@@ -27,6 +27,9 @@ class Assignment {
         starred: starred ?? this.starred,
       );
 
+  /// A task you added yourself (see custom_task.dart); Canvas ids are positive.
+  bool get isPersonal => id < 0;
+
   bool isOverdue(DateTime now) => !done && dueAt != null && dueAt!.isBefore(now);
 
   // Value equality, so a view of one assignment can skip rebuilding when a

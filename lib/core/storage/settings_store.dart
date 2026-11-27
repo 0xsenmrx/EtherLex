@@ -42,6 +42,10 @@ abstract interface class SettingsStore {
   /// How each page was left (ViewPrefs as JSON).
   Future<Map<String, dynamic>> readViewPrefs();
   Future<void> writeViewPrefs(Map<String, dynamic> prefs);
+
+  /// The tasks you added yourself (the raw list; see `parseCustomTasks`).
+  Future<List<Object?>> readCustomTasks();
+  Future<void> writeCustomTasks(List<Map<String, dynamic>> tasks);
 }
 
 /// Tiny JSON file in the user's app-data folder (not secret, so not in the
@@ -167,6 +171,17 @@ class FileSettingsStore implements SettingsStore {
   @override
   Future<void> writeViewPrefs(Map<String, dynamic> prefs) async {
     await _update((map) => map['viewPrefs'] = prefs);
+  }
+
+  @override
+  Future<List<Object?>> readCustomTasks() async {
+    final raw = (await _readMap())['customTasks'];
+    return raw is List ? List<Object?>.of(raw) : <Object?>[];
+  }
+
+  @override
+  Future<void> writeCustomTasks(List<Map<String, dynamic>> tasks) async {
+    await _update((map) => map['customTasks'] = tasks);
   }
 
   @override

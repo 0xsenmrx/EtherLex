@@ -12,6 +12,7 @@ import '../../submission/presentation/my_submission_section.dart';
 import '../../submission/presentation/submit_section.dart';
 import '../domain/assignment.dart';
 import 'assignments_providers.dart';
+import 'task_dialog.dart';
 
 /// The assignment in the shared dialog frame: narrow windows, Calendar, Search.
 Future<void> showAssignmentDialog(BuildContext context, int id) => showEtherDialog<void>(
@@ -35,7 +36,7 @@ class _AssignmentDialog extends StatelessWidget {
         Flexible(
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(26, 24, 26, 24),
-            child: AssignmentDetail(assignmentId: id),
+            child: AssignmentDetail(assignmentId: id, onGone: () => Navigator.of(context).maybePop()),
           ),
         ),
         DecoratedBox(
@@ -61,9 +62,12 @@ class _AssignmentDialog extends StatelessWidget {
 
 /// Everything about one assignment. Used in the details pane and the dialog.
 class AssignmentDetail extends ConsumerWidget {
-  const AssignmentDetail({super.key, required this.assignmentId});
+  const AssignmentDetail({super.key, required this.assignmentId, this.onGone});
 
   final int assignmentId;
+
+  /// Called after one of your own tasks is deleted here, so the pane or dialog can close.
+  final VoidCallback? onGone;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -86,6 +90,10 @@ class AssignmentDetail extends ConsumerWidget {
     final overdue = a.isOverdue(now);
     final due = a.dueAt;
     final soon = !a.done && !overdue && due != null && due.difference(now).inHours < 24;
+    // One of your own tasks: kept on this computer, no Canvas submission.
+    final task = a.isPersonal
+        ? ref.watch(customTaskListProvider).value?.where((x) => x.id == a.id).firstOrNull
+        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,7 +106,9 @@ class AssignmentDetail extends ConsumerWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  course?.name ?? 'Course',
+                  a.isPersonal
+                      ? (course == null ? 'Personal task' : '${course.name} · personal')
+                      : (course?.name ?? 'Course'),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: t.meta,
@@ -119,7 +129,7 @@ class AssignmentDetail extends ConsumerWidget {
               value: due == null ? 'No due date' : formatDueFull(due),
               color: overdue ? c.danger : (soon ? c.dueSoon : null),
             ),
-            _Fact(label: 'Points', value: a.points == null ? '–' : '${a.points!.round()}'),
+            if (!a.isPersonal) _Fact(label: 'Points', value: a.points == null ? '–' : '${a.points!.round()}'),
             _Fact(label: 'Status', value: a.done ? 'Done' : (overdue ? 'Overdue' : 'Open')),
           ],
         ),
@@ -138,11 +148,38 @@ class AssignmentDetail extends ConsumerWidget {
               icon: a.starred ? EIcons.starFilled : EIcons.star,
               onTap: () => actions.toggleStar(a),
             ),
+            if (task != null)
+              EButton(label: 'Edit', icon: EIcons.edit, onTap: () => showTaskEditor(context, existing: task)),
+            if (task != null)
+              EButton(
+                label: 'Delete',
+                icon: EIcons.trash,
+                onTap: () async {
+                  final ok = await confirmAction(
+                    context,
+                    title: 'Delete this task?',
+                    message: '"${task.title}" will be removed from this computer. This cannot be undone.',
+                    confirmLabel: 'Delete',
+                    destructive: true,
+                  );
+                  if (!ok) return;
+                  await ref.read(customTasksProvider).remove(task.id);
+                  onGone?.call();
+                },
+              ),
           ],
         ),
-        AttachmentsSection(assignment: a),
-        MySubmissionSection(assignment: a),
-        SubmitSection(assignment: a),
+        if (a.isPersonal) ...[
+          if (task != null && task.notes.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 20),
+              child: Text(task.notes, style: t.bodySecondary.copyWith(height: 1.6)),
+            ),
+        ] else ...[
+          AttachmentsSection(assignment: a),
+          MySubmissionSection(assignment: a),
+          SubmitSection(assignment: a),
+        ],
       ],
     );
   }
