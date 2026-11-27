@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.3.1
+
+Smoother with the assistant, and you can tell what is new: attach more at once, drop files straight in, add your own tasks, and a handful of fixes.
+
+### New
+- **New and seen**: announcements and grades that arrived or changed since your last look get a dot. Opening one clears it, **Mark all as seen** clears the rest, and inside a course the items graded since you last opened it are marked. **Mark as new** (or **U**) puts one back among the new ones so you can find it later. Kept per account, across restarts.
+- **Your own tasks**: add tasks that are not in Canvas (a reading, an errand) and they sit among your assignments.
+- **Assistant, attach more**: tick several files and folders at once (with an option to include subfolders, within safe limits), attach the instructions and files of one assignment, and pick files or a whole folder from your computer. The attach menu is tidier.
+- **Drag and drop** files and folders from your computer onto the assistant to attach them.
+- The assistant now helps with homework fully: explains, solves, checks, writes code, and typesets your finished working (Typst, LaTeX, Markdown), keeping your steps.
+
+### Fixed
+- Text in assistant answers can be selected across paragraphs and messages.
+- Assignment descriptions and other detail panes can be selected and copied.
+- No sample-data notifications after signing in, and no alert shown twice.
+- The assistant's scroll bar no longer jumps.
+- A PDF preview or download starts once, also on a quick double click.
+- Dropping a folder on the submit area now says folders cannot be submitted.
+
 ## 0.3.0
 
 Share-ready: an assistant that knows your courses (with your own AI key), a searchable Settings window, accent colours and backgrounds, downloads where you want them, and a long list of fixes from a pre-release review.
