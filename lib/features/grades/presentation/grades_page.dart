@@ -14,10 +14,13 @@ import '../../../design_system/ether/detail_pane.dart';
 import '../../../design_system/ether/dialog.dart';
 import '../../../design_system/ether/icons.dart';
 import '../../../design_system/ether/list.dart';
+import '../../../design_system/ether/new_dot.dart';
 import '../../../design_system/theme/course_palette.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../../assignments/presentation/assignments_providers.dart';
 import '../../settings/domain/settings_search.dart';
+import '../../seen/domain/seen_state.dart';
+import '../../seen/presentation/seen_provider.dart';
 import '../../settings/presentation/settings_dialog.dart';
 import '../../settings/presentation/view_prefs_provider.dart';
 import '../../courses/domain/course.dart';
@@ -164,6 +167,8 @@ class _GradesPageState extends ConsumerState<GradesPage> {
     ref.watch(viewPrefsProvider); // rebuild when the fold changes
     final sync = ref.watch(gradesSyncProvider);
     final grades = ref.watch(courseGradesProvider);
+    final seen = ref.watch(seenProvider);
+    final updated = seen.updatedCourseCount(grades.values);
     final courses = ref.watch(coursesByIdProvider);
     final disabled = ref.watch(disabledCoursesProvider);
     final filter = ref.watch(courseFilterProvider);
@@ -236,8 +241,18 @@ class _GradesPageState extends ConsumerState<GradesPage> {
               children: [
                 EPageHeader(
                   title: 'Grades',
-                  subtitle: 'Now counts graded work so far; final counts what is not graded yet as zero',
-                  actions: [ESyncButton(state: sync, onRefresh: _refresh)],
+                  subtitle: updated > 0
+                      ? '$updated ${updated == 1 ? 'course has' : 'courses have'} new grades'
+                      : 'Now counts graded work so far; final counts what is not graded yet as zero',
+                  actions: [
+                    if (updated > 0)
+                      EButton(
+                        label: 'Mark all as seen',
+                        icon: EIcons.check,
+                        onTap: ref.read(seenProvider.notifier).markAllCourses,
+                      ),
+                    ESyncButton(state: sync, onRefresh: _refresh),
+                  ],
                 ),
                 Expanded(
                   child: Row(
@@ -274,6 +289,7 @@ class _GradesPageState extends ConsumerState<GradesPage> {
                                               key: ValueKey<int>(course.id),
                                               course: course,
                                               grade: grades[course.id],
+                                              isNew: seen.courseUpdated(grades[course.id]),
                                               cursor: _cursor,
                                               showBar: showBar,
                                               onTap: () => _select(course.id),
@@ -339,6 +355,7 @@ class _CourseRow extends ConsumerWidget {
     required this.cursor,
     required this.showBar,
     required this.onTap,
+    this.isNew = false,
   });
 
   final Course course;
@@ -346,6 +363,9 @@ class _CourseRow extends ConsumerWidget {
   final ValueListenable<int?> cursor;
   final bool showBar;
   final VoidCallback onTap;
+
+  /// The grade changed since this course was last opened.
+  final bool isNew;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -390,7 +410,17 @@ class _CourseRow extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(course.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.label),
+                      Row(
+                        children: [
+                          if (isNew) ...[
+                            const ENewDot(size: 7),
+                            const SizedBox(width: 7),
+                          ],
+                          Expanded(
+                            child: Text(course.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.label),
+                          ),
+                        ],
+                      ),
                       if (meta.isNotEmpty) ...[
                         const SizedBox(height: 3),
                         Text(
@@ -508,9 +538,38 @@ class _CourseDialog extends StatelessWidget {
 }
 
 /// One course's grade: the numbers, your plan, and every graded item.
-class CourseGradeDetail extends ConsumerWidget {
+class CourseGradeDetail extends ConsumerStatefulWidget {
   const CourseGradeDetail({super.key, required this.courseId});
   final int courseId;
+
+  @override
+  ConsumerState<CourseGradeDetail> createState() => _CourseGradeDetailState();
+}
+
+class _CourseGradeDetailState extends ConsumerState<CourseGradeDetail> {
+  bool _captured = false;
+  DateTime? _since;
+
+  @override
+  Widget build(BuildContext context) {
+    final seen = ref.watch(seenProvider);
+    // Opening a course is looking at it: remember what was new when it was
+    // opened (so those items stay marked while it is open), then mark it seen.
+    if (!_captured && seen.courseGrades != null) {
+      _captured = true;
+      _since = seen.sinceFor(widget.courseId);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) ref.read(seenProvider.notifier).markCourse(widget.courseId);
+      });
+    }
+    return _CourseGradeBody(courseId: widget.courseId, since: _since);
+  }
+}
+
+class _CourseGradeBody extends ConsumerWidget {
+  const _CourseGradeBody({required this.courseId, required this.since});
+  final int courseId;
+  final DateTime? since;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -614,7 +673,7 @@ class CourseGradeDetail extends ConsumerWidget {
                     if (p.earned != null) '${formatPoints(p.earned!)} / ${formatPoints(p.possible!)} pts',
                   ].join('  ·  '),
                 ),
-                for (final i in items) _ItemRow(item: i, now: today),
+                for (final i in items) _ItemRow(item: i, now: today, isNew: SeenState.itemIsNew(i, since)),
               ],
             );
           },
@@ -625,9 +684,10 @@ class CourseGradeDetail extends ConsumerWidget {
 }
 
 class _ItemRow extends StatelessWidget {
-  const _ItemRow({required this.item, required this.now});
+  const _ItemRow({required this.item, required this.now, this.isNew = false});
   final GradedItem item;
   final DateTime now;
+  final bool isNew;
 
   @override
   Widget build(BuildContext context) {
@@ -653,6 +713,10 @@ class _ItemRow extends StatelessWidget {
       decoration: BoxDecoration(border: Border(bottom: BorderSide(color: c.line))),
       child: Row(
         children: [
+          if (isNew) ...[
+            const ENewDot(size: 7),
+            const SizedBox(width: 8),
+          ],
           Expanded(child: Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.body)),
           const SizedBox(width: 12),
           if (when != null) Text(formatShortDate(when, now), style: t.metaMuted),

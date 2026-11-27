@@ -9,6 +9,7 @@ import '../../../design_system/ether/detail_pane.dart';
 import '../../../design_system/ether/icons.dart';
 import '../../../design_system/ether/list.dart';
 import '../../assignments/presentation/assignments_providers.dart';
+import '../../seen/presentation/seen_provider.dart';
 import '../../settings/presentation/view_prefs_provider.dart';
 import '../domain/activity_feed.dart';
 import '../domain/activity_item.dart';
@@ -50,13 +51,21 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
   @override
   void initState() {
     super.initState();
+    _cursor.addListener(_cursorMoved);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) ref.read(activitySyncProvider.notifier).refresh();
     });
   }
 
+  // With the detail beside the list, the selected item is on show.
+  void _cursorMoved() {
+    final id = _cursor.value;
+    if (id != null && _wide) ref.read(seenProvider.notifier).markActivity(id);
+  }
+
   @override
   void dispose() {
+    _cursor.removeListener(_cursorMoved);
     _scroll.dispose();
     _cursor.dispose();
     _focus.dispose();
@@ -134,10 +143,12 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
 
   void _select(ActivityItem item) {
     _cursor.value = item.id;
+    if (_wide) ref.read(seenProvider.notifier).markActivity(item.id);
     if (!_wide) _openDialog(item);
   }
 
   Future<void> _openDialog(ActivityItem item) async {
+    ref.read(seenProvider.notifier).markActivity(item.id);
     final courses = ref.read(coursesByIdProvider);
     await showActivityDialog(context, item, item.courseId == null ? null : courses[item.courseId]);
     if (mounted) _focus.requestFocus();
@@ -149,6 +160,7 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
   Widget build(BuildContext context) {
     ref.watch(viewPrefsProvider); // rebuild when the filter changes
     final async = ref.watch(activityProvider);
+    final seen = ref.watch(seenProvider);
     final sync = ref.watch(activitySyncProvider);
     final courses = ref.watch(coursesByIdProvider);
     final disabled = ref.watch(disabledCoursesProvider);
@@ -170,6 +182,7 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
           ];
     _index(items == null ? const <ActivityEntry>[] : buildActivityFeed(items, now));
 
+    final newCount = items == null ? 0 : seen.newActivityCount(items);
     final Widget body;
     if (async.hasError && all == null) {
       body = EErrorState(message: 'Something went wrong.', onRetry: _refresh);
@@ -213,6 +226,7 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
                     course: item.courseId == null ? null : courses[item.courseId],
                     now: now,
                     cursor: _cursor,
+                    isNew: seen.isActivityNew(item),
                     onOpen: () => _select(item),
                   ),
               };
@@ -251,8 +265,16 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
               children: [
                 EPageHeader(
                   title: 'Activity',
-                  subtitle: items == null ? null : '${items.length} updates',
-                  actions: [ESyncButton(state: sync, onRefresh: _refresh)],
+                  subtitle: items == null ? null : '${items.length} updates${newCount > 0 ? '  ·  $newCount new' : ''}',
+                  actions: [
+                    if (newCount > 0)
+                      EButton(
+                        label: 'Mark all as seen',
+                        icon: EIcons.check,
+                        onTap: ref.read(seenProvider.notifier).markAllActivity,
+                      ),
+                    ESyncButton(state: sync, onRefresh: _refresh),
+                  ],
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(28, 0, 20, 8),
