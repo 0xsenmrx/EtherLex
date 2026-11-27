@@ -46,6 +46,8 @@ AlertBatch deadlineAlerts({
 }) {
   final alerts = <Alert>[];
   final keys = <String>{};
+  // The same assignment twice in the list (or twice in one pass) alerts once.
+  final queued = <String>{};
   for (final a in assignments) {
     final due = a.dueAt;
     if (a.done || due == null || disabled.contains(a.courseId)) continue;
@@ -63,7 +65,7 @@ AlertBatch deadlineAlerts({
     for (final lead in kLeadTimes) {
       if (left <= lead) keys.add('due:${a.id}:${due.millisecondsSinceEpoch}:${lead.inHours}h');
     }
-    if (notified.contains(current)) continue;
+    if (notified.contains(current) || !queued.add(current)) continue;
     final course = courses[a.courseId];
     alerts.add(Alert(
       key: current,
@@ -85,6 +87,7 @@ AlertBatch gradeAlerts({
 }) {
   final alerts = <Alert>[];
   final keys = <String>{};
+  final queued = <String>{};
   for (final i in activity) {
     if (i.kind != ActivityKind.grade) continue;
     final cid = i.courseId;
@@ -92,7 +95,7 @@ AlertBatch gradeAlerts({
     if (now.difference(i.createdAt) > kGradeFreshness) continue;
     final key = 'grade:${i.id}';
     keys.add(key);
-    if (notified.contains(key)) continue;
+    if (notified.contains(key) || !queued.add(key)) continue;
     final course = cid == null ? null : courses[cid];
     alerts.add(Alert(
       key: key,
