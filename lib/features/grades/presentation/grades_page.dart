@@ -148,7 +148,7 @@ class _GradesPageState extends ConsumerState<GradesPage> {
   }
 
   Future<void> _openDialog(int id) async {
-    await showEtherDialog<void>(context, (context) => _CourseDialog(courseId: id), maxWidth: 600);
+    await showEtherDialog<void>(context, (context) => _CourseDialog(courseId: id), maxWidth: 600, selectable: true);
     if (mounted) _focus.requestFocus();
   }
 
