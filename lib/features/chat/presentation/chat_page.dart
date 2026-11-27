@@ -9,6 +9,7 @@ import '../../../core/network/canvas_exception.dart';
 import '../../../core/utils/date_format.dart';
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/dialog.dart';
+import '../../../design_system/ether/drop_overlay.dart';
 import '../../../design_system/ether/icons.dart';
 import '../../../design_system/ether/list.dart';
 import '../../../design_system/ether/tap.dart';
@@ -20,6 +21,7 @@ import '../domain/ai_settings.dart';
 import '../domain/chat_backend.dart';
 import '../domain/chat_models.dart';
 import '../domain/context_item.dart';
+import '../domain/file_collect.dart' show kMaxAttachFiles;
 import 'ai_providers.dart';
 import 'chat_controller.dart';
 import 'chat_attach.dart';
@@ -253,7 +255,6 @@ class _ChatPageState extends ConsumerState<ChatPage> {
     final messages = state.current?.messages ?? const <ChatMessage>[];
     final needsKey = !sample && !keys.contains(settings.provider) && messages.isEmpty;
 
-    final c = context.colors;
     final body = Column(
       children: [
         EPageHeader(
@@ -421,22 +422,11 @@ class _ChatPageState extends ConsumerState<ChatPage> {
         fit: StackFit.expand,
         children: [
           body,
-          if (_dragging)
-            Positioned.fill(
-              child: IgnorePointer(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: c.accentSoft.withValues(alpha: 0.85),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: c.accentFill, width: 2),
-                    ),
-                    child: Center(child: Text('Drop files or folders to attach them', style: context.text.label)),
-                  ),
-                ),
-              ),
-            ),
+          EDropOverlay(
+            active: _dragging,
+            title: 'Drop to attach',
+            hint: 'Files or folders, up to $kMaxAttachFiles files at once',
+          ),
         ],
       ),
     );
