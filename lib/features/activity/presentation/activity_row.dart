@@ -6,6 +6,7 @@ import '../../../core/utils/date_format.dart';
 import '../../../design_system/ether/tap.dart';
 import '../../../design_system/ether/controls.dart';
 import '../../../design_system/ether/icons.dart';
+import '../../../design_system/ether/new_dot.dart';
 import '../../../design_system/theme/fixed_colors.dart';
 import '../../../design_system/theme/course_palette.dart';
 import '../../../design_system/theme/ether_theme.dart';
@@ -40,6 +41,7 @@ class ActivityRow extends StatelessWidget {
     required this.now,
     required this.cursor,
     required this.onOpen,
+    this.isNew = false,
   });
 
   final ActivityItem item;
@@ -49,6 +51,9 @@ class ActivityRow extends StatelessWidget {
   /// Id of the selected (keyboard cursor) row.
   final ValueListenable<String?> cursor;
   final VoidCallback onOpen;
+
+  /// Arrived since the last look and not opened yet.
+  final bool isNew;
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +102,10 @@ class ActivityRow extends StatelessWidget {
                     children: [
                       Row(
                         children: [
+                          if (isNew) ...[
+                            const ENewDot(size: 7),
+                            const SizedBox(width: 7),
+                          ],
                           Expanded(
                             child: Text(item.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.label),
                           ),

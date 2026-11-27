@@ -43,6 +43,10 @@ abstract interface class SettingsStore {
   Future<Map<String, dynamic>> readViewPrefs();
   Future<void> writeViewPrefs(Map<String, dynamic> prefs);
 
+  /// What has been looked at (SeenState as JSON), so what is new can be marked.
+  Future<Map<String, dynamic>> readSeen();
+  Future<void> writeSeen(Map<String, dynamic> seen);
+
   /// The tasks you added yourself (the raw list; see `parseCustomTasks`).
   Future<List<Object?>> readCustomTasks();
   Future<void> writeCustomTasks(List<Map<String, dynamic>> tasks);
@@ -171,6 +175,17 @@ class FileSettingsStore implements SettingsStore {
   @override
   Future<void> writeViewPrefs(Map<String, dynamic> prefs) async {
     await _update((map) => map['viewPrefs'] = prefs);
+  }
+
+  @override
+  Future<Map<String, dynamic>> readSeen() async {
+    final raw = (await _readMap())['seen'];
+    return raw is Map<String, dynamic> ? raw : <String, dynamic>{};
+  }
+
+  @override
+  Future<void> writeSeen(Map<String, dynamic> seen) async {
+    await _update((map) => map['seen'] = seen);
   }
 
   @override

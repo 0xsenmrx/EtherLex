@@ -9,6 +9,7 @@ import '../../../design_system/ether/dialog.dart';
 import '../../../design_system/ether/icons.dart';
 import '../../../design_system/theme/ether_theme.dart';
 import '../../auth/domain/auth_provider.dart';
+import '../../seen/presentation/seen_provider.dart';
 import '../../courses/domain/course.dart';
 import '../../files/presentation/file_link.dart';
 import '../domain/activity_item.dart';
@@ -108,14 +109,24 @@ class ActivityDetail extends ConsumerWidget {
           ),
         ],
         if (item.images.isNotEmpty) ActivityImages(tokens: item.images),
-        if (canOpen) ...[
-          const SizedBox(height: 20),
-          EButton(
-            label: 'Open in Canvas',
-            icon: EIcons.externalLink,
-            onTap: () => openExternal(link),
-          ),
-        ],
+        const SizedBox(height: 20),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            if (canOpen)
+              EButton(
+                label: 'Open in Canvas',
+                icon: EIcons.externalLink,
+                onTap: () => openExternal(link),
+              ),
+            EButton(
+              label: ref.watch(seenProvider.select((s) => s.activityUnseen.contains(item.id))) ? 'Marked as new' : 'Mark as new',
+              icon: EIcons.bell,
+              onTap: () => ref.read(seenProvider.notifier).markActivityUnseen(item.id),
+            ),
+          ],
+        ),
       ],
     );
   }
