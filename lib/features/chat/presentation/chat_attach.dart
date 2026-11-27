@@ -21,9 +21,12 @@ import '../../files/domain/files_models.dart';
 import '../../files/domain/folder_view.dart';
 import '../../../design_system/components/compact_field.dart';
 import '../../files/presentation/files_providers.dart';
+import '../../submission/domain/submission.dart';
+import '../../submission/presentation/submission_providers.dart';
 import '../../grades/presentation/grades_providers.dart';
 import '../../viewer/data/file_text.dart';
 import '../../viewer/domain/preview_kind.dart';
+import '../../../core/utils/date_format.dart';
 import '../../../core/utils/format.dart';
 import '../domain/ai_settings.dart';
 import '../domain/attach_rules.dart';
@@ -172,6 +175,16 @@ class _AttachDialog extends StatelessWidget {
               return contextForPath(picked.path, picked.name);
             },
           ),
+          _row(
+            context,
+            icon: EIcons.assignments,
+            title: 'Files of an assignment',
+            subtitle: 'Handouts linked in it, and its instructions',
+            onPick: () async {
+              final build = await showEtherDialog<ContextBuilder>(context, (_) => _AssignmentFilesDialog(ref), maxWidth: 520);
+              if (build != null && context.mounted) Navigator.of(context).pop(build);
+            },
+          ),
           if (courses.isNotEmpty) ...[
             const EMenuDivider(),
             const EMenuCaption('A file or picture from a course'),
@@ -235,6 +248,43 @@ Future<ContextItem> contextForPath(String path, String name, {int? fileId}) asyn
   return FileContext(name: name, content: text, fileId: fileId);
 }
 
+/// One row of a picker: icon, title, a line under it, something at the right.
+Widget _pickRow(
+  BuildContext context, {
+  required IconData icon,
+  required String title,
+  String? subtitle,
+  String? trailing,
+  bool disabled = false,
+  VoidCallback? onTap,
+}) {
+  final c = context.colors;
+  final t = context.text;
+  return ETap(
+    onTap: disabled ? null : onTap,
+    builder: (context, s) => Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(color: s.hovered && !disabled ? c.hover : const Color(0x00000000), borderRadius: BorderRadius.circular(8)),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: disabled ? c.textTertiary : c.textSecondary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: disabled ? t.label.copyWith(color: c.textTertiary) : t.label, maxLines: 1, overflow: TextOverflow.ellipsis),
+                if (subtitle != null) Text(subtitle, style: t.meta, maxLines: 1, overflow: TextOverflow.ellipsis),
+              ],
+            ),
+          ),
+          if (trailing != null) ...[const SizedBox(width: 8), Text(trailing, style: t.meta)],
+        ],
+      ),
+    ),
+  );
+}
+
 class _FilesDialog extends StatefulWidget {
   const _FilesDialog(this.ref, this.course);
 
@@ -266,45 +316,9 @@ class _FilesDialogState extends State<_FilesDialog> {
     super.dispose();
   }
 
-  Widget _row(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    String? subtitle,
-    String? trailing,
-    bool disabled = false,
-    VoidCallback? onTap,
-  }) {
-    final c = context.colors;
-    final t = context.text;
-    return ETap(
-      onTap: disabled ? null : onTap,
-      builder: (context, s) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(color: s.hovered && !disabled ? c.hover : const Color(0x00000000), borderRadius: BorderRadius.circular(8)),
-        child: Row(
-          children: [
-            Icon(icon, size: 16, color: disabled ? c.textTertiary : c.textSecondary),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: disabled ? t.label.copyWith(color: c.textTertiary) : t.label, maxLines: 1, overflow: TextOverflow.ellipsis),
-                  if (subtitle != null) Text(subtitle, style: t.meta, maxLines: 1, overflow: TextOverflow.ellipsis),
-                ],
-              ),
-            ),
-            if (trailing != null) ...[const SizedBox(width: 8), Text(trailing, style: t.meta)],
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _fileRow(BuildContext context, FileEntry f, {String? where}) {
     final problem = attachProblemFor(f.name, f.size, readsImages: widget.ref.read(aiSettingsProvider).provider.readsImages);
-    return _row(
+    return _pickRow(
       context,
       icon: previewKindFor(f.name) == PreviewKind.image ? EIcons.fileImage : EIcons.fileText,
       title: f.name,
@@ -361,7 +375,7 @@ class _FilesDialogState extends State<_FilesDialog> {
           } else {
             rows = [
               if (_path.isNotEmpty)
-                _row(
+                _pickRow(
                   context,
                   icon: EIcons.chevronLeft,
                   title: 'Back',
@@ -369,7 +383,7 @@ class _FilesDialogState extends State<_FilesDialog> {
                   onTap: () => setState(() => _path = _path.sublist(0, _path.length - 1)),
                 ),
               for (final f in view.folders)
-                if (!hidden.contains(f.id)) _row(context, icon: EIcons.folderClosed, title: f.name, onTap: () => setState(() => _path = [..._path, f.id])),
+                if (!hidden.contains(f.id)) _pickRow(context, icon: EIcons.folderClosed, title: f.name, onTap: () => setState(() => _path = [..._path, f.id])),
               for (final f in view.files) _fileRow(context, f),
               if (view.folders.isEmpty && view.files.isEmpty) Padding(padding: const EdgeInsets.all(16), child: Text('Nothing in this folder.', style: t.meta)),
             ];
@@ -379,6 +393,169 @@ class _FilesDialogState extends State<_FilesDialog> {
             child: SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: rows)),
           );
         },
+          ),
+        ],
+      ),
+      actions: [EButton(label: 'Back', kind: EButtonKind.ghost, onTap: () => Navigator.of(context).pop())],
+    );
+  }
+}
+
+/// Choose an assignment, then one of the files linked in it (or its text).
+class _AssignmentFilesDialog extends StatefulWidget {
+  const _AssignmentFilesDialog(this.ref);
+
+  final WidgetRef ref;
+
+  @override
+  State<_AssignmentFilesDialog> createState() => _AssignmentFilesDialogState();
+}
+
+typedef _AssignmentFiles = ({SubmissionInfo info, List<FileEntry> files});
+
+class _AssignmentFilesDialogState extends State<_AssignmentFilesDialog> {
+  Assignment? _picked;
+  Future<_AssignmentFiles>? _load;
+  String _query = '';
+  final FocusNode _search = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _search.requestFocus();
+    });
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  Future<_AssignmentFiles> _fetch(AssignmentRef key) async {
+    final info = await widget.ref.read(submissionInfoProvider(key).future);
+    final files = await widget.ref.read(attachmentsProvider(key).future);
+    return (info: info, files: files);
+  }
+
+  void _open(Assignment a) => setState(() {
+        _picked = a;
+        _load = _fetch((courseId: a.courseId, assignmentId: a.id));
+      });
+
+  @override
+  Widget build(BuildContext context) {
+    final t = context.text;
+    final picked = _picked;
+    if (picked == null) return _list(context, t);
+    final course = widget.ref.read(coursesByIdProvider)[picked.courseId];
+    return EDialog(
+      eyebrow: course?.shortLabel,
+      title: picked.title,
+      body: FutureBuilder<_AssignmentFiles>(
+        future: _load,
+        builder: (context, snap) {
+          if (snap.connectionState != ConnectionState.done) {
+            return Padding(padding: const EdgeInsets.all(16), child: Text('Loading…', style: t.meta));
+          }
+          if (snap.hasError || snap.data == null) {
+            return Padding(padding: const EdgeInsets.all(16), child: Text('Could not load this assignment. Check your connection and try again.', style: t.meta));
+          }
+          final data = snap.data!;
+          final text = data.info.description.trim();
+          final missing = data.info.attachments.length - data.files.length;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (text.isNotEmpty)
+                _pickRow(
+                  context,
+                  icon: EIcons.fileText,
+                  title: 'The instructions',
+                  subtitle: 'The text of the assignment',
+                  trailing: '${formatBytes(text.length)} of text',
+                  onTap: () => Navigator.of(context).pop<ContextBuilder>(
+                    () async => FileContext(name: '${picked.title} (instructions)', content: text),
+                  ),
+                ),
+              for (final f in data.files) _fileRow(context, f),
+              if (text.isEmpty && data.files.isEmpty)
+                Padding(padding: const EdgeInsets.all(16), child: Text('Nothing is attached to this assignment.', style: t.meta)),
+              if (missing > 0)
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Text(
+                    missing == 1 ? 'One linked file could not be found in Canvas.' : '$missing linked files could not be found in Canvas.',
+                    style: t.meta,
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+      actions: [EButton(label: 'Back', kind: EButtonKind.ghost, onTap: () => setState(() => _picked = null))],
+    );
+  }
+
+  Widget _fileRow(BuildContext context, FileEntry f) {
+    final problem = attachProblemFor(f.name, f.size, readsImages: widget.ref.read(aiSettingsProvider).provider.readsImages);
+    return _pickRow(
+      context,
+      icon: previewKindFor(f.name) == PreviewKind.image ? EIcons.fileImage : EIcons.fileText,
+      title: f.name,
+      subtitle: problem,
+      trailing: formatBytes(f.size),
+      disabled: problem != null,
+      onTap: () => Navigator.of(context).pop<ContextBuilder>(() => contextForFile(widget.ref, f)),
+    );
+  }
+
+  Widget _list(BuildContext context, EtherText t) {
+    final courses = widget.ref.read(coursesByIdProvider);
+    final found = assignmentsWithFiles(
+      widget.ref.read(assignmentsProvider).value ?? const <Assignment>[],
+      courses,
+      disabled: widget.ref.read(disabledCoursesProvider),
+      query: _query,
+    );
+    final now = DateTime.now();
+    return EDialog(
+      title: 'Which assignment?',
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CompactField(
+            width: double.infinity,
+            initial: '',
+            hint: 'Search by title or course',
+            numeric: false,
+            focusNode: _search,
+            onChanged: (v) => setState(() => _query = v),
+          ),
+          const SizedBox(height: 8),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 360),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  for (final a in found.take(60))
+                    _pickRow(
+                      context,
+                      icon: EIcons.assignments,
+                      title: a.title,
+                      subtitle: courses[a.courseId]?.shortLabel,
+                      trailing: a.done ? 'Done' : formatDue(a.dueAt, now),
+                      onTap: () => _open(a),
+                    ),
+                  if (found.isEmpty) Padding(padding: const EdgeInsets.all(16), child: Text('No assignment found.', style: t.meta)),
+                  if (found.length > 60) Padding(padding: const EdgeInsets.all(10), child: Text('${found.length - 60} more: type more of the name.', style: t.meta)),
+                ],
+              ),
+            ),
           ),
         ],
       ),
