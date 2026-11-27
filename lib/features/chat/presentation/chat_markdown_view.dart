@@ -4,7 +4,6 @@ import 'dart:io' show HttpException, SocketException;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:material_ui/material_ui.dart' show SelectableText;
 
 import '../../../app/app_info.dart';
 import '../../../core/utils/open_url.dart';
@@ -207,7 +206,7 @@ class _Render {
           _ => TextAlign.left,
         };
 
-    // Cells are plain Text, not selectable: selectable text cannot size a column.
+    // Cells are plain Text (the page's SelectionArea makes them selectable).
     Widget cell(String text, int col, {bool header = false}) => Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
           child: ConstrainedBox(
@@ -216,7 +215,6 @@ class _Render {
               parseInline(text),
               header ? base.copyWith(fontWeight: FontWeight.w700) : base,
               align: alignOf(col),
-              selectable: false,
             ),
           ),
         );
@@ -241,11 +239,11 @@ class _Render {
     );
   }
 
-  Widget richText(List<InlineRun> runs, TextStyle base, {TextAlign? align, bool selectable = true}) {
-    final span = TextSpan(style: base, children: spans(runs, base));
-    return selectable
-        ? SelectableText.rich(span, textAlign: align ?? TextAlign.start)
-        : Text.rich(span, textAlign: align);
+  /// Plain text: the chat wraps all messages in one SelectionArea, so a
+  /// selection can cross paragraphs, lists, tables and messages. A
+  /// SelectableText per paragraph made each one its own island.
+  Widget richText(List<InlineRun> runs, TextStyle base, {TextAlign? align}) {
+    return Text.rich(TextSpan(style: base, children: spans(runs, base)), textAlign: align);
   }
 
   List<InlineSpan> spans(List<InlineRun> runs, TextStyle base) {
@@ -401,7 +399,7 @@ class _CodeBlockViewState extends State<_CodeBlockView> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.all(12),
-            child: SelectableText.rich(
+            child: Text.rich(
               TextSpan(
                 style: mono,
                 children: [for (final tok in _tokens) TextSpan(text: tok.text, style: _styleOf(tok.kind, c))],
