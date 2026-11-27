@@ -8,6 +8,7 @@ import '../../../core/network/canvas_exception.dart';
 import '../../../core/notify/toast.dart';
 import '../../../core/storage/app_dir.dart';
 import '../../../core/utils/open_path.dart';
+import '../../../core/utils/single_flight.dart';
 import '../../assignments/presentation/assignments_providers.dart';
 import '../domain/download_prefs.dart';
 import '../../viewer/domain/preview_kind.dart';
@@ -41,9 +42,16 @@ Future<String?> downloadTarget(WidgetRef ref, FileEntry f) async {
   return uniquePath(dir, name);
 }
 
+final _downloads = KeyedSingleFlight<int>();
+
 /// Downloads [f] where Settings says, with a toast; "Open" on the toast opens
-/// the file (programs and web pages: "Show").
+/// the file (programs and web pages: "Show"). A second click on the same file
+/// while it is being saved (or the Save dialog is open) does nothing.
 Future<void> downloadWithToast(WidgetRef ref, FileEntry f) async {
+  await _downloads.run(f.id, () => _download(ref, f));
+}
+
+Future<void> _download(WidgetRef ref, FileEntry f) async {
   final toast = ref.read(toastProvider.notifier);
   final String? target;
   try {

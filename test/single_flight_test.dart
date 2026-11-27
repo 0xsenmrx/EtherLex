@@ -33,4 +33,26 @@ void main() {
     expect(once.busy, isFalse);
     expect(await once.run(() async => 3), 3);
   });
+
+  test('keyed: the same key is ignored while running, other keys are not', () async {
+    final once = KeyedSingleFlight<int>();
+    final gate = Completer<void>();
+    final first = once.run(1, () async {
+      await gate.future;
+      return 'a';
+    });
+    expect(once.isBusy(1), isTrue);
+    expect(await once.run(1, () async => 'again'), isNull);
+    expect(await once.run(2, () async => 'other'), 'other');
+    gate.complete();
+    expect(await first, 'a');
+    expect(once.isBusy(1), isFalse);
+    expect(await once.run(1, () async => 'later'), 'later');
+  });
+
+  test('keyed: free again after a failure', () async {
+    final once = KeyedSingleFlight<int>();
+    await expectLater(once.run<void>(1, () async => throw StateError('x')), throwsStateError);
+    expect(once.isBusy(1), isFalse);
+  });
 }

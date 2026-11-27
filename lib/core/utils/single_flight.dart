@@ -22,3 +22,23 @@ class SingleFlight {
     }
   }
 }
+
+/// Like [SingleFlight], but one at a time per key: two different files can
+/// download together, while a second click on the same file is ignored.
+class KeyedSingleFlight<K> {
+  final Set<K> _running = {};
+
+  /// True while an action for [key] has not finished.
+  bool isBusy(K key) => _running.contains(key);
+
+  /// Runs [action] for [key], or returns null at once when one for the same
+  /// key is still going. Free again afterwards, also when [action] throws.
+  Future<T?> run<T>(K key, Future<T> Function() action) async {
+    if (!_running.add(key)) return null;
+    try {
+      return await action();
+    } finally {
+      _running.remove(key);
+    }
+  }
+}
